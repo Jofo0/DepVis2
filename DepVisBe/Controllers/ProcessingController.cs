@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace DepVisBe.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("/processing")]
     public class ProcessingController : ControllerBase
     {
         private readonly ILogger<ProcessingController> _logger;
@@ -14,13 +14,16 @@ namespace DepVisBe.Controllers
             _logger = logger;
         }
 
-        [HttpPost("id")]
-        public void ProcessProject(string id)
+        [HttpPost("{id}")]
+        public async Task ProcessProject(string path)
         {
+
+            var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = "syft",
-                Arguments = $"scan \"{sourcePath}\" -o syft-json=\"{outputFilePath}\"",
+                Arguments = $"{path} -o cyclonedx-json={filename}",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false
@@ -37,8 +40,6 @@ namespace DepVisBe.Controllers
             Console.WriteLine(stdout);
             if (!string.IsNullOrWhiteSpace(stderr))
                 Console.Error.WriteLine(stderr);
-
-            return process.ExitCode;
         }
     }
 }
