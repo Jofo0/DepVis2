@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DepVisBe")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+736ee0039c0ae99136e4b611248e259919784569")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8fd5d139de39a5464eb8796436615da51ef1da75")]
 [assembly: System.Reflection.AssemblyProductAttribute("DepVisBe")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DepVisBe")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
