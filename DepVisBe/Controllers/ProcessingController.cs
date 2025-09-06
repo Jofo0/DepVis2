@@ -5,15 +5,8 @@ namespace DepVisBe.Controllers;
 
 [ApiController]
 [Route("/processing")]
-public class ProcessingController : ControllerBase
+public class ProcessingController(ILogger<ProcessingController> logger) : ControllerBase
 {
-    private readonly ILogger<ProcessingController> _logger;
-
-    public ProcessingController(ILogger<ProcessingController> logger)
-    {
-        _logger = logger;
-    }
-
     [HttpPost("{path}")]
     public async Task ProcessProject(string path)
     {
