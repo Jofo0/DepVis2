@@ -1,0 +1,27 @@
+services:
+  myservice:
+    build:
+      context: ./DepVisBe
+      dockerfile: Dockerfile
+    container_name: DepVis2-be
+    ports:
+      - "${SERVICE_PORT}:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=${SQL_SERVER},${SQL_PORT};Database=${SQL_DB};User Id=${SQL_USER};Password=${SA_PASSWORD};TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: DepVis2-sqlserver
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "${SQL_PORT}:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+volumes:
+  sql_data:
