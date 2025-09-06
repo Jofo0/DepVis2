@@ -14,7 +14,7 @@ namespace DepVisBe.Controllers
             _logger = logger;
         }
 
-        [HttpPost("{id}")]
+        [HttpPost("{path}")]
         public async Task ProcessProject(string path)
         {
 
