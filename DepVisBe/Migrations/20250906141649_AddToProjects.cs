@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace DepVisBe.Migrations
+namespace DepVis.Core.Migrations
 {
     /// <inheritdoc />
     public partial class AddToProjects : Migration

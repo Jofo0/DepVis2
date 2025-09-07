@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36408.4 d17.14
+VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DepVisBe", "DepVisBe.csproj", "{F691BD9F-4D18-4F66-961B-5F87588DCBA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DepVis.Core", "DepVis.Core.csproj", "{F691BD9F-4D18-4F66-961B-5F87588DCBA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

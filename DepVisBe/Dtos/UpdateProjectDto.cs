@@ -1,12 +1,11 @@
-﻿using DepVisBe.Model.Enums;
+﻿using DepVis.Core.Model.Enums;
 
-namespace DepVisBe.Dtos;
+namespace DepVis.Core.Dtos;
 
 public class UpdateProjectDto
 {
     public string Name { get; set; } = string.Empty;
     public ProjectType ProjectType { get; set; } = ProjectType.Folder;
     public ProcessStatus ProcessStatus { get; set; } = ProcessStatus.Created;
-    public string? FolderPath { get; set; } = string.Empty;
-    public string? GitHubLink { get; set; } = string.Empty;
+    public string ProjectLink { get; set; } = string.Empty;
 }

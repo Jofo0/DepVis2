@@ -1,10 +1,10 @@
-﻿using DepVisBe.Dtos;
-using DepVisBe.Model;
-using DepVisBe.Model.Context;
+﻿using DepVis.Core.Dtos;
+using DepVis.Core.Model;
+using DepVis.Core.Model.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace DepVisBe.Controllers;
+namespace DepVis.Core.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -20,8 +20,7 @@ public class ProjectsController(DepVisDbContext context) : ControllerBase
                 Name = p.Name,
                 ProjectType = p.ProjectType.ToString(),
                 ProcessStatus = p.ProcessStatus.ToString(),
-                FolderPath = p.FolderPath,
-                GitHubLink = p.GitHubLink
+                ProjectLink = p.ProjectLink,
             })
             .ToListAsync();
 
@@ -41,8 +40,7 @@ public class ProjectsController(DepVisDbContext context) : ControllerBase
             Name = project.Name,
             ProjectType = project.ProjectType.ToString(),
             ProcessStatus = project.ProcessStatus.ToString(),
-            FolderPath = project.FolderPath,
-            GitHubLink = project.GitHubLink
+            ProjectLink = project.ProjectLink,
         };
 
         return Ok(dto);
@@ -55,8 +53,7 @@ public class ProjectsController(DepVisDbContext context) : ControllerBase
         {
             Name = dto.Name,
             ProjectType = dto.ProjectType,
-            FolderPath = dto.FolderPath,
-            GitHubLink = dto.GitHubLink
+            ProjectLink = dto.ProjectLink,
         };
 
         context.Projects.Add(project);
@@ -68,8 +65,7 @@ public class ProjectsController(DepVisDbContext context) : ControllerBase
             Name = project.Name,
             ProjectType = project.ProjectType.ToString(),
             ProcessStatus = project.ProcessStatus.ToString(),
-            FolderPath = project.FolderPath,
-            GitHubLink = project.GitHubLink
+            ProjectLink = project.ProjectLink,
         };
 
         return CreatedAtAction(nameof(GetProject), new { id = project.Id }, result);
@@ -85,8 +81,7 @@ public class ProjectsController(DepVisDbContext context) : ControllerBase
         project.Name = dto.Name;
         project.ProjectType = dto.ProjectType;
         project.ProcessStatus = dto.ProcessStatus;
-        project.FolderPath = dto.FolderPath;
-        project.GitHubLink = dto.GitHubLink;
+        project.ProjectLink = dto.ProjectLink;
 
         await context.SaveChangesAsync();
 

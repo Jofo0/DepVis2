@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace DepVisBe.Migrations
+namespace DepVis.Core.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

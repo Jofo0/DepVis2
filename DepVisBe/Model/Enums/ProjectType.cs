@@ -1,4 +1,4 @@
-﻿namespace DepVisBe.Model.Enums;
+﻿namespace DepVis.Core.Model.Enums;
 public enum ProjectType
 {
     GitHub,
