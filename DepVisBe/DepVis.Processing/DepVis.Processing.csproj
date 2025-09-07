@@ -12,4 +12,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DepVis.Core\DepVis.Core.csproj" />
+    <ProjectReference Include="..\DepVis.Shared\DepVis.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DepVis.ServiceDefaults\DepVis.ServiceDefaults.csproj" />
     <ProjectReference Include="..\DepVis.Shared\DepVis.Shared.csproj" />
   </ItemGroup>
 

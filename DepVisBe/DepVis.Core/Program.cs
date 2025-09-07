@@ -1,4 +1,5 @@
 using DepVis.Core.Context;
+using DepVis.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<DepVisDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.AddServiceDefaults();
 
 var app = builder.Build();
 
