@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace DepVis.Core.Model.Context;
+namespace DepVis.Core.Context;
 
 public class DepVisDbContext : DbContext
 {

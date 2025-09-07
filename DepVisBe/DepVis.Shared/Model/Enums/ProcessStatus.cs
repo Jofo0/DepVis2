@@ -1,4 +1,4 @@
-﻿namespace DepVis.Core.Model.Enums;
+﻿namespace DepVis.Shared.Model.Enums;
 
 public enum ProcessStatus
 {

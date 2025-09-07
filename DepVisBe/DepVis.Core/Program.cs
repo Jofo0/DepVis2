@@ -1,4 +1,4 @@
-using DepVis.Core.Model.Context;
+using DepVis.Core.Context;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

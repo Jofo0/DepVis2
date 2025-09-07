@@ -1,6 +1,5 @@
-﻿using DepVis.Core.Dtos;
-using DepVis.Core.Model;
-using DepVis.Core.Model.Context;
+﻿using DepVis.Core.Context;
+using DepVis.Core.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

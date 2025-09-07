@@ -1,6 +1,6 @@
-﻿using DepVis.Core.Model.Enums;
+﻿using DepVis.Shared.Model.Enums;
 
-namespace DepVis.Core.Model;
+namespace DepVis.Shared.Model;
 
 public class Project
 {
