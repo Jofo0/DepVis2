@@ -34,6 +34,10 @@ public class ProcessingMessageConsumer : IConsumer<ProcessingMessage>
             await RunProcessAsync(syft);
 
             Console.WriteLine($"SBOM generated: {outputFile}");
+
+            var minio = new MinioStorageService();
+            await minio.UploadAsync(outputFile, filename);
+
         }
         catch (Exception ex)
         {
@@ -42,10 +46,10 @@ public class ProcessingMessageConsumer : IConsumer<ProcessingMessage>
         }
         finally
         {
-            //if (Directory.Exists(tempDir))
-            //{
-            //    Directory.Delete(tempDir, true);
-            //}
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
         }
     }
 

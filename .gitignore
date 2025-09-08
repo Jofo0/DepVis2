@@ -10,3 +10,4 @@ DepVisBe/obj/Debug/net9.0/DepVisBe.AssemblyInfo.cs
 /DepVisBe/obj/DepVisBe.csproj.nuget.g.targets
 /DepVisBe/obj/project.assets.json
 /DepVisBe/obj/project.nuget.cache
+/minio-data/*
