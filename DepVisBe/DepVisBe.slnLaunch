@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "All Projects",
+    "Projects": [
+      {
+        "Path": "DepVis.Processing\\DepVis.Processing.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "DepVis.Core\\DepVis.Core.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

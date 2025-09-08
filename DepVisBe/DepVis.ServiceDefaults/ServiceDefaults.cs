@@ -33,8 +33,11 @@ public static class ServiceDefaults
             options.ConnectionString = sqlConnectionString;
         });
 
+        services.AddSqlServerMigrationHostedService(x => { x.CreateDatabase = false; });
+
         services.AddMassTransit(x =>
         {
+            x.AddSqlMessageScheduler();
             x.DisableUsageTelemetry();
             x.SetKebabCaseEndpointNameFormatter();
             x.SetInMemorySagaRepositoryProvider();

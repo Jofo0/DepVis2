@@ -1,5 +1,8 @@
 ﻿using DepVis.Core.Context;
 using DepVis.Core.Dtos;
+using DepVis.Shared.Messages;
+using DepVis.Shared.Model;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,7 +10,7 @@ namespace DepVis.Core.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ProjectsController(DepVisDbContext context) : ControllerBase
+public class ProjectsController(DepVisDbContext context, IPublishEndpoint publishEndpoint) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
@@ -24,6 +27,17 @@ public class ProjectsController(DepVisDbContext context) : ControllerBase
             .ToListAsync();
 
         return Ok(projects);
+    }
+
+
+    [HttpGet("test")]
+    public async Task Test()
+    {
+
+        await publishEndpoint.Publish<ProcessingMessage>(new()
+        {
+            GitHubLink = "https://github.com/catherineisonline/shopping-time"
+        });
     }
 
     [HttpGet("{id}")]

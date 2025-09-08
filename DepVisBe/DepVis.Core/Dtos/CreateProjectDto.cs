@@ -1,4 +1,4 @@
-﻿using DepVis.Core.Model.Enums;
+﻿using DepVis.Shared.Model.Enums;
 
 namespace DepVis.Core.Dtos;
 

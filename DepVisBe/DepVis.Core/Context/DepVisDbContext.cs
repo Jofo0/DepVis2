@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DepVis.Shared.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Context;
 
