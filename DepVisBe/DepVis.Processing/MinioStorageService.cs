@@ -19,15 +19,11 @@ public class MinioStorageService
 
     public async Task EnsureBucketExistsAsync()
     {
-        var found = await _minio.BucketExistsAsync(
-            new BucketExistsArgs().WithBucket(_bucketName)
-        );
+        var found = await _minio.BucketExistsAsync(new BucketExistsArgs().WithBucket(_bucketName));
 
         if (!found)
         {
-            await _minio.MakeBucketAsync(
-                new MakeBucketArgs().WithBucket(_bucketName)
-            );
+            await _minio.MakeBucketAsync(new MakeBucketArgs().WithBucket(_bucketName));
         }
     }
 
