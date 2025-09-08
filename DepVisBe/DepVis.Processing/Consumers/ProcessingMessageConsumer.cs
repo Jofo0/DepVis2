@@ -36,7 +36,7 @@ public class ProcessingMessageConsumer(ILogger<ProcessingMessageConsumer> logger
 
             logger.LogDebug("Running Syft on the cloned repository");
             await RunProcessAsync(syft);
-            logger.LogDebug("Syft ran succesfully");
+            logger.LogDebug("Syft ran succesfully and the SBOM has been created");
 
             logger.LogDebug("Uploading the created SBOM file to minIO storage");
             var minio = new MinioStorageService();
