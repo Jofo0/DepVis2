@@ -1,13 +1,16 @@
-﻿using DepVis.Shared.Messages;
+﻿using System.Diagnostics;
+using DepVis.Shared.Messages;
+using DepVis.Shared.Services;
 using LibGit2Sharp;
 using MassTransit;
-using System.Diagnostics;
 
 namespace DepVis.Processing.Consumers;
 
-public class ProcessingMessageConsumer(ILogger<ProcessingMessageConsumer> logger) : IConsumer<ProcessingMessage>
+public class ProcessingMessageConsumer(
+    ILogger<ProcessingMessageConsumer> logger,
+    MinioStorageService minioStorageService
+) : IConsumer<ProcessingMessage>
 {
-
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
@@ -24,28 +27,19 @@ public class ProcessingMessageConsumer(ILogger<ProcessingMessageConsumer> logger
             Repository.Clone(githubLink, tempDir);
             logger.LogDebug("Repository cloned successfully");
 
-            var syft = new ProcessStartInfo
-            {
-                FileName = "syft",
-                Arguments = $". -o cyclonedx-json={outputFile}",
-                WorkingDirectory = tempDir,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            };
-
-            logger.LogDebug("Running Syft on the cloned repository");
-            await RunProcessAsync(syft);
-            logger.LogDebug("Syft ran succesfully and the SBOM has been created");
+            await RunSyft(tempDir, outputFile);
 
             logger.LogDebug("Uploading the created SBOM file to minIO storage");
-            var minio = new MinioStorageService();
-            await minio.UploadAsync(outputFile, filename);
+            await minioStorageService.UploadAsync(outputFile, filename);
             logger.LogDebug("SBOM uploaded succesfully");
         }
         catch (Exception ex)
         {
-            logger.LogError("An error occurred during the processing of {githubLink}. Message [{errorMessage}]", githubLink, ex.Message);
+            logger.LogError(
+                "An error occurred during the processing of {githubLink}. Message [{errorMessage}]",
+                githubLink,
+                ex.Message
+            );
         }
         finally
         {
@@ -54,6 +48,23 @@ public class ProcessingMessageConsumer(ILogger<ProcessingMessageConsumer> logger
                 Directory.Delete(tempDir, true);
             }
         }
+    }
+
+    private async Task RunSyft(string directory, string output)
+    {
+        var syft = new ProcessStartInfo
+        {
+            FileName = "syft",
+            Arguments = $". -o cyclonedx-json={output}",
+            WorkingDirectory = directory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+
+        logger.LogDebug("Running Syft on the cloned repository");
+        await RunProcessAsync(syft);
+        logger.LogDebug("Syft ran succesfully and the SBOM has been created");
     }
 
     private async Task RunProcessAsync(ProcessStartInfo psi)
@@ -70,9 +81,9 @@ public class ProcessingMessageConsumer(ILogger<ProcessingMessageConsumer> logger
         if (!string.IsNullOrWhiteSpace(stderr))
             logger.LogError("Stderr for the ran process [{stderr}]", stderr);
 
-
         if (process.ExitCode != 0)
-            throw new Exception($"Process '{psi.FileName}' failed with exit code {process.ExitCode}");
+            throw new Exception(
+                $"Process '{psi.FileName}' failed with exit code {process.ExitCode}"
+            );
     }
-
 }

@@ -1,7 +1,7 @@
 ﻿using Minio;
 using Minio.DataModel.Args;
 
-namespace DepVis.Processing;
+namespace DepVis.Shared.Services;
 
 public class MinioStorageService
 {
