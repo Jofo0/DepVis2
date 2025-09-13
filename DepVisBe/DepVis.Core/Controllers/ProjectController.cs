@@ -71,7 +71,9 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
             ProjectLink = project.ProjectLink,
         };
 
-        await publishEndpoint.Publish<ProcessingMessage>(new() { GitHubLink = result.ProjectLink });
+        await publishEndpoint.Publish<ProcessingMessage>(
+            new() { GitHubLink = result.ProjectLink, ProjectId = project.Id }
+        );
 
         return CreatedAtAction(nameof(GetProject), new { id = project.Id }, result);
     }
