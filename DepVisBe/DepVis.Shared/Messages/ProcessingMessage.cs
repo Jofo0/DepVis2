@@ -2,6 +2,6 @@
 
 public class ProcessingMessage
 {
-    public string GitHubLink { get; set; } = string.Empty;
-    public Guid ProjectId { get; set; } = Guid.Empty;
+    public required string GitHubLink { get; set; } = string.Empty;
+    public required Guid ProjectId { get; set; } = Guid.Empty;
 }

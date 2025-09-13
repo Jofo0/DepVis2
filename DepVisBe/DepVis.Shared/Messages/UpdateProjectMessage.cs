@@ -4,7 +4,7 @@ namespace DepVis.Shared.Messages;
 
 public class UpdateProjectMessage
 {
-    public Guid ProjectId { get; set; } = Guid.Empty;
-    public ProcessStep ProcessStep { get; set; }
-    public ProcessStatus ProcessStatus { get; set; }
+    public required Guid ProjectId { get; set; } = Guid.Empty;
+    public required ProcessStep ProcessStep { get; set; }
+    public required ProcessStatus ProcessStatus { get; set; }
 }
