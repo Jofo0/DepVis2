@@ -10,13 +10,14 @@ namespace DepVis.Core.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ProjectsController(DepVisDbContext context, IPublishEndpoint publishEndpoint) : ControllerBase
+public class ProjectsController(DepVisDbContext context, IPublishEndpoint publishEndpoint)
+    : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
     {
-        var projects = await context.Projects
-            .Select(p => new ProjectDto
+        var projects = await context
+            .Projects.Select(p => new ProjectDto
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -27,17 +28,6 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
             .ToListAsync();
 
         return Ok(projects);
-    }
-
-
-    [HttpGet("test")]
-    public async Task Test()
-    {
-
-        await publishEndpoint.Publish<ProcessingMessage>(new()
-        {
-            GitHubLink = "https://github.com/catherineisonline/shopping-time"
-        });
     }
 
     [HttpGet("{id}")]
@@ -60,7 +50,7 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
     }
 
     [HttpPost]
-    public async Task<ActionResult<ProjectDto>> CreateProject(CreateProjectDto dto)
+    public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectDto dto)
     {
         var project = new Project
         {
@@ -81,6 +71,8 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
             ProjectLink = project.ProjectLink,
         };
 
+        await publishEndpoint.Publish<ProcessingMessage>(new() { GitHubLink = result.ProjectLink });
+
         return CreatedAtAction(nameof(GetProject), new { id = project.Id }, result);
     }
 
@@ -93,7 +85,6 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
 
         project.Name = dto.Name;
         project.ProjectType = dto.ProjectType;
-        project.ProcessStatus = dto.ProcessStatus;
         project.ProjectLink = dto.ProjectLink;
 
         await context.SaveChangesAsync();

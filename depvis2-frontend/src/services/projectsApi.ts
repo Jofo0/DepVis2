@@ -1,14 +1,11 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type {
   ProjectDto,
   CreateProjectDto,
   UpdateProjectDto,
 } from "../types/projects";
+import { projectsApi } from "../store";
 
-export const projectsApi = createApi({
-  reducerPath: "projectsApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/api/projects" }),
-  tagTypes: ["Projects"],
+export const projectApi = projectsApi.injectEndpoints({
   endpoints: (builder) => ({
     getProjects: builder.query<ProjectDto[], void>({
       query: () => "/",
@@ -47,7 +44,6 @@ export const projectsApi = createApi({
       }),
       invalidatesTags: ["Projects"],
     }),
-    // optional: "test" endpoint
     publishTest: builder.query<void, void>({
       query: () => "/test",
     }),
@@ -61,4 +57,4 @@ export const {
   useUpdateProjectMutation,
   useDeleteProjectMutation,
   usePublishTestQuery,
-} = projectsApi;
+} = projectApi;

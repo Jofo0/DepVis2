@@ -3,5 +3,5 @@
 public enum ProjectType
 {
     GitHub,
-    Folder
+    Folder,
 }

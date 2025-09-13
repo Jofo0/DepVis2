@@ -2,7 +2,7 @@
 
 public enum ProcessStatus
 {
-    Created,
-    PreparedForProcessing,
-    Processed,
+    Success,
+    Pending,
+    Failed,
 }

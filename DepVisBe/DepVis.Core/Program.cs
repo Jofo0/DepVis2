@@ -4,15 +4,48 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder
+    .Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
+;
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<DepVisDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("Database")
+            ?? throw new Exception("Database ConnectionString is not set.")
+    )
+);
 
 builder.AddServiceDefaults();
 
+var frontendCors = "AllowFrontend";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        frontendCors,
+        policy =>
+        {
+            policy
+                .WithOrigins(
+                    builder.Configuration.GetConnectionString("FrontEnd")
+                        ?? throw new Exception("FrontEnd ConnectionString is not set.")
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
+});
+
 var app = builder.Build();
+app.UseCors(frontendCors);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

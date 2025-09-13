@@ -8,12 +8,22 @@ namespace DepVis.Processing.Consumers;
 
 public class ProcessingMessageConsumer(
     ILogger<ProcessingMessageConsumer> logger,
-    MinioStorageService minioStorageService
+    MinioStorageService minioStorageService,
+    IPublishEndpoint publishEndpoint
 ) : IConsumer<ProcessingMessage>
 {
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
+
+        await publishEndpoint.Publish(
+            new UpdateProjectMessage()
+            {
+                ProjectId = context.Message.ProjectId,
+                ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
+                ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
+            }
+        );
 
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
@@ -32,6 +42,15 @@ public class ProcessingMessageConsumer(
             logger.LogDebug("Uploading the created SBOM file to minIO storage");
             await minioStorageService.UploadAsync(outputFile, filename);
             logger.LogDebug("SBOM uploaded succesfully");
+
+            await publishEndpoint.Publish(
+                new UpdateProjectMessage()
+                {
+                    ProjectId = context.Message.ProjectId,
+                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
+                    ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
+                }
+            );
         }
         catch (Exception ex)
         {
@@ -39,6 +58,15 @@ public class ProcessingMessageConsumer(
                 "An error occurred during the processing of {githubLink}. Message [{errorMessage}]",
                 githubLink,
                 ex.Message
+            );
+
+            await publishEndpoint.Publish(
+                new UpdateProjectMessage()
+                {
+                    ProjectId = context.Message.ProjectId,
+                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
+                    ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
+                }
             );
         }
         finally

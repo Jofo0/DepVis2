@@ -31,7 +31,9 @@ public static class ServiceDefaults
     {
         Log.Information("Configuring MassTransit");
 
-        var sqlConnectionString = configuration.GetConnectionString("DefaultConnection");
+        var sqlConnectionString =
+            configuration.GetConnectionString("Database")
+            ?? throw new Exception("Database ConnectionString is not set.");
 
         services
             .AddOptions<SqlTransportOptions>()
