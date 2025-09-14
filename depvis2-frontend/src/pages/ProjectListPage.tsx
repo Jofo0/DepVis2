@@ -7,7 +7,7 @@ const ProjectsListPage = () => {
   if (isLoading) return <p className="p-4 text-subtle">Loading...</p>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       <h2 className="text-2xl font-medium tracking-tight text-text">
         Projects
       </h2>

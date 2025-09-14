@@ -2,7 +2,7 @@ import ProjectCreateForm from "./ProjectCreateForm";
 
 const ProjectCreatePage = () => {
   return (
-    <div className="">
+    <div className="self-center w-full max-w-2xl">
       <ProjectCreateForm />
     </div>
   );

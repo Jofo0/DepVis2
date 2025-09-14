@@ -50,7 +50,7 @@ const ProjectCreateForm = () => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="w-full max-w-md p-8 space-y-6 border bg-background text-text border-border rounded-2xl"
+      className="w-full p-8 space-y-6 border bg-background text-text border-border rounded-2xl"
     >
       <h3 className="text-xl font-medium tracking-tight">Create Project</h3>
 
