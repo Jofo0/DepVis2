@@ -91,6 +91,9 @@ function ProjectDetailPage() {
         <p>
           <span className="font-medium">Status:</span> {project.processStatus}
         </p>
+        <p>
+          <span className="font-medium">Step:</span> {project.processStep}
+        </p>
         {project.projectLink && (
           <p>
             <span className="font-medium">Link:</span>{" "}

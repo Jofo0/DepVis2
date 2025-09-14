@@ -2,6 +2,7 @@ export type ProjectDto = {
   id: string;
   name: string;
   projectType: string;
+  processStep: string;
   processStatus: string;
   projectLink: string;
 };

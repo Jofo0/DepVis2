@@ -21,8 +21,8 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
             {
                 Id = p.Id,
                 Name = p.Name,
-                ProjectType = p.ProjectType.ToString(),
-                ProcessStatus = p.ProcessStatus.ToString(),
+                ProjectType = p.ProjectType,
+                ProcessStatus = p.ProcessStatus,
                 ProjectLink = p.ProjectLink,
             })
             .ToListAsync();
@@ -41,8 +41,9 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
         {
             Id = project.Id,
             Name = project.Name,
-            ProjectType = project.ProjectType.ToString(),
-            ProcessStatus = project.ProcessStatus.ToString(),
+            ProjectType = project.ProjectType,
+            ProcessStatus = project.ProcessStatus,
+            ProcessStep = project.ProcessStep,
             ProjectLink = project.ProjectLink,
         };
 
@@ -66,8 +67,8 @@ public class ProjectsController(DepVisDbContext context, IPublishEndpoint publis
         {
             Id = project.Id,
             Name = project.Name,
-            ProjectType = project.ProjectType.ToString(),
-            ProcessStatus = project.ProcessStatus.ToString(),
+            ProjectType = project.ProjectType,
+            ProcessStatus = project.ProcessStatus,
             ProjectLink = project.ProjectLink,
         };
 
