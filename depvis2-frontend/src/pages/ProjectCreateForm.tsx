@@ -1,8 +1,8 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateProjectMutation } from "./services/projectsApi";
-import type { CreateProjectDto, ProjectDto } from "./types/projects";
+import { useCreateProjectMutation } from "../services/projectsApi";
+import type { CreateProjectDto, ProjectDto } from "../types/projects";
 
 // Validation schema
 const ProjectSchema = z.object({

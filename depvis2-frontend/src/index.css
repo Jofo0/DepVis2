@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+
+:root {
+  --color-background: 255 255 255;
+  --color-surface: 249 249 249;
+  --color-border: 229 231 235;
+  --color-text: 17 24 39;
+  --color-subtle: 107 114 128;
+  --color-accent: 59 130 246;
+}
+
+.dark {
+  --color-background: 17 24 39;
+  --color-surface: 31 41 55;
+  --color-border: 55 65 81;
+  --color-text: 249 250 251;
+  --color-subtle: 156 163 175;
+  --color-accent: 96 165 250;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
