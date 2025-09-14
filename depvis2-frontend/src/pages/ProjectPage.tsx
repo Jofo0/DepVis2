@@ -1,9 +1,22 @@
-import { useGetProjectQuery } from "../services/projectsApi";
-import { useParams } from "react-router-dom";
+import { Trash } from "lucide-react";
+import {
+  useDeleteProjectMutation,
+  useGetProjectQuery,
+} from "../services/projectsApi";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading } = useGetProjectQuery(id!);
+  const [removeProject, { isLoading: isRemoving }] = useDeleteProjectMutation();
+  const navigate = useNavigate();
+
+  const handleRemoveProject = async () => {
+    if (project) {
+      await removeProject(project.id);
+      navigate("/projects");
+    }
+  };
 
   if (isLoading) return <p className="p-4 text-subtle">Loading...</p>;
   if (!project) return <p className="p-4 text-subtle">Project not found</p>;
@@ -43,6 +56,20 @@ const ProjectDetailPage = () => {
             </a>
           </p>
         )}
+
+        <button
+          onClick={() => handleRemoveProject()}
+          className="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-center text-white transition bg-red-700 rounded-lg hover:bg-red-700/60"
+        >
+          {isRemoving ? (
+            "Removing..."
+          ) : (
+            <>
+              Remove
+              <Trash />
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
