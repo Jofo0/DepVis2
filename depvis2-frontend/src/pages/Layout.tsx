@@ -1,34 +1,52 @@
 import { Link } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "../theme/ThemeProvider";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const { darkMode, toggle } = useTheme();
+
   return (
-    <div className="flex flex-col w-screen min-h-screen min-w-screen bg-slate-50 dark:bg-slate-900">
-      <nav className="bg-white shadow-md dark:bg-slate-800">
-        <div className="flex items-center justify-between max-w-5xl px-4 py-3 mx-auto">
-          <Link
-            to="/projects"
-            className="text-lg font-semibold text-indigo-600"
-          >
+    <div className="flex flex-col w-screen min-h-screen bg-background text-text">
+      <nav className="border-b border-border bg-surface">
+        <div className="flex items-center justify-between max-w-5xl px-6 py-4 mx-auto">
+          {/* Brand */}
+          <Link to="/projects" className="text-lg font-semibold text-accent">
             DepVis Projects
           </Link>
-          <div className="space-x-4">
+
+          {/* Nav Links + Theme Toggle */}
+          <div className="flex items-center space-x-6">
             <Link
               to="/projects"
-              className="text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600"
+              className="text-sm font-medium transition text-subtle hover:text-accent"
             >
               Projects
             </Link>
             <Link
               to="/projects/new"
-              className="text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-indigo-600"
+              className="text-sm font-medium transition text-subtle hover:text-accent"
             >
               New Project
             </Link>
+
+            <button
+              onClick={toggle}
+              aria-label="Toggle theme"
+              className="p-2 transition border rounded-lg border-border hover:bg-background/60"
+            >
+              {darkMode ? (
+                <Sun className="w-4 h-4 text-accent" />
+              ) : (
+                <Moon className="w-4 h-4 text-accent" />
+              )}
+            </button>
           </div>
         </div>
       </nav>
 
-      <main className="flex-1 w-full max-w-5xl p-6 mx-auto">{children}</main>
+      <main className="flex-1 w-full max-w-5xl px-6 py-8 mx-auto">
+        {children}
+      </main>
     </div>
   );
 };

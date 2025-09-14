@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateProjectMutation } from "../services/projectsApi";
-import type { CreateProjectDto, ProjectDto } from "../types/projects";
+import type { CreateProjectDto } from "../types/projects";
+import { useNavigate } from "react-router-dom";
 
 // Validation schema
 const ProjectSchema = z.object({
@@ -17,11 +18,7 @@ const ProjectSchema = z.object({
 
 type FormValues = z.infer<typeof ProjectSchema>;
 
-export type ProjectCreateFormProps = {
-  onSuccess?: (created: ProjectDto) => void;
-};
-
-const ProjectCreateForm = ({ onSuccess }: ProjectCreateFormProps) => {
+const ProjectCreateForm = () => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
 
   const {
@@ -34,6 +31,7 @@ const ProjectCreateForm = ({ onSuccess }: ProjectCreateFormProps) => {
     defaultValues: { name: "", projectType: "GitHub", projectLink: "" },
   });
 
+  const navigate = useNavigate();
   const onSubmit = async (values: FormValues) => {
     try {
       const payload: CreateProjectDto = {
@@ -42,75 +40,70 @@ const ProjectCreateForm = ({ onSuccess }: ProjectCreateFormProps) => {
         projectLink: values.projectLink || "",
       };
 
-      const result = await createProject(payload).unwrap();
-
-      // simple success handling
-      reset();
-      onSuccess?.(result);
+      await createProject(payload).unwrap();
+      navigate("/projects");
     } catch (err) {
-      // Basic error handling; you can plug in a toast library here
       console.error("Failed to create project", err);
-      // If you want nicer UX, show a toast or set an error state
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="w-full max-w-lg p-6 space-y-4 bg-white shadow-md dark:bg-slate-800 rounded-2xl"
+      className="w-full max-w-md p-8 space-y-6 border bg-background text-text border-border rounded-2xl"
     >
-      <h3 className="text-lg font-semibold">Create project</h3>
+      <h3 className="text-xl font-medium tracking-tight">Create Project</h3>
 
-      <div>
-        <label className="block mb-1 text-sm font-medium">Name</label>
+      {/* Name */}
+      <div className="space-y-1">
+        <label className="block text-sm font-medium">Name</label>
         <input
           {...register("name")}
-          className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
-            errors.name ? "border-red-400" : "border-slate-200"
+          className={`w-full rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent transition ${
+            errors.name ? "border-red-400" : "border-border"
           }`}
           placeholder="My awesome project"
         />
         {errors.name && (
-          <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+          <p className="text-xs text-red-500">{errors.name.message}</p>
         )}
       </div>
 
-      <div>
-        <label className="block mb-1 text-sm font-medium">Project type</label>
+      {/* Project type */}
+      <div className="space-y-1">
+        <label className="block text-sm font-medium">Project type</label>
         <select
           {...register("projectType")}
-          className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 border-slate-200"
+          className="w-full px-4 py-2 text-sm transition border rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
         >
           <option value="GitHub">GitHub Link</option>
         </select>
         {errors.projectType && (
-          <p className="mt-1 text-xs text-red-500">
-            {errors.projectType.message}
-          </p>
+          <p className="text-xs text-red-500">{errors.projectType.message}</p>
         )}
       </div>
 
-      <div>
-        <label className="block mb-1 text-sm font-medium">GitHub Link</label>
+      {/* Project link */}
+      <div className="space-y-1">
+        <label className="block text-sm font-medium">GitHub Link</label>
         <input
           {...register("projectLink")}
-          className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
-            errors.projectLink ? "border-red-400" : "border-slate-200"
+          className={`w-full rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent transition ${
+            errors.projectLink ? "border-red-400" : "border-border"
           }`}
           placeholder="https://github.com/your/repo"
         />
         {errors.projectLink && (
-          <p className="mt-1 text-xs text-red-500">
-            {errors.projectLink.message}
-          </p>
+          <p className="text-xs text-red-500">{errors.projectLink.message}</p>
         )}
       </div>
 
-      <div className="flex items-center justify-end pt-2 space-x-2">
+      {/* Actions */}
+      <div className="flex items-center justify-end pt-4 space-x-3">
         <button
           type="button"
           onClick={() => reset()}
-          className="px-4 py-2 text-sm border rounded-lg"
+          className="px-4 py-2 text-sm transition border rounded-xl border-border hover:bg-surface"
         >
           Reset
         </button>
@@ -118,7 +111,7 @@ const ProjectCreateForm = ({ onSuccess }: ProjectCreateFormProps) => {
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 text-sm text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-60"
+          className="px-4 py-2 text-sm text-white transition rounded-xl bg-accent hover:opacity-90 disabled:opacity-60"
         >
           {isLoading ? "Creating..." : "Create Project"}
         </button>
