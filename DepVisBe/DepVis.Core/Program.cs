@@ -1,5 +1,6 @@
 using DepVis.Core.Context;
 using DepVis.ServiceDefaults;
+using DepVis.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,7 @@ builder
 ;
 builder.Services.AddOpenApi();
 
+builder.Services.AddScoped<MinioStorageService>();
 builder.Services.AddDbContext<DepVisDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("Database")
