@@ -53,6 +53,7 @@ public class IngestProcessingMessageConsumer(
 
         var comps = bom.Components ?? [];
         var packages = new List<SbomPackage>(comps.Count);
+        var deps = bom.Dependencies ?? [];
 
         packages.AddRange(
             comps
@@ -65,11 +66,33 @@ public class IngestProcessingMessageConsumer(
                     Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
                     Ecosystem = InferEcosystemFromPurl(x.Purl),
                     Type = x.Type,
+                    BomRef = x.BomRef,
                 })
         );
 
+        var edges = deps.ToDictionary(d => d.Ref, d => d.DependsOn ?? []);
+
+        var bomRefs = packages
+            .Select(b => new { b.BomRef, b.Id })
+            .ToDictionary(p => p.BomRef, p => p);
+
+        var createdDeps = new List<PackageDependency>();
+        foreach (var (parent, children) in edges)
+        {
+            var parentPkg = bomRefs[parent];
+            foreach (var child in children)
+            {
+                var childPkg = bomRefs[child];
+                createdDeps.Add(
+                    new PackageDependency { ParentId = parentPkg.Id, ChildId = childPkg.Id }
+                );
+            }
+        }
+
         db.SbomPackages.AddRange(packages);
+        db.PackageDependencies.AddRange(createdDeps);
         project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+
         await db.SaveChangesAsync(context.CancellationToken);
     }
 

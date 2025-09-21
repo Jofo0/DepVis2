@@ -6,19 +6,20 @@ public class CycloneDxBom
 {
     [JsonPropertyName("components")]
     public List<CycloneDxComponent>? Components { get; set; }
+
+    [JsonPropertyName("dependencies")]
+    public List<DepNode>? Dependencies { get; set; }
 }
 
-public class CycloneDxComponent
-{
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+public record CycloneDxComponent(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("version")] string Version,
+    [property: JsonPropertyName("purl")] string Purl,
+    [property: JsonPropertyName("type")] string Type,
+    [property: JsonPropertyName("bom-ref")] string BomRef
+);
 
-    [JsonPropertyName("version")]
-    public string Version { get; set; } = string.Empty;
-
-    [JsonPropertyName("purl")]
-    public string Purl { get; set; } = string.Empty;
-
-    [JsonPropertyName("type")]
-    public string Type { get; set; } = string.Empty;
-}
+public record DepNode(
+    [property: JsonPropertyName("ref")] string Ref,
+    [property: JsonPropertyName("dependsOn")] List<string>? DependsOn
+);
