@@ -15,13 +15,13 @@ public class ProcessingMessageConsumer(
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
+        var branch = context.Message.Branch;
 
         await publishEndpoint.Publish(
-            new UpdateProjectMessage()
+            new UpdateProcessingMessage()
             {
                 ProjectId = context.Message.ProjectId,
                 ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
-                ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
             }
         );
 
@@ -34,6 +34,7 @@ public class ProcessingMessageConsumer(
         try
         {
             logger.LogDebug("Cloning repository {githubLink}", githubLink);
+            var cloneOptions = new CloneOptions() { BranchName = branch, Checkout = true };
             Repository.Clone(githubLink, tempDir);
             logger.LogDebug("Repository cloned successfully");
 
@@ -44,11 +45,12 @@ public class ProcessingMessageConsumer(
             logger.LogDebug("SBOM uploaded succesfully");
 
             await publishEndpoint.Publish(
-                new UpdateProjectMessage()
+                new UpdateProcessingMessage()
                 {
                     ProjectId = context.Message.ProjectId,
                     ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
-                    ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
+                    FileName = filename,
+                    Branch = context.Message.Branch,
                 }
             );
         }
@@ -61,11 +63,10 @@ public class ProcessingMessageConsumer(
             );
 
             await publishEndpoint.Publish(
-                new UpdateProjectMessage()
+                new UpdateProcessingMessage()
                 {
                     ProjectId = context.Message.ProjectId,
                     ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
-                    ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
                 }
             );
         }

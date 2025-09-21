@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36408.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DepVis.Processing", "DepVis.Processing\DepVis.Processing.csproj", "{113DABA1-C747-47A5-8ACF-671BFFDB924B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DepVis.SbomProcessing", "DepVis.Processing\DepVis.SbomProcessing.csproj", "{113DABA1-C747-47A5-8ACF-671BFFDB924B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DepVis.Core", "DepVis.Core\DepVis.Core.csproj", "{1FA7666E-B594-289B-03C9-E130F8428F64}"
 EndProject

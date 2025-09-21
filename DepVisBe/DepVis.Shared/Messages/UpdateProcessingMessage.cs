@@ -2,9 +2,10 @@
 
 namespace DepVis.Shared.Messages;
 
-public class UpdateProjectMessage
+public class UpdateProcessingMessage
 {
     public required Guid ProjectId { get; set; } = Guid.Empty;
-    public required ProcessStep ProcessStep { get; set; }
     public required ProcessStatus ProcessStatus { get; set; }
+    public string Branch { get; set; } = string.Empty;
+    public string FileName { get; set; } = string.Empty;
 }

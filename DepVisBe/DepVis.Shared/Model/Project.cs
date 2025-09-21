@@ -8,6 +8,7 @@ public class Project
     public string Name { get; set; } = string.Empty;
     public ProjectType ProjectType { get; set; } = ProjectType.GitHub;
     public ProcessStep ProcessStep { get; set; } = ProcessStep.Created;
-    public ProcessStatus ProcessStatus { get; set; } = Enums.ProcessStatus.Success;
+    public ProcessStatus ProcessStatus { get; set; } = ProcessStatus.Success;
     public string ProjectLink { get; set; } = string.Empty;
+    public ICollection<Sbom> Sboms { get; set; } = [];
 }
