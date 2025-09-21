@@ -1,4 +1,8 @@
 using DepVis.Core.Context;
+using DepVis.Core.Repositories;
+using DepVis.Core.Repositories.Interfaces;
+using DepVis.Core.Services;
+using DepVis.Core.Services.Interfaces;
 using DepVis.ServiceDefaults;
 using DepVis.Shared.Services;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +21,8 @@ builder
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<MinioStorageService>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddDbContext<DepVisDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("Database")

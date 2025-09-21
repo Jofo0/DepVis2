@@ -7,9 +7,9 @@ using MassTransit;
 namespace DepVis.Processing.Consumers;
 
 public class ProcessingMessageConsumer(
-    ILogger<ProcessingMessageConsumer> logger,
-    MinioStorageService minioStorageService,
-    IPublishEndpoint publishEndpoint
+    ILogger<ProcessingMessageConsumer> _logger,
+    MinioStorageService _minioStorageService,
+    IPublishEndpoint _publishEndpoint
 ) : IConsumer<ProcessingMessage>
 {
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
@@ -17,7 +17,7 @@ public class ProcessingMessageConsumer(
         var githubLink = context.Message.GitHubLink;
         var branch = context.Message.Branch;
 
-        await publishEndpoint.Publish(
+        await _publishEndpoint.Publish(
             new UpdateProcessingMessage()
             {
                 ProjectId = context.Message.ProjectId,
@@ -33,18 +33,18 @@ public class ProcessingMessageConsumer(
 
         try
         {
-            logger.LogDebug("Cloning repository {githubLink}", githubLink);
+            _logger.LogDebug("Cloning repository {githubLink}", githubLink);
             var cloneOptions = new CloneOptions() { BranchName = branch, Checkout = true };
             Repository.Clone(githubLink, tempDir);
-            logger.LogDebug("Repository cloned successfully");
+            _logger.LogDebug("Repository cloned successfully");
 
             await RunSyft(tempDir, outputFile);
 
-            logger.LogDebug("Uploading the created SBOM file to minIO storage");
-            await minioStorageService.UploadAsync(outputFile, filename);
-            logger.LogDebug("SBOM uploaded succesfully");
+            _logger.LogDebug("Uploading the created SBOM file to minIO storage");
+            await _minioStorageService.UploadAsync(outputFile, filename);
+            _logger.LogDebug("SBOM uploaded succesfully");
 
-            await publishEndpoint.Publish(
+            await _publishEndpoint.Publish(
                 new UpdateProcessingMessage()
                 {
                     ProjectId = context.Message.ProjectId,
@@ -56,13 +56,13 @@ public class ProcessingMessageConsumer(
         }
         catch (Exception ex)
         {
-            logger.LogError(
+            _logger.LogError(
                 "An error occurred during the processing of {githubLink}. Message [{errorMessage}]",
                 githubLink,
                 ex.Message
             );
 
-            await publishEndpoint.Publish(
+            await _publishEndpoint.Publish(
                 new UpdateProcessingMessage()
                 {
                     ProjectId = context.Message.ProjectId,
@@ -74,7 +74,14 @@ public class ProcessingMessageConsumer(
         {
             if (Directory.Exists(tempDir))
             {
-                Directory.Delete(tempDir, true);
+                try
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                catch
+                {
+                    _logger.LogInformation("Failed to delete temp directory {tempDir}", tempDir);
+                }
             }
         }
     }
@@ -91,9 +98,9 @@ public class ProcessingMessageConsumer(
             UseShellExecute = false,
         };
 
-        logger.LogDebug("Running Syft on the cloned repository");
+        _logger.LogDebug("Running Syft on the cloned repository");
         await RunProcessAsync(syft);
-        logger.LogDebug("Syft ran succesfully and the SBOM has been created");
+        _logger.LogDebug("Syft ran succesfully and the SBOM has been created");
     }
 
     private async Task RunProcessAsync(ProcessStartInfo psi)
@@ -106,9 +113,9 @@ public class ProcessingMessageConsumer(
 
         await process.WaitForExitAsync();
 
-        logger.LogDebug("Stdout for the ran process [{stdout}]", stdout);
+        _logger.LogDebug("Stdout for the ran process [{stdout}]", stdout);
         if (!string.IsNullOrWhiteSpace(stderr))
-            logger.LogError("Stderr for the ran process [{stderr}]", stderr);
+            _logger.LogError("Stderr for the ran process [{stderr}]", stderr);
 
         if (process.ExitCode != 0)
             throw new Exception(

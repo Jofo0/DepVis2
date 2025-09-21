@@ -4,6 +4,7 @@ using DepVis.Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DepVis.Core.Migrations
 {
     [DbContext(typeof(DepVisDbContext))]
-    partial class DepVisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250921102640_AddSbomPackages")]
+    partial class AddSbomPackages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,6 +87,9 @@ namespace DepVis.Core.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Ecosystem")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Group")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")

@@ -9,4 +9,6 @@ public class DepVisDbContext : DbContext
         : base(options) { }
 
     public DbSet<Project> Projects { get; set; }
+    public DbSet<Sbom> Sboms { get; set; }
+    public DbSet<SbomPackage> SbomPackages { get; set; }
 }

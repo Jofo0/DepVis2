@@ -7,5 +7,5 @@ public class Sbom
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Branch { get; set; } = string.Empty;
     public Guid ProjectId { get; set; }
-    public Project? Project { get; set; }
+    public Project Project { get; set; } = null!;
 }
