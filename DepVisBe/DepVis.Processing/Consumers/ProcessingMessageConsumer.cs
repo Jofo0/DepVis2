@@ -91,7 +91,7 @@ public class ProcessingMessageConsumer(
         var syft = new ProcessStartInfo
         {
             FileName = "syft",
-            Arguments = $". -o cyclonedx-json={output}",
+            Arguments = $". -o cyclonedx-json={output} --select-catalogers -php",
             WorkingDirectory = directory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,

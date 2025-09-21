@@ -18,14 +18,21 @@ public class IngestProcessingMessageConsumer(
     {
         var message = context.Message;
 
-        var sbom = await db.Sboms.FirstAsync(
-            x => x.Id == message.SbomId,
-            context.CancellationToken
-        );
+        var sbom = await db
+            .Sboms.Include(x => x.Project)
+            .FirstAsync(x => x.Id == message.SbomId, context.CancellationToken);
+
+        var project = sbom.Project;
+
+        project.ProcessStep = Shared.Model.Enums.ProcessStep.SbomIngest;
+        project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
+        await db.SaveChangesAsync();
 
         if (sbom == null)
         {
             logger.LogWarning("Sbom with id {sbomId} not found", message.SbomId);
+            project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
+            await db.SaveChangesAsync();
             return;
         }
 
@@ -42,30 +49,27 @@ public class IngestProcessingMessageConsumer(
                 stream,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
                 context.CancellationToken
-            ) ?? new CycloneDxBom { Components = new() };
+            ) ?? new CycloneDxBom { Components = [] };
 
-        var comps = bom.Components ?? new();
+        var comps = bom.Components ?? [];
         var packages = new List<SbomPackage>(comps.Count);
 
-        foreach (var c in comps)
-        {
-            if (string.IsNullOrWhiteSpace(c?.Name))
-                continue;
-
-            packages.Add(
-                new SbomPackage
+        packages.AddRange(
+            comps
+                .Where(x => !string.IsNullOrWhiteSpace(x.Name))
+                .Select(x => new SbomPackage
                 {
                     SbomId = sbom.Id,
-                    Name = c.Name,
-                    Version = string.IsNullOrWhiteSpace(c.Version) ? null : c.Version,
-                    Purl = string.IsNullOrWhiteSpace(c.Purl) ? null : c.Purl,
-                    Ecosystem = InferEcosystemFromPurl(c.Purl),
-                    Type = c.Type,
-                }
-            );
-        }
+                    Name = x.Name,
+                    Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
+                    Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
+                    Ecosystem = InferEcosystemFromPurl(x.Purl),
+                    Type = x.Type,
+                })
+        );
 
         db.SbomPackages.AddRange(packages);
+        project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
         await db.SaveChangesAsync(context.CancellationToken);
     }
 
