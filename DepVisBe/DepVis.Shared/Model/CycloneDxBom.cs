@@ -4,6 +4,9 @@ namespace DepVis.Shared.Model;
 
 public class CycloneDxBom
 {
+    [JsonPropertyName("metadata")]
+    public DxMetadata Metadata { get; set; }
+
     [JsonPropertyName("components")]
     public List<CycloneDxComponent>? Components { get; set; }
 
@@ -23,3 +26,5 @@ public record DepNode(
     [property: JsonPropertyName("ref")] string Ref,
     [property: JsonPropertyName("dependsOn")] List<string>? DependsOn
 );
+
+public record DxMetadata([property: JsonPropertyName("component")] CycloneDxComponent Root);

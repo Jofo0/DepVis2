@@ -9,16 +9,18 @@ using Microsoft.EntityFrameworkCore;
 namespace DepVis.Core.Consumers;
 
 public class IngestProcessingMessageConsumer(
-    ILogger<IngestProcessingMessageConsumer> logger,
-    DepVisDbContext db,
-    MinioStorageService minioStorageService
+    ILogger<IngestProcessingMessageConsumer> _logger,
+    DepVisDbContext _db,
+    MinioStorageService _minioStorageService
 ) : IConsumer<IngestProcessingMessage>
 {
     public async Task Consume(ConsumeContext<IngestProcessingMessage> context)
     {
         var message = context.Message;
 
-        var sbom = await db
+        _logger.LogDebug("Received IngestProcessingMessage for {sbomId}", message.SbomId);
+
+        var sbom = await _db
             .Sboms.Include(x => x.Project)
             .FirstAsync(x => x.Id == message.SbomId, context.CancellationToken);
 
@@ -26,48 +28,56 @@ public class IngestProcessingMessageConsumer(
 
         project.ProcessStep = Shared.Model.Enums.ProcessStep.SbomIngest;
         project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
-        await db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
 
         if (sbom == null)
         {
-            logger.LogWarning("Sbom with id {sbomId} not found", message.SbomId);
+            _logger.LogWarning("Sbom with id {sbomId} not found", message.SbomId);
             project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
             return;
         }
 
-        var stream = await minioStorageService.RetrieveAsync(
+        var stream = await _minioStorageService.RetrieveAsync(
             sbom.FileName,
             context.CancellationToken
         );
 
-        if (stream.CanSeek)
-            stream.Seek(0, SeekOrigin.Begin);
-
         CycloneDxBom bom =
-            await JsonSerializer.DeserializeAsync<CycloneDxBom>(
+            JsonSerializer.Deserialize<CycloneDxBom>(
                 stream,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
-                context.CancellationToken
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             ) ?? new CycloneDxBom { Components = [] };
-
         var comps = bom.Components ?? [];
-        var packages = new List<SbomPackage>(comps.Count);
+        var packages = new List<SbomPackage>(comps.Count + 1);
         var deps = bom.Dependencies ?? [];
 
+        var rootProject = bom.Metadata.Root;
+
+        packages.Add(
+            new SbomPackage()
+            {
+                SbomId = sbom.Id,
+                Name = "ProjectRoot",
+                Version = null,
+                Purl = null,
+                Ecosystem = "",
+                Type = "ProjectRoot",
+                BomRef = rootProject.BomRef,
+            }
+        );
+
         packages.AddRange(
-            comps
-                .Where(x => !string.IsNullOrWhiteSpace(x.Name))
-                .Select(x => new SbomPackage
-                {
-                    SbomId = sbom.Id,
-                    Name = x.Name,
-                    Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
-                    Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
-                    Ecosystem = InferEcosystemFromPurl(x.Purl),
-                    Type = x.Type,
-                    BomRef = x.BomRef,
-                })
+            comps.Select(x => new SbomPackage
+            {
+                SbomId = sbom.Id,
+                Name = string.IsNullOrWhiteSpace(x.Name) ? "No Name Found" : x.Name,
+                Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
+                Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
+                Ecosystem = InferEcosystemFromPurl(x.Purl),
+                Type = x.Type,
+                BomRef = x.BomRef,
+            })
         );
 
         var edges = deps.ToDictionary(d => d.Ref, d => d.DependsOn ?? []);
@@ -76,7 +86,7 @@ public class IngestProcessingMessageConsumer(
             .Select(b => new { b.BomRef, b.Id })
             .ToDictionary(p => p.BomRef, p => p);
 
-        var createdDeps = new List<PackageDependency>();
+        var createdDeps = new HashSet<PackageDependency>();
         foreach (var (parent, children) in edges)
         {
             var parentPkg = bomRefs[parent];
@@ -89,11 +99,16 @@ public class IngestProcessingMessageConsumer(
             }
         }
 
-        db.SbomPackages.AddRange(packages);
-        db.PackageDependencies.AddRange(createdDeps);
+        _db.SbomPackages.AddRange(packages);
+        _db.PackageDependencies.AddRange(createdDeps);
         project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
-        await db.SaveChangesAsync(context.CancellationToken);
+        await _db.SaveChangesAsync(context.CancellationToken);
+
+        _logger.LogDebug(
+            "Successfully finished IngestProcessingMessage for {sbomId}",
+            message.SbomId
+        );
     }
 
     private static string? InferEcosystemFromPurl(string? purl)

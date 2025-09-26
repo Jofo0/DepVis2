@@ -38,7 +38,7 @@ public class ProcessingMessageConsumer(
             Repository.Clone(githubLink, tempDir);
             _logger.LogDebug("Repository cloned successfully");
 
-            await RunSyft(tempDir, outputFile);
+            await RunTrivy(tempDir, outputFile);
 
             _logger.LogDebug("Uploading the created SBOM file to minIO storage");
             await _minioStorageService.UploadAsync(outputFile, filename);
@@ -86,21 +86,21 @@ public class ProcessingMessageConsumer(
         }
     }
 
-    private async Task RunSyft(string directory, string output)
+    private async Task RunTrivy(string directory, string output)
     {
-        var syft = new ProcessStartInfo
+        var trivy = new ProcessStartInfo
         {
-            FileName = "syft",
-            Arguments = $". -o cyclonedx-json={output} --select-catalogers -php",
+            FileName = "trivy",
+            Arguments = $"fs --format cyclonedx --output {output} .",
             WorkingDirectory = directory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
         };
 
-        _logger.LogDebug("Running Syft on the cloned repository");
-        await RunProcessAsync(syft);
-        _logger.LogDebug("Syft ran succesfully and the SBOM has been created");
+        _logger.LogDebug("Running Trivy on the cloned repository");
+        await RunProcessAsync(trivy);
+        _logger.LogDebug("Trivy ran succesfully and the SBOM has been created");
     }
 
     private async Task RunProcessAsync(ProcessStartInfo psi)

@@ -79,7 +79,7 @@ public class MinioStorageService
             new GetObjectArgs()
                 .WithBucket(_bucketName)
                 .WithObject(filename)
-                .WithCallbackStream(stream => stream.CopyToAsync(resultStream)),
+                .WithCallbackStream(stream => stream.CopyTo(resultStream)),
             cancellationToken: ct
         );
 
@@ -89,6 +89,7 @@ public class MinioStorageService
             _bucketName
         );
 
+        resultStream.Position = 0;
         return resultStream;
     }
 
