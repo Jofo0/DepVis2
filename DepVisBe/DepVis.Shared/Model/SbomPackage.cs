@@ -14,4 +14,5 @@ public class SbomPackage
     public ICollection<PackageDependency> Children { get; set; } = [];
 
     public Sbom Sbom { get; set; } = null!;
+    public ICollection<Vulnerability> Vulnerabilities { get; set; }
 }

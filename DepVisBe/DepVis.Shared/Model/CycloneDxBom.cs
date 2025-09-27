@@ -12,6 +12,9 @@ public class CycloneDxBom
 
     [JsonPropertyName("dependencies")]
     public List<DepNode>? Dependencies { get; set; }
+
+    [JsonPropertyName("vulnerabilities")]
+    public List<CycloneDxVulnerability>? Vulnerabilities { get; set; }
 }
 
 public record CycloneDxComponent(
@@ -28,3 +31,40 @@ public record DepNode(
 );
 
 public record DxMetadata([property: JsonPropertyName("component")] CycloneDxComponent Root);
+
+public record CycloneDxVulnerability(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("source")] Source Source,
+    [property: JsonPropertyName("ratings")] List<Rating> Ratings,
+    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("recommendation")] string Recommendation,
+    [property: JsonPropertyName("advisories")] List<Advisory> Advisories,
+    [property: JsonPropertyName("published")] DateTime Published,
+    [property: JsonPropertyName("updated")] DateTime Updated,
+    [property: JsonPropertyName("affects")] List<Affected> Affects
+);
+
+public record Source(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("url")] string? Url
+);
+
+public record Rating(
+    [property: JsonPropertyName("source")] Source Source,
+    [property: JsonPropertyName("score")] double? Score,
+    [property: JsonPropertyName("severity")] string Severity,
+    [property: JsonPropertyName("method")] string? Method,
+    [property: JsonPropertyName("vector")] string? Vector
+);
+
+public record Advisory([property: JsonPropertyName("url")] string Url);
+
+public record Affected(
+    [property: JsonPropertyName("ref")] string Ref,
+    [property: JsonPropertyName("versions")] List<VersionStatus> Versions
+);
+
+public record VersionStatus(
+    [property: JsonPropertyName("version")] string Version,
+    [property: JsonPropertyName("status")] string Status
+);

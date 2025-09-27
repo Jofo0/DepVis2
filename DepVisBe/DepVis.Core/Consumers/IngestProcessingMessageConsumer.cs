@@ -50,6 +50,8 @@ public class IngestProcessingMessageConsumer(
                 JsonSerializer.Deserialize<CycloneDxBom>(cycloneDxStream, _jsonOptions)
                 ?? new CycloneDxBom { Components = [] };
 
+            var vulnerabilities = BuildVulnerabilities(bom);
+
             var packages = BuildPackages(sbom.Id, bom);
 
             var edges = BuildEdges(bom);
@@ -59,10 +61,23 @@ public class IngestProcessingMessageConsumer(
                 StringComparer.Ordinal
             );
 
+            var packageVulnerabilities =
+                bom.Vulnerabilities?.SelectMany(v =>
+                        v.Affects.Select(a => new PackageVulnerability()
+                        {
+                            VulnerabilityId = v.Id,
+                            SbomPackageId = bomRefToId[a.Ref],
+                        })
+                    )
+                    .ToList() ?? [];
+
             var createdDeps = BuildDependencies(edges, bomRefToId);
 
+            _db.Vulnerabilities.AddRange(vulnerabilities);
             _db.SbomPackages.AddRange(packages);
             _db.PackageDependencies.AddRange(createdDeps);
+            _db.PackageVulnerabilities.AddRange(packageVulnerabilities);
+
             project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
             await _db.SaveChangesAsync(context.CancellationToken);
@@ -80,6 +95,27 @@ public class IngestProcessingMessageConsumer(
             await _db.SaveChangesAsync(context.CancellationToken);
             throw;
         }
+    }
+
+    private List<Vulnerability> BuildVulnerabilities(CycloneDxBom bom)
+    {
+        var vulnerabilities =
+            bom.Vulnerabilities?.Select(x => new Vulnerability
+                {
+                    Id = x.Id,
+                    Description = x.Description,
+                    Recommendation = x.Recommendation,
+                    Severity =
+                        x.Ratings.GroupBy(r => r.Severity)
+                            .OrderByDescending(g => g.Count())
+                            .Select(g => g.Key)
+                            .FirstOrDefault() ?? "Unknown",
+                })
+                .ToList() ?? [];
+
+        var existingIds = _db.Vulnerabilities.Select(v => v.Id).ToHashSet();
+
+        return [.. vulnerabilities.Where(v => !existingIds.Contains(v.Id))];
     }
 
     private static List<SbomPackage> BuildPackages(Guid sbomId, CycloneDxBom bom)

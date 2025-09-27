@@ -12,10 +12,15 @@ public class DepVisDbContext : DbContext
     public DbSet<Sbom> Sboms { get; set; }
     public DbSet<SbomPackage> SbomPackages { get; set; }
     public DbSet<PackageDependency> PackageDependencies => Set<PackageDependency>();
+    public DbSet<Vulnerability> Vulnerabilities { get; set; }
+    public DbSet<PackageVulnerability> PackageVulnerabilities => Set<PackageVulnerability>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<PackageDependency>().HasKey(pd => new { pd.ParentId, pd.ChildId });
+        modelBuilder
+            .Entity<PackageVulnerability>()
+            .HasKey(pv => new { pv.SbomPackageId, pv.VulnerabilityId });
 
         modelBuilder
             .Entity<PackageDependency>()
