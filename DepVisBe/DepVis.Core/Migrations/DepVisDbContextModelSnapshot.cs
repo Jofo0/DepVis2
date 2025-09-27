@@ -133,13 +133,13 @@ namespace DepVis.Core.Migrations
                     b.HasOne("DepVis.Shared.Model.SbomPackage", "Child")
                         .WithMany("Parents")
                         .HasForeignKey("ChildId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("DepVis.Shared.Model.SbomPackage", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Child");
@@ -161,7 +161,7 @@ namespace DepVis.Core.Migrations
             modelBuilder.Entity("DepVis.Shared.Model.SbomPackage", b =>
                 {
                     b.HasOne("DepVis.Shared.Model.Sbom", "Sbom")
-                        .WithMany()
+                        .WithMany("SbomPackages")
                         .HasForeignKey("SbomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -172,6 +172,11 @@ namespace DepVis.Core.Migrations
             modelBuilder.Entity("DepVis.Shared.Model.Project", b =>
                 {
                     b.Navigation("Sboms");
+                });
+
+            modelBuilder.Entity("DepVis.Shared.Model.Sbom", b =>
+                {
+                    b.Navigation("SbomPackages");
                 });
 
             modelBuilder.Entity("DepVis.Shared.Model.SbomPackage", b =>

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DepVis.Core.Migrations
 {
     [DbContext(typeof(DepVisDbContext))]
-    [Migration("20250921105310_RemoveGroupFromSbomPackage")]
-    partial class RemoveGroupFromSbomPackage
+    [Migration("20250927153300_NewInitialMigration")]
+    partial class NewInitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,21 @@ namespace DepVis.Core.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("DepVis.Shared.Model.PackageDependency", b =>
+                {
+                    b.Property<Guid>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChildId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ParentId", "ChildId");
+
+                    b.HasIndex("ChildId");
+
+                    b.ToTable("PackageDependencies");
+                });
 
             modelBuilder.Entity("DepVis.Shared.Model.Project", b =>
                 {
@@ -86,6 +101,10 @@ namespace DepVis.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("BomRef")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Ecosystem")
                         .HasColumnType("nvarchar(max)");
 
@@ -112,6 +131,25 @@ namespace DepVis.Core.Migrations
                     b.ToTable("SbomPackages");
                 });
 
+            modelBuilder.Entity("DepVis.Shared.Model.PackageDependency", b =>
+                {
+                    b.HasOne("DepVis.Shared.Model.SbomPackage", "Child")
+                        .WithMany("Parents")
+                        .HasForeignKey("ChildId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DepVis.Shared.Model.SbomPackage", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Child");
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("DepVis.Shared.Model.Sbom", b =>
                 {
                     b.HasOne("DepVis.Shared.Model.Project", "Project")
@@ -126,7 +164,7 @@ namespace DepVis.Core.Migrations
             modelBuilder.Entity("DepVis.Shared.Model.SbomPackage", b =>
                 {
                     b.HasOne("DepVis.Shared.Model.Sbom", "Sbom")
-                        .WithMany()
+                        .WithMany("SbomPackages")
                         .HasForeignKey("SbomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -137,6 +175,18 @@ namespace DepVis.Core.Migrations
             modelBuilder.Entity("DepVis.Shared.Model.Project", b =>
                 {
                     b.Navigation("Sboms");
+                });
+
+            modelBuilder.Entity("DepVis.Shared.Model.Sbom", b =>
+                {
+                    b.Navigation("SbomPackages");
+                });
+
+            modelBuilder.Entity("DepVis.Shared.Model.SbomPackage", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Parents");
                 });
 #pragma warning restore 612, 618
         }

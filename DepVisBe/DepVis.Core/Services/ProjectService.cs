@@ -1,4 +1,5 @@
 ﻿using DepVis.Core.Dtos;
+using DepVis.Core.Extensions;
 using DepVis.Core.Repositories.Interfaces;
 using DepVis.Core.Services.Interfaces;
 using DepVis.Shared.Messages;
@@ -13,13 +14,13 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
     public async Task<IEnumerable<ProjectDto>> GetProjectsAsync()
     {
         var projects = await repo.GetAllAsync();
-        return projects.Select(MapToDto);
+        return projects.Select(x => x.MapToDto());
     }
 
     public async Task<ProjectDto?> GetProjectAsync(Guid id)
     {
         var project = await repo.GetByIdAsync(id);
-        return project is null ? null : MapToDtoWithProcessStep(project);
+        return project is null ? null : project.MapToDto();
     }
 
     public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto dto)
@@ -32,7 +33,6 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         };
 
         await repo.AddAsync(project);
-        await repo.SaveChangesAsync();
 
         await publishEndpoint.Publish<ProcessingMessage>(
             new()
@@ -43,7 +43,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
             }
         );
 
-        return MapToDto(project);
+        return project.MapToDto();
     }
 
     public async Task<bool> UpdateProjectAsync(Guid id, UpdateProjectDto dto)
@@ -57,36 +57,16 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         project.ProjectLink = dto.ProjectLink;
 
         await repo.UpdateAsync(project);
-        await repo.SaveChangesAsync();
         return true;
     }
 
     public async Task<bool> DeleteProjectAsync(Guid id)
     {
-        var project = await repo.GetByIdAsync(id);
+        var project = await repo.GetByIdDetailedAsync(id);
         if (project is null)
             return false;
 
         await repo.DeleteAsync(project);
-        await repo.SaveChangesAsync();
         return true;
-    }
-
-    // Mapping helpers
-    private static ProjectDto MapToDto(Project p) =>
-        new()
-        {
-            Id = p.Id,
-            Name = p.Name,
-            ProjectType = p.ProjectType,
-            ProcessStatus = p.ProcessStatus,
-            ProjectLink = p.ProjectLink,
-        };
-
-    private static ProjectDto MapToDtoWithProcessStep(Project p)
-    {
-        var dto = MapToDto(p);
-        dto.ProcessStep = p.ProcessStep;
-        return dto;
     }
 }

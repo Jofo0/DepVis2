@@ -11,104 +11,170 @@ namespace DepVis.Core.Consumers;
 public class IngestProcessingMessageConsumer(
     ILogger<IngestProcessingMessageConsumer> _logger,
     DepVisDbContext _db,
-    MinioStorageService _minioStorageService
+    MinioStorageService _minio
 ) : IConsumer<IngestProcessingMessage>
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+    };
+
     public async Task Consume(ConsumeContext<IngestProcessingMessage> context)
     {
-        var message = context.Message;
+        using var _ = _logger.BeginScope(
+            new Dictionary<string, object?> { ["SbomId"] = context.Message.SbomId }
+        );
 
-        _logger.LogDebug("Received IngestProcessingMessage for {sbomId}", message.SbomId);
+        _logger.LogDebug("Starting ingestion.");
 
         var sbom = await _db
             .Sboms.Include(x => x.Project)
-            .FirstAsync(x => x.Id == message.SbomId, context.CancellationToken);
+            .FirstAsync(x => x.Id == context.Message.SbomId, context.CancellationToken);
 
         var project = sbom.Project;
 
         project.ProcessStep = Shared.Model.Enums.ProcessStep.SbomIngest;
         project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(context.CancellationToken);
 
-        if (sbom == null)
+        try
         {
-            _logger.LogWarning("Sbom with id {sbomId} not found", message.SbomId);
-            project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
-            await _db.SaveChangesAsync();
-            return;
+            await using var cycloneDxStream = await _minio.RetrieveAsync(
+                sbom.FileName,
+                context.CancellationToken
+            );
+
+            CycloneDxBom bom =
+                JsonSerializer.Deserialize<CycloneDxBom>(cycloneDxStream, _jsonOptions)
+                ?? new CycloneDxBom { Components = [] };
+
+            var packages = BuildPackages(sbom.Id, bom);
+
+            var edges = BuildEdges(bom);
+            var bomRefToId = packages.ToDictionary(
+                p => p.BomRef,
+                p => p.Id,
+                StringComparer.Ordinal
+            );
+
+            var createdDeps = BuildDependencies(edges, bomRefToId);
+
+            _db.SbomPackages.AddRange(packages);
+            _db.PackageDependencies.AddRange(createdDeps);
+            project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+
+            await _db.SaveChangesAsync(context.CancellationToken);
+
+            _logger.LogDebug(
+                "Ingestion finished successfully. Packages: {pkgCount}, Deps: {depCount}",
+                packages.Count,
+                createdDeps.Count
+            );
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ingestion failed.");
+            project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
+            await _db.SaveChangesAsync(context.CancellationToken);
+            throw;
+        }
+    }
 
-        var stream = await _minioStorageService.RetrieveAsync(
-            sbom.FileName,
-            context.CancellationToken
-        );
-
-        CycloneDxBom bom =
-            JsonSerializer.Deserialize<CycloneDxBom>(
-                stream,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            ) ?? new CycloneDxBom { Components = [] };
+    private static List<SbomPackage> BuildPackages(Guid sbomId, CycloneDxBom bom)
+    {
         var comps = bom.Components ?? [];
         var packages = new List<SbomPackage>(comps.Count + 1);
-        var deps = bom.Dependencies ?? [];
 
-        var rootProject = bom.Metadata.Root;
+        var rootRef = bom.Metadata?.Root?.BomRef ?? "project-root";
 
         packages.Add(
-            new SbomPackage()
+            new SbomPackage
             {
-                SbomId = sbom.Id,
+                Id = Guid.NewGuid(),
+                SbomId = sbomId,
                 Name = "ProjectRoot",
                 Version = null,
                 Purl = null,
                 Ecosystem = "",
                 Type = "ProjectRoot",
-                BomRef = rootProject.BomRef,
+                BomRef = rootRef,
             }
         );
 
-        packages.AddRange(
-            comps.Select(x => new SbomPackage
-            {
-                SbomId = sbom.Id,
-                Name = string.IsNullOrWhiteSpace(x.Name) ? "No Name Found" : x.Name,
-                Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
-                Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
-                Ecosystem = InferEcosystemFromPurl(x.Purl),
-                Type = x.Type,
-                BomRef = x.BomRef,
-            })
-        );
-
-        var edges = deps.ToDictionary(d => d.Ref, d => d.DependsOn ?? []);
-
-        var bomRefs = packages
-            .Select(b => new { b.BomRef, b.Id })
-            .ToDictionary(p => p.BomRef, p => p);
-
-        var createdDeps = new HashSet<PackageDependency>();
-        foreach (var (parent, children) in edges)
+        foreach (var x in comps)
         {
-            var parentPkg = bomRefs[parent];
-            foreach (var child in children)
+            packages.Add(
+                new SbomPackage
+                {
+                    Id = Guid.NewGuid(),
+                    SbomId = sbomId,
+                    Name = string.IsNullOrWhiteSpace(x.Name) ? "No Name Found" : x.Name,
+                    Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
+                    Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
+                    Ecosystem = InferEcosystemFromPurl(x.Purl),
+                    Type = x.Type,
+                    BomRef = x.BomRef,
+                }
+            );
+        }
+
+        return packages;
+    }
+
+    private static Dictionary<string, List<string>> BuildEdges(CycloneDxBom bom)
+    {
+        var edges = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        if (bom.Dependencies is null)
+            return edges;
+
+        foreach (var d in bom.Dependencies)
+        {
+            if (string.IsNullOrWhiteSpace(d.Ref))
+                continue;
+
+            if (!edges.TryGetValue(d.Ref, out var list))
             {
-                var childPkg = bomRefs[child];
-                createdDeps.Add(
-                    new PackageDependency { ParentId = parentPkg.Id, ChildId = childPkg.Id }
-                );
+                list = [];
+                edges[d.Ref] = list;
+            }
+
+            if (d.DependsOn is null)
+                continue;
+
+            foreach (var child in d.DependsOn)
+            {
+                if (!string.IsNullOrWhiteSpace(child))
+                    list.Add(child);
             }
         }
 
-        _db.SbomPackages.AddRange(packages);
-        _db.PackageDependencies.AddRange(createdDeps);
-        project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+        return edges;
+    }
 
-        await _db.SaveChangesAsync(context.CancellationToken);
+    private static HashSet<PackageDependency> BuildDependencies(
+        Dictionary<string, List<string>> edges,
+        Dictionary<string, Guid> bomRefToId
+    )
+    {
+        var created = new HashSet<PackageDependency>(); // relies on PackageDependency equality (ParentId, ChildId)
 
-        _logger.LogDebug(
-            "Successfully finished IngestProcessingMessage for {sbomId}",
-            message.SbomId
-        );
+        foreach (var (parentRef, children) in edges)
+        {
+            if (!bomRefToId.TryGetValue(parentRef, out var parentId))
+                continue;
+
+            foreach (var childRef in children)
+            {
+                if (!bomRefToId.TryGetValue(childRef, out var childId))
+                    continue;
+
+                created.Add(new PackageDependency { ParentId = parentId, ChildId = childId });
+            }
+        }
+
+        return created;
     }
 
     private static string? InferEcosystemFromPurl(string? purl)
@@ -116,10 +182,15 @@ public class IngestProcessingMessageConsumer(
         if (string.IsNullOrWhiteSpace(purl))
             return null;
 
-        var idx = purl.IndexOf(':');
-        if (idx < 0)
+        const string prefix = "pkg:";
+        if (!purl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             return null;
-        var type = purl.Substring(4, (purl.IndexOf('/', idx + 1) - 4)).ToLowerInvariant();
+
+        var slash = purl.IndexOf('/', prefix.Length);
+        if (slash < 0)
+            return null;
+
+        var type = purl[prefix.Length..slash].ToLowerInvariant();
 
         return type switch
         {

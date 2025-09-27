@@ -8,4 +8,5 @@ public class Sbom
     public string Branch { get; set; } = string.Empty;
     public Guid ProjectId { get; set; }
     public Project Project { get; set; } = null!;
+    public ICollection<SbomPackage> SbomPackages { get; set; } = [];
 }

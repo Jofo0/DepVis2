@@ -10,8 +10,8 @@ public class SbomPackage
     public string? Ecosystem { get; set; }
     public string? Type { get; set; }
     public string BomRef { get; set; } = string.Empty;
-    public ICollection<PackageDependency> Parents { get; set; } = new List<PackageDependency>();
-    public ICollection<PackageDependency> Children { get; set; } = new List<PackageDependency>();
+    public ICollection<PackageDependency> Parents { get; set; } = [];
+    public ICollection<PackageDependency> Children { get; set; } = [];
 
     public Sbom Sbom { get; set; } = null!;
 }

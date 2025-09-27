@@ -22,13 +22,13 @@ public class DepVisDbContext : DbContext
             .HasOne(pd => pd.Parent)
             .WithMany(p => p.Children)
             .HasForeignKey(pd => pd.ParentId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder
             .Entity<PackageDependency>()
             .HasOne(pd => pd.Child)
             .WithMany(p => p.Parents)
             .HasForeignKey(pd => pd.ChildId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

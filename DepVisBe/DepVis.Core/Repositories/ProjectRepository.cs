@@ -10,22 +10,41 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
     public async Task<List<Project>> GetAllAsync() =>
         await context.Projects.AsNoTracking().ToListAsync();
 
-    public Task<Project?> GetByIdAsync(Guid id) =>
-        context.Projects.FirstOrDefaultAsync(p => p.Id == id);
+    public async Task<Project?> GetByIdAsync(Guid id) =>
+        await context.Projects.FirstOrDefaultAsync(p => p.Id == id);
 
-    public async Task AddAsync(Project project) => await context.Projects.AddAsync(project);
+    public async Task<Project?> GetByIdDetailedAsync(Guid id) =>
+        await context
+            .Projects.Include(x => x.Sboms)
+            .ThenInclude(sboms => sboms.SbomPackages)
+            .ThenInclude(sp => sp.Children)
+            .ThenInclude(cd => cd.Child)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
-    public Task UpdateAsync(Project project)
+    public async Task AddAsync(Project project)
+    {
+        await context.Projects.AddAsync(project);
+        await context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Project project)
     {
         context.Projects.Update(project);
-        return Task.CompletedTask;
+        await context.SaveChangesAsync();
     }
 
-    public Task DeleteAsync(Project project)
+    public async Task DeleteAsync(Project project)
     {
+        foreach (var sbom in project.Sboms)
+        {
+            foreach (var package in sbom.SbomPackages)
+            {
+                context.PackageDependencies.RemoveRange(package.Children);
+                context.PackageDependencies.RemoveRange(package.Parents);
+            }
+        }
+        await context.SaveChangesAsync();
         context.Projects.Remove(project);
-        return Task.CompletedTask;
+        await context.SaveChangesAsync();
     }
-
-    public Task SaveChangesAsync() => context.SaveChangesAsync();
 }
