@@ -91,7 +91,8 @@ public class ProcessingMessageConsumer(
         var trivy = new ProcessStartInfo
         {
             FileName = "trivy",
-            Arguments = $"fs --format cyclonedx --output {output} .",
+            Arguments =
+                $"fs --format cyclonedx --output {output} --include-dev-deps --scanners vuln .",
             WorkingDirectory = directory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -101,6 +102,23 @@ public class ProcessingMessageConsumer(
         _logger.LogDebug("Running Trivy on the cloned repository");
         await RunProcessAsync(trivy);
         _logger.LogDebug("Trivy ran succesfully and the SBOM has been created");
+    }
+
+    private async Task RunSyft(string directory, string output)
+    {
+        var trivy = new ProcessStartInfo
+        {
+            FileName = "syft",
+            Arguments = $". -o cyclonedx-json={output}",
+            WorkingDirectory = directory,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+
+        _logger.LogDebug("Running syft on the cloned repository");
+        await RunProcessAsync(trivy);
+        _logger.LogDebug("syft ran succesfully and the SBOM has been created");
     }
 
     private async Task RunProcessAsync(ProcessStartInfo psi)
