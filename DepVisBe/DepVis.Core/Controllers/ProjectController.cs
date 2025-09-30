@@ -11,14 +11,14 @@ public class ProjectsController(IProjectService service) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
     {
-        var projects = await service.GetProjectsAsync();
+        var projects = await service.GetProjects();
         return Ok(projects);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ProjectDto>> GetProject(Guid id)
     {
-        var project = await service.GetProjectAsync(id);
+        var project = await service.GetProject(id);
         if (project is null)
             return NotFound();
         return Ok(project);
@@ -33,24 +33,33 @@ public class ProjectsController(IProjectService service) : ControllerBase
         return Ok(project);
     }
 
+    [HttpGet("{id}/{branch}/stats")]
+    public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid id, string branch)
+    {
+        var project = await service.GetProjectStats(id, branch);
+        if (project is null)
+            return NotFound();
+        return Ok(project);
+    }
+
     [HttpPost]
     public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectDto dto)
     {
-        var result = await service.CreateProjectAsync(dto);
+        var result = await service.CreateProject(dto);
         return CreatedAtAction(nameof(GetProject), new { id = result.Id }, result);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateProject(Guid id, UpdateProjectDto dto)
     {
-        var ok = await service.UpdateProjectAsync(id, dto);
+        var ok = await service.UpdateProject(id, dto);
         return ok ? NoContent() : NotFound();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProject(Guid id)
     {
-        var ok = await service.DeleteProjectAsync(id);
+        var ok = await service.DeleteProject(id);
         return ok ? NoContent() : NotFound();
     }
 }

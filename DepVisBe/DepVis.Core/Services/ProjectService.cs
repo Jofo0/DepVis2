@@ -11,21 +11,26 @@ namespace DepVis.Core.Services;
 public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEndpoint)
     : IProjectService
 {
-    public async Task<IEnumerable<ProjectDto>> GetProjectsAsync()
+    public async Task<IEnumerable<ProjectDto>> GetProjects()
     {
         var projects = await repo.GetAllAsync();
         return projects.Select(x => x.MapToDto());
     }
 
-    public async Task<ProjectDto?> GetProjectAsync(Guid id)
+    public async Task<ProjectDto?> GetProject(Guid id)
     {
         var project = await repo.GetByIdAsync(id);
         return project is null ? null : project.MapToDto();
     }
 
+    // TODO: Move to different package service
     public async Task<GraphDataDto?> GetProjectGraphData(Guid id, string branch = "master")
     {
         var sbom = await repo.GetPackagesByIdAndBranch(id, branch);
+
+        if (sbom == null)
+            return null;
+
         var relations = sbom
             .SbomPackages.SelectMany(pkg =>
                 pkg.Children.Select(child => new PackageRelationDto
@@ -40,12 +45,17 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
             .SbomPackages.Select(x => new PackageDto { Name = x.Name, Id = x.Id })
             .ToList();
 
-        return sbom is null
-            ? null
-            : new GraphDataDto { Packages = packages, Relationships = relations };
+        return new GraphDataDto { Packages = packages, Relationships = relations };
     }
 
-    public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto dto)
+    // TODO: Move to different service
+
+    public async Task<ProjectStatsDto?> GetProjectStats(Guid id, string branch = "master")
+    {
+        return (await repo.GetProjectStats(id, branch))?.MapToDto();
+    }
+
+    public async Task<ProjectDto> CreateProject(CreateProjectDto dto)
     {
         var project = new Project
         {
@@ -68,7 +78,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return project.MapToDto();
     }
 
-    public async Task<bool> UpdateProjectAsync(Guid id, UpdateProjectDto dto)
+    public async Task<bool> UpdateProject(Guid id, UpdateProjectDto dto)
     {
         var project = await repo.GetByIdAsync(id);
         if (project is null)
@@ -82,7 +92,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return true;
     }
 
-    public async Task<bool> DeleteProjectAsync(Guid id)
+    public async Task<bool> DeleteProject(Guid id)
     {
         var project = await repo.GetByIdDetailedAsync(id);
         if (project is null)

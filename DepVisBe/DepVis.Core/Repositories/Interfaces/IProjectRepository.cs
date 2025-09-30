@@ -9,6 +9,7 @@ public interface IProjectRepository
     Task<Project?> GetByIdDetailedAsync(Guid id);
     Task<Sbom?> GetPackagesByIdAndBranch(Guid id, string branch);
     Task AddAsync(Project project);
+    Task<ProjectStatistics?> GetProjectStats(Guid id, string branch);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);
 }

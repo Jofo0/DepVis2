@@ -4,10 +4,11 @@ namespace DepVis.Core.Services.Interfaces;
 
 public interface IProjectService
 {
-    Task<IEnumerable<ProjectDto>> GetProjectsAsync();
-    Task<ProjectDto?> GetProjectAsync(Guid id);
-    Task<ProjectDto> CreateProjectAsync(CreateProjectDto dto);
-    Task<bool> UpdateProjectAsync(Guid id, UpdateProjectDto dto);
+    Task<IEnumerable<ProjectDto>> GetProjects();
+    Task<ProjectDto?> GetProject(Guid id);
+    Task<ProjectDto> CreateProject(CreateProjectDto dto);
+    Task<bool> UpdateProject(Guid id, UpdateProjectDto dto);
+    Task<ProjectStatsDto> GetProjectStats(Guid id, string branch);
     Task<GraphDataDto> GetProjectGraphData(Guid id, string branch);
-    Task<bool> DeleteProjectAsync(Guid id);
+    Task<bool> DeleteProject(Guid id);
 }

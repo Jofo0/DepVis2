@@ -20,18 +20,7 @@ export type UpdateProjectDto = {
   projectLink: string;
 };
 
-// types/graph.ts
-export interface GraphDataDto {
-  packages: PackageDto[];
-  relationships: PackageRelationDto[];
-}
-
-export interface PackageDto {
-  name: string;
-  id: string;
-}
-
-export interface PackageRelationDto {
-  from: string;
-  to: string;
+export interface ProjectStatsDto {
+  packageCount: number;
+  vulnerabilityCount: number;
 }

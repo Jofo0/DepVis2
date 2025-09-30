@@ -15,4 +15,7 @@ public static class DtoExtensions
             ProcessStep = project.ProcessStep,
             ProjectLink = project.ProjectLink,
         };
+
+    public static ProjectStatsDto MapToDto(this ProjectStatistics stats) =>
+        new() { PackageCount = stats.PackageCount, VulnerabilityCount = stats.VulnerabilityCount };
 }

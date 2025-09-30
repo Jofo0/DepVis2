@@ -11,4 +11,5 @@ public class Project
     public ProcessStatus ProcessStatus { get; set; } = ProcessStatus.Success;
     public string ProjectLink { get; set; } = string.Empty;
     public ICollection<Sbom> Sboms { get; set; } = [];
+    public ICollection<ProjectStatistics> ProjectStatistics { get; set; } = [];
 }

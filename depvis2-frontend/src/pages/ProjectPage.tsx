@@ -5,6 +5,7 @@ import {
 } from "../store/api/projectsApi";
 import { useNavigate, useParams } from "react-router-dom";
 import SimpleGraph from "../components/graph/SimpleGraph";
+import { ProjectStats } from "../components/project/ProjectStats";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,8 @@ const ProjectDetailPage = () => {
       <h2 className="text-2xl font-medium tracking-tight text-text">
         {project.name}
       </h2>
+
+      <ProjectStats branch="master" id={project.id} />
 
       <div className="p-6 space-y-3 border bg-surface border-border rounded-2xl">
         <p className="text-sm">

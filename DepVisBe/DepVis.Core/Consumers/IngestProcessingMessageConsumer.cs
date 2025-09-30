@@ -78,6 +78,28 @@ public class IngestProcessingMessageConsumer(
             _db.PackageDependencies.AddRange(createdDeps);
             _db.PackageVulnerabilities.AddRange(packageVulnerabilities);
 
+            var stats = await _db.ProjectStatistics.FirstOrDefaultAsync(x =>
+                x.ProjectId == project.Id && x.Branch == sbom.Branch
+            );
+            if (stats != null)
+            {
+                stats.PackageCount = packages.Count;
+                stats.VulnerabilityCount = vulnerabilities.Count;
+                _db.ProjectStatistics.Update(stats);
+            }
+            else
+            {
+                await _db.ProjectStatistics.AddAsync(
+                    new ProjectStatistics
+                    {
+                        ProjectId = project.Id,
+                        Branch = sbom.Branch,
+                        PackageCount = packages.Count,
+                        VulnerabilityCount = packageVulnerabilities.Count,
+                    }
+                );
+            }
+
             project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
             await _db.SaveChangesAsync(context.CancellationToken);

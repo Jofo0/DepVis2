@@ -10,6 +10,7 @@ public class DepVisDbContext : DbContext
 
     public DbSet<Project> Projects { get; set; }
     public DbSet<Sbom> Sboms { get; set; }
+    public DbSet<ProjectStatistics> ProjectStatistics { get; set; }
     public DbSet<SbomPackage> SbomPackages { get; set; }
     public DbSet<PackageDependency> PackageDependencies => Set<PackageDependency>();
     public DbSet<Vulnerability> Vulnerabilities { get; set; }
