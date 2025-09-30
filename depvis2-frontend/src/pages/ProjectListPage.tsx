@@ -1,4 +1,4 @@
-import { useGetProjectsQuery } from "../services/projectsApi";
+import { useGetProjectsQuery } from "../store/api/projectsApi";
 import { Link } from "react-router-dom";
 
 const ProjectsListPage = () => {

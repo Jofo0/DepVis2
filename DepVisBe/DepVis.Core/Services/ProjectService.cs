@@ -23,6 +23,28 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return project is null ? null : project.MapToDto();
     }
 
+    public async Task<GraphDataDto?> GetProjectGraphData(Guid id, string branch = "master")
+    {
+        var sbom = await repo.GetPackagesByIdAndBranch(id, branch);
+        var relations = sbom
+            .SbomPackages.SelectMany(pkg =>
+                pkg.Children.Select(child => new PackageRelationDto
+                {
+                    To = child.ChildId,
+                    From = child.ParentId,
+                })
+            )
+            .ToList();
+
+        var packages = sbom
+            .SbomPackages.Select(x => new PackageDto { Name = x.Name, Id = x.Id })
+            .ToList();
+
+        return sbom is null
+            ? null
+            : new GraphDataDto { Packages = packages, Relationships = relations };
+    }
+
     public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto dto)
     {
         var project = new Project

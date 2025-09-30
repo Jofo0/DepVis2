@@ -2,25 +2,9 @@ import { Trash } from "lucide-react";
 import {
   useDeleteProjectMutation,
   useGetProjectQuery,
-} from "../services/projectsApi";
+} from "../store/api/projectsApi";
 import { useNavigate, useParams } from "react-router-dom";
-import SimpleGraph from "../components/graph/GraphComponent";
-
-const graphData = {
-  nodes: [
-    { id: "app", label: "My App", size: 14, color: "#4caf50" },
-    { id: "react", label: "react@18.3.1", size: 12, color: "#1976d2" },
-    { id: "lodash", label: "lodash@4.17.21", size: 10, color: "#f57c00" },
-    { id: "axios", label: "axios@1.5.0", size: 10, color: "#9c27b0" },
-    { id: "dayjs", label: "dayjs@1.11.10", size: 8, color: "#607d8b" },
-  ],
-  links: [
-    { source: "app", target: "react" },
-    { source: "app", target: "lodash" },
-    { source: "app", target: "axios" },
-    { source: "axios", target: "dayjs" }, // axios depends on dayjs
-  ],
-};
+import SimpleGraph from "../components/graph/SimpleGraph";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +27,6 @@ const ProjectDetailPage = () => {
         {project.name}
       </h2>
 
-      <SimpleGraph />
       <div className="p-6 space-y-3 border bg-surface border-border rounded-2xl">
         <p className="text-sm">
           <span className="font-medium text-text">Type:</span>{" "}
@@ -88,6 +71,8 @@ const ProjectDetailPage = () => {
           )}
         </button>
       </div>
+
+      <SimpleGraph branch="master" projectId={project.id} />
     </div>
   );
 };

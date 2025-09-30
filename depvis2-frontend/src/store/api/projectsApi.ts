@@ -2,8 +2,9 @@ import type {
   ProjectDto,
   CreateProjectDto,
   UpdateProjectDto,
-} from "../types/projects";
-import { projectsApi } from "../store";
+  GraphDataDto,
+} from "../../types/projects";
+import { projectsApi } from "../../store";
 
 export const projectApi = projectsApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -44,8 +45,12 @@ export const projectApi = projectsApi.injectEndpoints({
       }),
       invalidatesTags: ["Projects"],
     }),
-    publishTest: builder.query<void, void>({
-      query: () => "/test",
+    getProjectGraph: builder.query<
+      GraphDataDto,
+      { id: string; branch: string }
+    >({
+      query: ({ id, branch }) => `/${id}/${branch}/packages/graph`,
+      providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
     }),
   }),
 });
@@ -56,5 +61,5 @@ export const {
   useCreateProjectMutation,
   useUpdateProjectMutation,
   useDeleteProjectMutation,
-  usePublishTestQuery,
+  useGetProjectGraphQuery,
 } = projectApi;

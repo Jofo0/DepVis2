@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateProjectMutation } from "../services/projectsApi";
+import { useCreateProjectMutation } from "../store/api/projectsApi";
 import type { CreateProjectDto } from "../types/projects";
 import { useNavigate } from "react-router-dom";
 

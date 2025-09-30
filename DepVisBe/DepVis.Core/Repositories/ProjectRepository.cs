@@ -21,6 +21,14 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
             .ThenInclude(cd => cd.Child)
             .FirstOrDefaultAsync(p => p.Id == id);
 
+    public async Task<Sbom?> GetPackagesByIdAndBranch(Guid id, string branch) =>
+        await context
+            .Sboms.Where(x => x.ProjectId == id && x.Branch == branch)
+            .Include(sboms => sboms.SbomPackages)
+            .ThenInclude(sp => sp.Children)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+
     public async Task AddAsync(Project project)
     {
         await context.Projects.AddAsync(project);
