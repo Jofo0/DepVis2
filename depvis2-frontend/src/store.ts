@@ -10,12 +10,24 @@ export const projectsApi = createApi({
   tagTypes: ["Projects"],
 });
 
+export const gitApi = createApi({
+  reducerPath: "gitApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "https://localhost:7185" + "/api/git",
+  }),
+  endpoints: () => ({}),
+  tagTypes: ["GitInformation"],
+});
+
 export const store = configureStore({
   reducer: {
     [projectsApi.reducerPath]: projectsApi.reducer,
+    [gitApi.reducerPath]: gitApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(projectsApi.middleware),
+    getDefaultMiddleware()
+      .concat(projectsApi.middleware)
+      .concat(gitApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

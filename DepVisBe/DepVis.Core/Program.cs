@@ -21,6 +21,7 @@ builder
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<MinioStorageService>();
+builder.Services.AddScoped<GitService>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddDbContext<DepVisDbContext>(options =>

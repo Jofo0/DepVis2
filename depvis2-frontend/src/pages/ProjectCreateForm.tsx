@@ -4,8 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateProjectMutation } from "../store/api/projectsApi";
 import type { CreateProjectDto } from "../types/projects";
 import { useNavigate } from "react-router-dom";
+import { useLazyGetGitInformationQuery } from "../store/api/gitApi";
+import { useState } from "react";
 
-// Validation schema
 const ProjectSchema = z.object({
   name: z.string().min(1, "Name is required"),
   projectType: z.enum(["GitHub"]),
@@ -14,36 +15,70 @@ const ProjectSchema = z.object({
     .url("Must be a valid URL")
     .optional()
     .or(z.literal("")),
+  selectedBranches: z.array(z.string()).optional(),
+  selectedTags: z.array(z.string()).optional(),
 });
 
 type FormValues = z.infer<typeof ProjectSchema>;
 
 const ProjectCreateForm = () => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
+  const [isGitAvailable, setIsGitAvailable] = useState(false);
+  // Lazy query to fetch git info from remote URL
+  const [
+    retrieveGitInfo,
+    { isLoading: gitLoading, data: gitData, error: gitError },
+  ] = useLazyGetGitInformationQuery();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    getValues,
+    setValue,
+    watch,
   } = useForm<FormValues>({
     resolver: zodResolver(ProjectSchema),
-    defaultValues: { name: "", projectType: "GitHub", projectLink: "" },
+    defaultValues: {
+      name: "",
+      projectType: "GitHub",
+      projectLink: "",
+      selectedBranches: [],
+      selectedTags: [],
+    },
   });
 
+  const projectLink = watch("projectLink");
   const navigate = useNavigate();
+
   const onSubmit = async (values: FormValues) => {
     try {
       const payload: CreateProjectDto = {
         name: values.name,
         projectType: values.projectType,
         projectLink: values.projectLink || "",
+        branches: values.selectedBranches ?? [],
+        tags: values.selectedTags ?? [],
       };
 
       await createProject(payload).unwrap();
       navigate("/projects");
     } catch (err) {
       console.error("Failed to create project", err);
+    }
+  };
+
+  const handleFetchGit = async () => {
+    const url = projectLink;
+    if (!url) return;
+
+    try {
+      const res = await retrieveGitInfo(encodeURIComponent(url));
+      setIsGitAvailable(!res.error);
+    } catch (e) {
+      setIsGitAvailable(false);
+      console.error("Failed to fetch git info", e);
     }
   };
 
@@ -54,6 +89,7 @@ const ProjectCreateForm = () => {
     >
       <h3 className="text-xl font-medium tracking-tight">Create Project</h3>
 
+      {/* Name */}
       <div className="space-y-1">
         <label className="block text-sm font-medium">Name</label>
         <input
@@ -82,20 +118,81 @@ const ProjectCreateForm = () => {
         )}
       </div>
 
-      {/* Project link */}
+      {/* GitHub Link + Fetch button */}
       <div className="space-y-1">
         <label className="block text-sm font-medium">GitHub Link</label>
-        <input
-          {...register("projectLink")}
-          className={`w-full rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent transition ${
-            errors.projectLink ? "border-red-400" : "border-border"
-          }`}
-          placeholder="https://github.com/your/repo"
-        />
+        <div className="flex gap-2">
+          <input
+            {...register("projectLink")}
+            className={`flex-1 rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent transition ${
+              errors.projectLink ? "border-red-400" : "border-border"
+            }`}
+            placeholder="https://github.com/owner/repo"
+          />
+          <button
+            type="button"
+            onClick={handleFetchGit}
+            disabled={!projectLink || !!errors.projectLink || gitLoading}
+            className="px-3 py-2 text-sm transition border rounded-xl border-border bg-surface hover:bg-surface/70 disabled:opacity-60"
+            title={
+              !projectLink
+                ? "Enter a GitHub URL first"
+                : "Fetch branches & tags"
+            }
+          >
+            {gitLoading ? "Fetching..." : "Fetch Git info"}
+          </button>
+        </div>
         {errors.projectLink && (
           <p className="text-xs text-red-500">{errors.projectLink.message}</p>
         )}
+        {gitError && (
+          <p className="text-xs text-red-500">
+            Couldn’t fetch repository info. Check the URL or your credentials.
+          </p>
+        )}
       </div>
+
+      {/* Branches / Tags multi-selects (only when data is present) */}
+      {gitData && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-1">
+            <label className="block text-sm font-medium">Branches</label>
+            <select
+              multiple
+              {...register("selectedBranches")}
+              className="w-full px-3 py-2 text-sm transition border min-h-36 rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              {(gitData?.branches ?? []).map((b: string) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Hold Ctrl / Cmd to select multiple.
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium">Tags</label>
+            <select
+              multiple
+              {...register("selectedTags")}
+              className="w-full px-3 py-2 text-sm transition border min-h-36 rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              {(gitData?.tags ?? []).map((t: string) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Hold Ctrl / Cmd to select multiple.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center justify-end pt-4 space-x-3">

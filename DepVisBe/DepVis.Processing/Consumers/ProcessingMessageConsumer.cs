@@ -35,7 +35,7 @@ public class ProcessingMessageConsumer(
         {
             _logger.LogDebug("Cloning repository {githubLink}", githubLink);
             var cloneOptions = new CloneOptions() { BranchName = branch, Checkout = true };
-            Repository.Clone(githubLink, tempDir);
+            Repository.Clone(githubLink, tempDir, cloneOptions);
             _logger.LogDebug("Repository cloned successfully");
 
             await RunTrivy(tempDir, outputFile);

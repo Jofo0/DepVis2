@@ -10,6 +10,8 @@ export type ProjectDto = {
 export type CreateProjectDto = {
   name: string;
   projectType: string;
+  branches: string[];
+  tags: string[];
   projectLink: string;
 };
 
