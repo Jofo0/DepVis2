@@ -103,8 +103,6 @@ public class ProcessingMessageConsumer(
             Arguments =
                 $"fs --format cyclonedx --output {output} --include-dev-deps --scanners vuln .",
             WorkingDirectory = directory,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
             UseShellExecute = false,
         };
 
@@ -120,8 +118,6 @@ public class ProcessingMessageConsumer(
             FileName = "syft",
             Arguments = $". -o cyclonedx-json={output}",
             WorkingDirectory = directory,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
             UseShellExecute = false,
         };
 
@@ -135,14 +131,7 @@ public class ProcessingMessageConsumer(
         using var process = new Process { StartInfo = psi };
         process.Start();
 
-        string stdout = await process.StandardOutput.ReadToEndAsync();
-        string stderr = await process.StandardError.ReadToEndAsync();
-
         await process.WaitForExitAsync();
-
-        _logger.LogDebug("Stdout for the ran process [{stdout}]", stdout);
-        if (!string.IsNullOrWhiteSpace(stderr))
-            _logger.LogError("Stderr for the ran process [{stderr}]", stderr);
 
         if (process.ExitCode != 0)
             throw new Exception(
