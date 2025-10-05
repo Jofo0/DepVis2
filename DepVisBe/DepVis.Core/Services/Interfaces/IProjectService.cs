@@ -9,6 +9,7 @@ public interface IProjectService
     Task<ProjectDto> CreateProject(CreateProjectDto dto);
     Task<bool> UpdateProject(Guid id, UpdateProjectDto dto);
     Task<ProjectStatsDto> GetProjectStats(Guid id, string branch);
+    Task<List<string>> GetProjectBranches(Guid id);
     Task<GraphDataDto> GetProjectGraphData(Guid id, string branch);
     Task<bool> DeleteProject(Guid id);
 }

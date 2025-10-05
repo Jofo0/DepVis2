@@ -30,13 +30,13 @@ public class IngestProcessingMessageConsumer(
         _logger.LogDebug("Starting ingestion.");
 
         var sbom = await _db
-            .Sboms.Include(x => x.Project)
+            .Sboms.Include(x => x.ProjectBranch)
             .FirstAsync(x => x.Id == context.Message.SbomId, context.CancellationToken);
 
-        var project = sbom.Project;
+        var projectBranch = sbom.ProjectBranch;
 
-        project.ProcessStep = Shared.Model.Enums.ProcessStep.SbomIngest;
-        project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
+        projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.SbomIngest;
+        projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
         await _db.SaveChangesAsync(context.CancellationToken);
 
         try
@@ -78,29 +78,9 @@ public class IngestProcessingMessageConsumer(
             _db.PackageDependencies.AddRange(createdDeps);
             _db.PackageVulnerabilities.AddRange(packageVulnerabilities);
 
-            var stats = await _db.ProjectStatistics.FirstOrDefaultAsync(x =>
-                x.ProjectId == project.Id && x.Branch == sbom.Branch
-            );
-            if (stats != null)
-            {
-                stats.PackageCount = packages.Count;
-                stats.VulnerabilityCount = vulnerabilities.Count;
-                _db.ProjectStatistics.Update(stats);
-            }
-            else
-            {
-                await _db.ProjectStatistics.AddAsync(
-                    new ProjectStatistics
-                    {
-                        ProjectId = project.Id,
-                        Branch = sbom.Branch,
-                        PackageCount = packages.Count,
-                        VulnerabilityCount = packageVulnerabilities.Count,
-                    }
-                );
-            }
-
-            project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+            projectBranch.PackageCount = packages.Count;
+            projectBranch.VulnerabilityCount = vulnerabilities.Count;
+            projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
             await _db.SaveChangesAsync(context.CancellationToken);
 
@@ -113,7 +93,7 @@ public class IngestProcessingMessageConsumer(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ingestion failed.");
-            project.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
+            projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
             await _db.SaveChangesAsync(context.CancellationToken);
             throw;
         }

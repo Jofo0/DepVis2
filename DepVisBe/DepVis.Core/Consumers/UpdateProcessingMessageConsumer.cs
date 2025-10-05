@@ -20,23 +20,20 @@ public class UpdateProcessingMessageConsumer(
             message.ProjectId
         );
 
-        var project = await dbContext.Projects.FirstAsync(x => x.Id == message.ProjectId);
-        if (project == null)
+        var projectBranch = await dbContext.ProjectBranches.FirstAsync(x =>
+            x.Id == message.ProjectId
+        );
+        if (projectBranch == null)
             return;
 
-        project.ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation;
-        project.ProcessStatus = message.ProcessStatus;
+        projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation;
+        projectBranch.ProcessStatus = message.ProcessStatus;
 
         Sbom? sbom = null;
 
         if (message.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success)
         {
-            sbom = new Sbom()
-            {
-                FileName = message.FileName,
-                Branch = message.Branch,
-                ProjectId = project.Id,
-            };
+            sbom = new Sbom() { FileName = message.FileName, ProjectBranchId = projectBranch.Id };
 
             dbContext.Sboms.Add(sbom);
         }

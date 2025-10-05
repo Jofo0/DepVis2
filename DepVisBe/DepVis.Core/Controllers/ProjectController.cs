@@ -24,6 +24,15 @@ public class ProjectsController(IProjectService service) : ControllerBase
         return Ok(project);
     }
 
+    [HttpGet("{id}/branches")]
+    public async Task<ActionResult<ProjectDto>> GetProjectBranches(Guid id)
+    {
+        var projectBranches = await service.GetProjectBranches(id);
+        if (projectBranches is null)
+            return NotFound();
+        return Ok(projectBranches);
+    }
+
     [HttpGet("{id}/{branch}/packages/graph")]
     public async Task<ActionResult<GraphDataDto>> GetFullGraph(Guid id, string branch)
     {

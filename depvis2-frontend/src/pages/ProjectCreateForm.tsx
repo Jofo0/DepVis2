@@ -24,7 +24,6 @@ type FormValues = z.infer<typeof ProjectSchema>;
 const ProjectCreateForm = () => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
   const [isGitAvailable, setIsGitAvailable] = useState(false);
-  // Lazy query to fetch git info from remote URL
   const [
     retrieveGitInfo,
     { isLoading: gitLoading, data: gitData, error: gitError },
@@ -35,8 +34,6 @@ const ProjectCreateForm = () => {
     handleSubmit,
     formState: { errors },
     reset,
-    getValues,
-    setValue,
     watch,
   } = useForm<FormValues>({
     resolver: zodResolver(ProjectSchema),

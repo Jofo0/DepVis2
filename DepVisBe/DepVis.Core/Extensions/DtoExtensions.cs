@@ -11,11 +11,9 @@ public static class DtoExtensions
             Id = project.Id,
             Name = project.Name,
             ProjectType = project.ProjectType,
-            ProcessStatus = project.ProcessStatus,
-            ProcessStep = project.ProcessStep,
             ProjectLink = project.ProjectLink,
         };
 
-    public static ProjectStatsDto MapToDto(this ProjectStatistics stats) =>
+    public static ProjectStatsDto MapToDto(this ProjectBranches stats) =>
         new() { PackageCount = stats.PackageCount, VulnerabilityCount = stats.VulnerabilityCount };
 }

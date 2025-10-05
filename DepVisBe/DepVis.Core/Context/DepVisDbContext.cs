@@ -15,6 +15,7 @@ public class DepVisDbContext : DbContext
     public DbSet<PackageDependency> PackageDependencies => Set<PackageDependency>();
     public DbSet<Vulnerability> Vulnerabilities { get; set; }
     public DbSet<PackageVulnerability> PackageVulnerabilities => Set<PackageVulnerability>();
+    public DbSet<ProjectBranches> ProjectBranches { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

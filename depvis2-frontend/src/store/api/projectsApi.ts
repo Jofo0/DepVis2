@@ -17,6 +17,9 @@ export const projectApi = projectsApi.injectEndpoints({
       query: (id) => `/${id}`,
       providesTags: (_res, _err, id) => [{ type: "Projects", id }],
     }),
+    getProjectBranches: builder.query<string[], string>({
+      query: (id) => `/${id}/branches`,
+    }),
     createProject: builder.mutation<ProjectDto, CreateProjectDto>({
       query: (dto) => ({
         url: "/",
@@ -69,6 +72,7 @@ export const {
   useCreateProjectMutation,
   useUpdateProjectMutation,
   useDeleteProjectMutation,
+  useGetProjectBranchesQuery,
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,
 } = projectApi;

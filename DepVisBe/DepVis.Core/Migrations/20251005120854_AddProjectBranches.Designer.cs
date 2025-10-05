@@ -4,6 +4,7 @@ using DepVis.Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DepVis.Core.Migrations
 {
     [DbContext(typeof(DepVisDbContext))]
-    partial class DepVisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251005120854_AddProjectBranches")]
+    partial class AddProjectBranches
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,6 +65,12 @@ namespace DepVis.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ProcessStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProcessStep")
+                        .HasColumnType("int");
+
                     b.Property<string>("ProjectLink")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -76,24 +85,31 @@ namespace DepVis.Core.Migrations
 
             modelBuilder.Entity("DepVis.Shared.Model.ProjectBranches", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("IsTag")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Name")
+                    b.HasKey("ProjectId", "Name");
+
+                    b.ToTable("ProjectBranches");
+                });
+
+            modelBuilder.Entity("DepVis.Shared.Model.ProjectStatistics", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Branch")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PackageCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProcessStatus")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProcessStep")
                         .HasColumnType("int");
 
                     b.Property<Guid>("ProjectId")
@@ -106,23 +122,6 @@ namespace DepVis.Core.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("ProjectBranches");
-                });
-
-            modelBuilder.Entity("DepVis.Shared.Model.ProjectStatistics", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("PackageCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VulnerabilityCount")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
                     b.ToTable("ProjectStatistics");
                 });
 
@@ -132,6 +131,10 @@ namespace DepVis.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Branch")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -139,12 +142,12 @@ namespace DepVis.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("ProjectBranchId")
+                    b.Property<Guid>("ProjectId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProjectBranchId");
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("Sboms");
                 });
@@ -262,24 +265,31 @@ namespace DepVis.Core.Migrations
 
             modelBuilder.Entity("DepVis.Shared.Model.ProjectBranches", b =>
                 {
-                    b.HasOne("DepVis.Shared.Model.Project", "Project")
+                    b.HasOne("DepVis.Shared.Model.Project", null)
                         .WithMany("ProjectBranches")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DepVis.Shared.Model.ProjectStatistics", b =>
+                {
+                    b.HasOne("DepVis.Shared.Model.Project", null)
+                        .WithMany("ProjectStatistics")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DepVis.Shared.Model.Sbom", b =>
+                {
+                    b.HasOne("DepVis.Shared.Model.Project", "Project")
+                        .WithMany("Sboms")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("DepVis.Shared.Model.Sbom", b =>
-                {
-                    b.HasOne("DepVis.Shared.Model.ProjectBranches", "ProjectBranch")
-                        .WithMany("Sboms")
-                        .HasForeignKey("ProjectBranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProjectBranch");
                 });
 
             modelBuilder.Entity("DepVis.Shared.Model.SbomPackage", b =>
@@ -311,10 +321,9 @@ namespace DepVis.Core.Migrations
             modelBuilder.Entity("DepVis.Shared.Model.Project", b =>
                 {
                     b.Navigation("ProjectBranches");
-                });
 
-            modelBuilder.Entity("DepVis.Shared.Model.ProjectBranches", b =>
-                {
+                    b.Navigation("ProjectStatistics");
+
                     b.Navigation("Sboms");
                 });
 

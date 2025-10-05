@@ -20,7 +20,7 @@ public class ProcessingMessageConsumer(
         await _publishEndpoint.Publish(
             new UpdateProcessingMessage()
             {
-                ProjectId = context.Message.ProjectId,
+                ProjectId = context.Message.ProjectBranchId,
                 ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
             }
         );
@@ -47,10 +47,9 @@ public class ProcessingMessageConsumer(
             await _publishEndpoint.Publish(
                 new UpdateProcessingMessage()
                 {
-                    ProjectId = context.Message.ProjectId,
+                    ProjectId = context.Message.ProjectBranchId,
                     ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
                     FileName = filename,
-                    Branch = context.Message.Branch,
                 }
             );
         }
@@ -65,7 +64,7 @@ public class ProcessingMessageConsumer(
             await _publishEndpoint.Publish(
                 new UpdateProcessingMessage()
                 {
-                    ProjectId = context.Message.ProjectId,
+                    ProjectId = context.Message.ProjectBranchId,
                     ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
                 }
             );
