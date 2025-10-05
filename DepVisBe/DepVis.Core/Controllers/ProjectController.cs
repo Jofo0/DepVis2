@@ -25,7 +25,7 @@ public class ProjectsController(IProjectService service) : ControllerBase
     }
 
     [HttpGet("{id}/branches")]
-    public async Task<ActionResult<ProjectDto>> GetProjectBranches(Guid id)
+    public async Task<ActionResult<List<ProjectBranchDto>>> GetProjectBranches(Guid id)
     {
         var projectBranches = await service.GetProjectBranches(id);
         if (projectBranches is null)
@@ -33,19 +33,19 @@ public class ProjectsController(IProjectService service) : ControllerBase
         return Ok(projectBranches);
     }
 
-    [HttpGet("{id}/{branch}/packages/graph")]
-    public async Task<ActionResult<GraphDataDto>> GetFullGraph(Guid id, string branch)
+    [HttpGet("{branchId}/packages/graph")]
+    public async Task<ActionResult<GraphDataDto>> GetFullGraph(Guid branchId)
     {
-        var project = await service.GetProjectGraphData(id, branch);
+        var project = await service.GetProjectGraphData(branchId);
         if (project is null)
             return NotFound();
         return Ok(project);
     }
 
-    [HttpGet("{id}/{branch}/stats")]
-    public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid id, string branch)
+    [HttpGet("{branchId}/stats")]
+    public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid branchId)
     {
-        var project = await service.GetProjectStats(id, branch);
+        var project = await service.GetProjectStats(branchId);
         if (project is null)
             return NotFound();
         return Ok(project);

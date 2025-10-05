@@ -17,11 +17,11 @@ public class UpdateProcessingMessageConsumer(
         var message = context.Message;
         logger.LogDebug(
             "Received FinishedProcessingMessage for project {projectId}",
-            message.ProjectId
+            message.ProjectBranchId
         );
 
         var projectBranch = await dbContext.ProjectBranches.FirstAsync(x =>
-            x.Id == message.ProjectId
+            x.Id == message.ProjectBranchId
         );
         if (projectBranch == null)
             return;
@@ -40,7 +40,7 @@ public class UpdateProcessingMessageConsumer(
 
         await dbContext.SaveChangesAsync();
 
-        logger.LogDebug("Successfully updated Project {projectId}", message.ProjectId);
+        logger.LogDebug("Successfully updated Project {projectId}", message.ProjectBranchId);
 
         if (message.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success && sbom != null)
         {

@@ -8,8 +8,8 @@ public interface IProjectService
     Task<ProjectDto?> GetProject(Guid id);
     Task<ProjectDto> CreateProject(CreateProjectDto dto);
     Task<bool> UpdateProject(Guid id, UpdateProjectDto dto);
-    Task<ProjectStatsDto> GetProjectStats(Guid id, string branch);
-    Task<List<string>> GetProjectBranches(Guid id);
-    Task<GraphDataDto> GetProjectGraphData(Guid id, string branch);
+    Task<ProjectStatsDto> GetProjectStats(Guid branchId);
+    Task<List<ProjectBranchDto>> GetProjectBranches(Guid id);
+    Task<GraphDataDto> GetProjectGraphData(Guid branchId);
     Task<bool> DeleteProject(Guid id);
 }

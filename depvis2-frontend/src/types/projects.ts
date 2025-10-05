@@ -26,3 +26,8 @@ export interface ProjectStatsDto {
   packageCount: number;
   vulnerabilityCount: number;
 }
+
+export type ProjectBranchDto = {
+  name: string;
+  id: string;
+};

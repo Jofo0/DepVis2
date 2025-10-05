@@ -16,4 +16,7 @@ public static class DtoExtensions
 
     public static ProjectStatsDto MapToDto(this ProjectBranches stats) =>
         new() { PackageCount = stats.PackageCount, VulnerabilityCount = stats.VulnerabilityCount };
+
+    public static ProjectBranchDto MapToBranchesDto(this ProjectBranches pb) =>
+        new() { Id = pb.Id, Name = pb.Name };
 }

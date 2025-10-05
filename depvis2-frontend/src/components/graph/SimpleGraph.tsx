@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { useGetProjectGraphQuery } from "../../store/api/projectsApi";
+import type { ProjectBranchDto } from "../../types/projects";
 
 type GraphNode = {
   id: string;
@@ -18,16 +19,13 @@ type GraphLink = {
 const LABEL_FONT_SIZE = 12;
 const LABEL_MARGIN = 4;
 
-const SimpleGraph = ({
-  projectId,
-  branch,
-}: {
-  projectId: string;
-  branch: string;
-}) => {
+type SimpleGraphProps = {
+  branch: ProjectBranchDto;
+};
+
+const SimpleGraph = ({ branch }: SimpleGraphProps) => {
   const { data, isLoading, isFetching, error } = useGetProjectGraphQuery({
-    id: projectId,
-    branch,
+    id: branch.id,
   });
 
   const graphData = useMemo(() => {

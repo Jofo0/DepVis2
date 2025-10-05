@@ -50,45 +50,58 @@ public class IngestProcessingMessageConsumer(
                 JsonSerializer.Deserialize<CycloneDxBom>(cycloneDxStream, _jsonOptions)
                 ?? new CycloneDxBom { Components = [] };
 
-            var vulnerabilities = BuildVulnerabilities(bom);
-
-            var packages = BuildPackages(sbom.Id, bom);
-
-            var edges = BuildEdges(bom);
-            var bomRefToId = packages.ToDictionary(
-                p => p.BomRef,
-                p => p.Id,
-                StringComparer.Ordinal
+            await using var tx = await _db.Database.BeginTransactionAsync(
+                System.Data.IsolationLevel.Serializable,
+                context.CancellationToken
             );
 
-            var packageVulnerabilities =
-                bom.Vulnerabilities?.SelectMany(v =>
-                        v.Affects.Select(a => new PackageVulnerability()
-                        {
-                            VulnerabilityId = v.Id,
-                            SbomPackageId = bomRefToId[a.Ref],
-                        })
-                    )
-                    .ToList() ?? [];
+            try
+            {
+                var vulnerabilities = BuildVulnerabilities(bom);
 
-            var createdDeps = BuildDependencies(edges, bomRefToId);
+                var packages = BuildPackages(sbom.Id, bom);
 
-            _db.Vulnerabilities.AddRange(vulnerabilities);
-            _db.SbomPackages.AddRange(packages);
-            _db.PackageDependencies.AddRange(createdDeps);
-            _db.PackageVulnerabilities.AddRange(packageVulnerabilities);
+                var edges = BuildEdges(bom);
+                var bomRefToId = packages.ToDictionary(
+                    p => p.BomRef,
+                    p => p.Id,
+                    StringComparer.Ordinal
+                );
 
-            projectBranch.PackageCount = packages.Count;
-            projectBranch.VulnerabilityCount = vulnerabilities.Count;
-            projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+                var packageVulnerabilities =
+                    bom.Vulnerabilities?.SelectMany(v =>
+                            v.Affects.Select(a => new PackageVulnerability()
+                            {
+                                VulnerabilityId = v.Id,
+                                SbomPackageId = bomRefToId[a.Ref],
+                            })
+                        )
+                        .ToList() ?? [];
 
-            await _db.SaveChangesAsync(context.CancellationToken);
+                var createdDeps = BuildDependencies(edges, bomRefToId);
 
-            _logger.LogDebug(
-                "Ingestion finished successfully. Packages: {pkgCount}, Deps: {depCount}",
-                packages.Count,
-                createdDeps.Count
-            );
+                _db.Vulnerabilities.AddRange(vulnerabilities);
+                _db.SbomPackages.AddRange(packages);
+                _db.PackageDependencies.AddRange(createdDeps);
+                _db.PackageVulnerabilities.AddRange(packageVulnerabilities);
+
+                projectBranch.PackageCount = packages.Count;
+                projectBranch.VulnerabilityCount = vulnerabilities.Count;
+                projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+
+                await _db.SaveChangesAsync(context.CancellationToken);
+                await tx.CommitAsync(context.CancellationToken);
+                _logger.LogDebug(
+                    "Ingestion finished successfully. Packages: {pkgCount}, Deps: {depCount}",
+                    packages.Count,
+                    createdDeps.Count
+                );
+            }
+            catch
+            {
+                await tx.RollbackAsync(context.CancellationToken);
+                throw;
+            }
         }
         catch (Exception ex)
         {

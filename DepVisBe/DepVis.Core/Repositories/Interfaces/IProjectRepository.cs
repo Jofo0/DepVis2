@@ -10,7 +10,7 @@ public interface IProjectRepository
     Task<Sbom?> GetPackagesByIdAndBranch(Guid id);
     Task AddAsync(Project project);
     Task<ProjectBranches?> GetProjectStats(Guid id);
-    Task<List<string>> GetProjectBranches(Guid id);
+    Task<List<ProjectBranches>> GetProjectBranches(Guid id);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);
 }

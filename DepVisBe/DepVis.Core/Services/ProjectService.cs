@@ -24,9 +24,9 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
     }
 
     // TODO: Move to different package service
-    public async Task<GraphDataDto?> GetProjectGraphData(Guid id, string branch = "master")
+    public async Task<GraphDataDto?> GetProjectGraphData(Guid branchId)
     {
-        var sbom = await repo.GetPackagesByIdAndBranch(id);
+        var sbom = await repo.GetPackagesByIdAndBranch(branchId);
 
         if (sbom == null)
             return null;
@@ -50,14 +50,14 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
 
     // TODO: Move to different service
 
-    public async Task<ProjectStatsDto?> GetProjectStats(Guid id, string branch = "master")
+    public async Task<ProjectStatsDto?> GetProjectStats(Guid branchId)
     {
-        return (await repo.GetProjectStats(id))?.MapToDto();
+        return (await repo.GetProjectStats(branchId))?.MapToDto();
     }
 
-    public async Task<List<string>> GetProjectBranches(Guid id)
+    public async Task<List<ProjectBranchDto>> GetProjectBranches(Guid id)
     {
-        return await repo.GetProjectBranches(id);
+        return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
     }
 
     public async Task<ProjectDto> CreateProject(CreateProjectDto dto)

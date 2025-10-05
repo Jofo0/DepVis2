@@ -1,13 +1,12 @@
 import { useGetProjectStatsQuery } from "../../store/api/projectsApi";
+import type { ProjectBranchDto } from "../../types/projects";
 
-export const ProjectStats = ({
-  id,
-  branch,
-}: {
-  id: string;
-  branch: string;
-}) => {
-  const { data, isLoading, error } = useGetProjectStatsQuery({ id, branch });
+type ProjectStatsProps = {
+  branch: ProjectBranchDto;
+};
+
+export const ProjectStats = ({ branch }: ProjectStatsProps) => {
+  const { data, isLoading, error } = useGetProjectStatsQuery({ id: branch.id });
 
   if (isLoading) return <p>Loading stats…</p>;
   if (error) return <p>Failed to load stats</p>;

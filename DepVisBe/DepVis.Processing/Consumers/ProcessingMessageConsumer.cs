@@ -12,15 +12,17 @@ public class ProcessingMessageConsumer(
     IPublishEndpoint _publishEndpoint
 ) : IConsumer<ProcessingMessage>
 {
+    private static readonly SemaphoreSlim _trivyLock = new(1, 1);
+
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
         var branch = context.Message.Branch;
 
         await _publishEndpoint.Publish(
-            new UpdateProcessingMessage()
+            new UpdateProcessingMessage
             {
-                ProjectId = context.Message.ProjectBranchId,
+                ProjectBranchId = context.Message.ProjectBranchId,
                 ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
             }
         );
@@ -34,20 +36,28 @@ public class ProcessingMessageConsumer(
         try
         {
             _logger.LogDebug("Cloning repository {githubLink}", githubLink);
-            var cloneOptions = new CloneOptions() { BranchName = branch, Checkout = true };
+            var cloneOptions = new CloneOptions { BranchName = branch, Checkout = true };
             Repository.Clone(githubLink, tempDir, cloneOptions);
             _logger.LogDebug("Repository cloned successfully");
 
-            await RunTrivy(tempDir, outputFile);
+            await _trivyLock.WaitAsync(context.CancellationToken);
+            try
+            {
+                await RunTrivy(tempDir, outputFile);
+            }
+            finally
+            {
+                _trivyLock.Release();
+            }
 
             _logger.LogDebug("Uploading the created SBOM file to minIO storage");
             await _minioStorageService.UploadAsync(outputFile, filename);
             _logger.LogDebug("SBOM uploaded succesfully");
 
             await _publishEndpoint.Publish(
-                new UpdateProcessingMessage()
+                new UpdateProcessingMessage
                 {
-                    ProjectId = context.Message.ProjectBranchId,
+                    ProjectBranchId = context.Message.ProjectBranchId,
                     ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
                     FileName = filename,
                 }
@@ -62,9 +72,9 @@ public class ProcessingMessageConsumer(
             );
 
             await _publishEndpoint.Publish(
-                new UpdateProcessingMessage()
+                new UpdateProcessingMessage
                 {
-                    ProjectId = context.Message.ProjectBranchId,
+                    ProjectBranchId = context.Message.ProjectBranchId,
                     ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
                 }
             );

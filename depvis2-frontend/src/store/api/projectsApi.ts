@@ -3,6 +3,7 @@ import type {
   CreateProjectDto,
   UpdateProjectDto,
   ProjectStatsDto,
+  ProjectBranchDto,
 } from "../../types/projects";
 import { projectsApi } from "../../store";
 import type { GraphDataDto } from "../../types/packages";
@@ -17,7 +18,7 @@ export const projectApi = projectsApi.injectEndpoints({
       query: (id) => `/${id}`,
       providesTags: (_res, _err, id) => [{ type: "Projects", id }],
     }),
-    getProjectBranches: builder.query<string[], string>({
+    getProjectBranches: builder.query<ProjectBranchDto[], string>({
       query: (id) => `/${id}/branches`,
     }),
     createProject: builder.mutation<ProjectDto, CreateProjectDto>({
@@ -49,18 +50,12 @@ export const projectApi = projectsApi.injectEndpoints({
       }),
       invalidatesTags: ["Projects"],
     }),
-    getProjectGraph: builder.query<
-      GraphDataDto,
-      { id: string; branch: string }
-    >({
-      query: ({ id, branch }) => `/${id}/${branch}/packages/graph`,
+    getProjectGraph: builder.query<GraphDataDto, { id: string }>({
+      query: ({ id }) => `/${id}/packages/graph`,
       providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
     }),
-    getProjectStats: builder.query<
-      ProjectStatsDto,
-      { id: string; branch: string }
-    >({
-      query: ({ id, branch }) => `/${id}/${branch}/stats`,
+    getProjectStats: builder.query<ProjectStatsDto, { id: string }>({
+      query: ({ id }) => `/${id}/stats`,
       providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
     }),
   }),

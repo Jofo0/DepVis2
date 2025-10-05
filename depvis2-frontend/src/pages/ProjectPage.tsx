@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SimpleGraph from "../components/graph/SimpleGraph";
 import { ProjectStats } from "../components/project/ProjectStats";
+import type { ProjectBranchDto } from "../types/projects";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,12 +19,10 @@ const ProjectDetailPage = () => {
 
   const preferredDefault = useMemo(() => {
     if (!branches || branches.length === 0) return undefined;
-    if (branches.includes("master")) return "master";
-    if (branches.includes("main")) return "main";
     return branches[0];
   }, [branches]);
 
-  const [selectedBranch, setSelectedBranch] = useState<string>("master");
+  const [selectedBranch, setSelectedBranch] = useState<ProjectBranchDto>();
 
   useEffect(() => {
     if (!branches || branches.length === 0) return;
@@ -50,7 +49,7 @@ const ProjectDetailPage = () => {
       </h2>
 
       {!branchesLoading && selectedBranch && (
-        <ProjectStats branch={selectedBranch} id={project.id} />
+        <ProjectStats branch={selectedBranch} />
       )}
 
       <div className="space-y-2">
@@ -60,17 +59,19 @@ const ProjectDetailPage = () => {
         <select
           id="branch"
           className="w-full px-3 py-2 text-sm transition border rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
-          value={selectedBranch ?? ""}
-          onChange={(e) => setSelectedBranch(e.target.value)}
+          value={selectedBranch?.id}
+          onChange={(e) =>
+            setSelectedBranch(branches?.find((x) => x.id == e.target.value))
+          }
           disabled={branchesLoading || !branches || branches.length === 0}
         >
           {branchesLoading && <option>Loading branches…</option>}
           {!branchesLoading && (!branches || branches.length === 0) && (
             <option>No branches found</option>
           )}
-          {(branches ?? []).map((b: string) => (
-            <option key={b} value={b}>
-              {b}
+          {(branches ?? []).map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.name}
             </option>
           ))}
         </select>
@@ -121,10 +122,7 @@ const ProjectDetailPage = () => {
         </button>
       </div>
 
-      {/* Graph for selected branch */}
-      {selectedBranch && (
-        <SimpleGraph branch={selectedBranch} projectId={project.id} />
-      )}
+      {selectedBranch && <SimpleGraph branch={selectedBranch} />}
     </div>
   );
 };
