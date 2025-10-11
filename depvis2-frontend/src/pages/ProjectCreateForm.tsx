@@ -91,7 +91,7 @@ const ProjectCreateForm = () => {
         <label className="block text-sm font-medium">Name</label>
         <input
           {...register("name")}
-          className={`w-full rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent transition ${
+          className={`w-full rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-hidden focus:ring-2 focus:ring-accent transition ${
             errors.name ? "border-red-400" : "border-border"
           }`}
           placeholder="Project Name"
@@ -106,7 +106,7 @@ const ProjectCreateForm = () => {
         <label className="block text-sm font-medium">Project type</label>
         <select
           {...register("projectType")}
-          className="w-full px-4 py-2 text-sm transition border rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full px-4 py-2 text-sm transition border rounded-xl bg-surface border-border focus:outline-hidden focus:ring-2 focus:ring-accent"
         >
           <option value="GitHub">GitHub Link</option>
         </select>
@@ -121,7 +121,7 @@ const ProjectCreateForm = () => {
         <div className="flex gap-2">
           <input
             {...register("projectLink")}
-            className={`flex-1 rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent transition ${
+            className={`flex-1 rounded-xl border px-4 py-2 text-sm bg-surface focus:outline-hidden focus:ring-2 focus:ring-accent transition ${
               errors.projectLink ? "border-red-400" : "border-border"
             }`}
             placeholder="https://github.com/owner/repo"
@@ -158,7 +158,7 @@ const ProjectCreateForm = () => {
             <select
               multiple
               {...register("selectedBranches")}
-              className="w-full px-3 py-2 text-sm transition border min-h-36 rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-3 py-2 text-sm transition border min-h-36 rounded-xl bg-surface border-border focus:outline-hidden focus:ring-2 focus:ring-accent"
             >
               {(gitData?.branches ?? []).map((b: string) => (
                 <option key={b} value={b}>
@@ -176,7 +176,7 @@ const ProjectCreateForm = () => {
             <select
               multiple
               {...register("selectedTags")}
-              className="w-full px-3 py-2 text-sm transition border min-h-36 rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
+              className="w-full px-3 py-2 text-sm transition border min-h-36 rounded-xl bg-surface border-border focus:outline-hidden focus:ring-2 focus:ring-accent"
             >
               {(gitData?.tags ?? []).map((t: string) => (
                 <option key={t} value={t}>

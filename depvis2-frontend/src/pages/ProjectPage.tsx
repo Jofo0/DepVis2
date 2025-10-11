@@ -58,7 +58,7 @@ const ProjectDetailPage = () => {
         </label>
         <select
           id="branch"
-          className="w-full px-3 py-2 text-sm transition border rounded-xl bg-surface border-border focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full px-3 py-2 text-sm transition border rounded-xl bg-surface border-border focus:outline-hidden focus:ring-2 focus:ring-accent"
           value={selectedBranch?.id}
           onChange={(e) =>
             setSelectedBranch(branches?.find((x) => x.id == e.target.value))
