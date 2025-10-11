@@ -59,8 +59,8 @@ const ProjectCreateForm = () => {
         tags: values.selectedTags ?? [],
       };
 
-      await createProject(payload).unwrap();
-      navigate("/projects");
+      const result = await createProject(payload).unwrap();
+      navigate(`/projects/${result.id}`);
     } catch (err) {
       console.error("Failed to create project", err);
     }
