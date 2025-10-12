@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import {
+  AlertTriangle,
   AudioWaveform,
-  Bot,
   Frame,
+  GitBranch,
+  Home,
   Map,
+  Package,
   PieChart,
-  SquareTerminal,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -32,15 +34,31 @@ const data = {
 
   navMain: [
     {
-      title: "Playground",
+      title: "Home",
       url: "#",
-      icon: SquareTerminal,
+      icon: Home,
       isActive: true,
     },
     {
-      title: "Models",
+      title: "Branches",
       url: "#",
-      icon: Bot,
+      icon: GitBranch,
+      isActive: true,
+    },
+    {
+      title: "Packages",
+      url: "#",
+      icon: Package,
+    },
+    {
+      title: "Vulnerabilities",
+      url: "#",
+      icon: AlertTriangle,
+    },
+    {
+      title: "Graph",
+      url: "#",
+      icon: AlertTriangle,
     },
   ],
   projects: [

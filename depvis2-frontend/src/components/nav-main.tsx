@@ -7,6 +7,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useNavigate } from "react-router";
 
 export function NavMain({
   items,
@@ -22,6 +23,7 @@ export function NavMain({
     }[];
   }[];
 }) {
+  const nav = useNavigate();
   return (
     <SidebarGroup>
       <SidebarMenu>
@@ -30,6 +32,7 @@ export function NavMain({
             key={item.title}
             asChild
             defaultOpen={item.isActive}
+            onClick={() => nav(item.url)}
             className="group/collapsible"
           >
             <SidebarMenuItem>
