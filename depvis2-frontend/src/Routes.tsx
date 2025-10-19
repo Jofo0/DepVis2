@@ -3,6 +3,8 @@ import ProjectCreatePage from "./pages/ProjectCreatePage";
 import ProjectDetailPage from "./pages/ProjectPage";
 import Layout from "./pages/Layout";
 import SelectProjectPage from "./pages/SelectProjectPage";
+import Branches from "./pages/Branches";
+import Graph from "./pages/Graph";
 
 const Routes = () => {
   return (
@@ -19,10 +21,10 @@ const Routes = () => {
       </Route>
       <Route element={<Layout />}>
         <Route path="/:id" element={<ProjectDetailPage />} />
-        <Route path="/:id/branches" element={<ProjectDetailPage />} />
+        <Route path="/:id/branches" element={<Branches />} />
         <Route path="/:id/packages" element={<ProjectDetailPage />} />
         <Route path="/:id/vulnerabilities" element={<ProjectDetailPage />} />
-        <Route path="/:id/graph" element={<ProjectDetailPage />} />
+        <Route path="/:id/graph" element={<Graph />} />
       </Route>
     </RoutesReactRouter>
   );

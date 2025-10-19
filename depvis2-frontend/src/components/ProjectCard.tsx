@@ -16,7 +16,7 @@ type ProjectCardProps = {
 
 const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
-    <Card className="w-72">
+    <Card className="w-72 h-36">
       <CardHeader>
         <CardTitle>{project.name}</CardTitle>
         <CardDescription>{project.projectType}</CardDescription>

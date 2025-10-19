@@ -34,7 +34,9 @@ const Layout = () => {
             </Breadcrumb>
           </div>
         </header>
-        <Outlet />
+        <div className="m-3">
+          <Outlet />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

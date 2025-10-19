@@ -6,7 +6,6 @@ import {
 } from "../store/api/projectsApi";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import SimpleGraph from "../components/graph/SimpleGraph";
 import { ProjectStats } from "../components/project/ProjectStats";
 import type { ProjectBranchDto } from "../types/projects";
 
@@ -121,8 +120,6 @@ const ProjectDetailPage = () => {
           )}
         </button>
       </div>
-
-      {selectedBranch && <SimpleGraph branch={selectedBranch} />}
     </div>
   );
 };
