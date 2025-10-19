@@ -1,88 +1,22 @@
 "use client";
 
 import * as React from "react";
-import {
-  AlertTriangle,
-  AudioWaveform,
-  Frame,
-  GitBranch,
-  Home,
-  Map,
-  Package,
-  PieChart,
-} from "lucide-react";
+import { AudioWaveform } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useGetProjectsQuery } from "@/store/api/projectsApi";
-
-// This is sample data.
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-
-  navMain: [
-    {
-      title: "Home",
-      url: "#",
-      icon: Home,
-      isActive: true,
-    },
-    {
-      title: "Branches",
-      url: "#",
-      icon: GitBranch,
-      isActive: true,
-    },
-    {
-      title: "Packages",
-      url: "#",
-      icon: Package,
-    },
-    {
-      title: "Vulnerabilities",
-      url: "#",
-      icon: AlertTriangle,
-    },
-    {
-      title: "Graph",
-      url: "#",
-      icon: AlertTriangle,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-};
+import useSidebar from "@/utils/useSidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: projects, isLoading } = useGetProjectsQuery();
-
+  const { data: sidebarData } = useSidebar();
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -98,11 +32,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={sidebarData.navMain} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
