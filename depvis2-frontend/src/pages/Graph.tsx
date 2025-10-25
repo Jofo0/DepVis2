@@ -1,6 +1,6 @@
 import SimpleGraph from "@/components/graph/SimpleGraph";
 import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
-import type { ProjectBranchDto } from "@/types/projects";
+import type { Branch } from "@/types/branches";
 import { useMemo, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -8,7 +8,7 @@ const Graph = () => {
   const { id } = useParams<{ id: string }>();
 
   const { data: branches } = useGetProjectBranchesQuery(id!);
-  const [selectedBranch, setSelectedBranch] = useState<ProjectBranchDto>();
+  const [selectedBranch, setSelectedBranch] = useState<Branch>();
 
   const preferredDefault = useMemo(() => {
     if (!branches || branches.length === 0) return undefined;
