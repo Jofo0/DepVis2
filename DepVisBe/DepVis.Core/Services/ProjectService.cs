@@ -60,6 +60,11 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
     }
 
+    public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(Guid id)
+    {
+        return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDetailedDto())];
+    }
+
     public async Task<ProjectDto> CreateProject(CreateProjectDto dto)
     {
         var projectId = Guid.NewGuid();

@@ -3,10 +3,10 @@ import type {
   CreateProjectDto,
   UpdateProjectDto,
   ProjectStatsDto,
-  ProjectBranchDto,
 } from "../../types/projects";
 import { projectsApi } from "../../store";
 import type { GraphDataDto } from "../../types/packages";
+import type { BranchDetailed, Branch } from "@/types/branches";
 
 export const projectApi = projectsApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -18,8 +18,11 @@ export const projectApi = projectsApi.injectEndpoints({
       query: (id) => `/${id}`,
       providesTags: (_res, _err, id) => [{ type: "Projects", id }],
     }),
-    getProjectBranches: builder.query<ProjectBranchDto[], string>({
+    getProjectBranches: builder.query<Branch[], string>({
       query: (id) => `/${id}/branches`,
+    }),
+    getProjectBranchesDetailed: builder.query<BranchDetailed[], string>({
+      query: (id) => `/${id}/branches/detailed`,
     }),
     createProject: builder.mutation<ProjectDto, CreateProjectDto>({
       query: (dto) => ({
@@ -66,6 +69,7 @@ export const {
   useGetProjectQuery,
   useCreateProjectMutation,
   useUpdateProjectMutation,
+  useGetProjectBranchesDetailedQuery,
   useDeleteProjectMutation,
   useGetProjectBranchesQuery,
   useGetProjectStatsQuery,

@@ -19,4 +19,13 @@ public static class DtoExtensions
 
     public static ProjectBranchDto MapToBranchesDto(this ProjectBranches pb) =>
         new() { Id = pb.Id, Name = pb.Name };
+
+    public static ProjectBranchDetailedDto MapToBranchesDetailedDto(this ProjectBranches pb) =>
+        new()
+        {
+            Id = pb.Id,
+            Name = pb.Name,
+            PackageCount = pb.PackageCount,
+            VulnerabilityCount = pb.VulnerabilityCount,
+        };
 }

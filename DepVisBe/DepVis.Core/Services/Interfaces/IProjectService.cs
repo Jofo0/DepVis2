@@ -6,6 +6,7 @@ public interface IProjectService
 {
     Task<IEnumerable<ProjectDto>> GetProjects();
     Task<ProjectDto?> GetProject(Guid id);
+    Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(Guid id);
     Task<ProjectDto> CreateProject(CreateProjectDto dto);
     Task<bool> UpdateProject(Guid id, UpdateProjectDto dto);
     Task<ProjectStatsDto> GetProjectStats(Guid branchId);
