@@ -28,13 +28,13 @@ const Layout = () => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink>Building Your Application</BreadcrumbLink>
+                  <BreadcrumbLink className="text-3xl">Branches</BreadcrumbLink>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
         </header>
-        <div className="px-10">
+        <div className="px-16 h-full w-full">
           <Outlet />
         </div>
       </SidebarInset>

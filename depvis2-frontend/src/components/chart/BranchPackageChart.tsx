@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
   type ChartConfig,
@@ -23,7 +23,7 @@ export const BranchPackageChart = () => {
   const { data = [] } = useGetProjectBranchesDetailedQuery(projectId);
 
   return (
-    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+    <ChartContainer config={chartConfig} className="min-h-1/2 w-full">
       <BarChart accessibilityLayer data={data}>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -33,6 +33,7 @@ export const BranchPackageChart = () => {
           axisLine={false}
           tickFormatter={(value) => value.slice(0, 3)}
         />
+        <YAxis dataKey="packageCount" tickMargin={10} axisLine={false} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar

@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
   type ChartConfig,
@@ -33,6 +33,7 @@ export const BranchVulnChart = () => {
           axisLine={false}
           tickFormatter={(value) => value.slice(0, 3)}
         />
+        <YAxis dataKey="vulnerabilityCount" tickMargin={10} axisLine={false} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar

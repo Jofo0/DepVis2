@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -31,9 +32,9 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className={`overflow-hidden rounded-md border ${className}`}>
-      <Table>
-        <TableHeader>
+    <div className={cn(`rounded-md border`, className)}>
+      <Table className={className}>
+        <TableHeader className="sticky top-0 z-10 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
@@ -51,6 +52,7 @@ export function DataTable<TData, TValue>({
             </TableRow>
           ))}
         </TableHeader>
+
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
