@@ -8,8 +8,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useGetProjectBranchesDetailedQuery } from "@/store/api/projectsApi";
-import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
 
 const chartConfig = {
   packageCount: {
@@ -18,10 +16,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export const BranchPackageChart = () => {
-  const projectId = useGetProjectId();
-  const { data = [] } = useGetProjectBranchesDetailedQuery(projectId);
+export type BranchPackageChartProps = {
+  data: never[];
+};
 
+export const BranchPackageChart = ({ data }: BranchPackageChartProps) => {
   return (
     <ChartContainer config={chartConfig} className="min-h-1/2 w-full">
       <BarChart accessibilityLayer data={data}>

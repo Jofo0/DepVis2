@@ -1,6 +1,8 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Services.Interfaces;
+using DepVis.Shared.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Controllers;
 
@@ -35,13 +37,11 @@ public class ProjectsController(IProjectService service) : ControllerBase
 
     [HttpGet("{id}/branches/detailed")]
     public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesTableData(
-        Guid id
+        Guid id,
+        ODataQueryOptions<ProjectBranches> odata
     )
     {
-        var projectBranches = await service.GetProjectBranchesDetailed(id);
-        if (projectBranches is null)
-            return NotFound();
-        return Ok(projectBranches);
+        return Ok(await service.GetProjectBranchesDetailed(id, odata));
     }
 
     [HttpGet("{branchId}/packages/graph")]

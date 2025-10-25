@@ -37,6 +37,9 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
     public async Task<List<ProjectBranches>> GetProjectBranches(Guid id) =>
         await context.ProjectBranches.Where(x => x.ProjectId == id).ToListAsync();
 
+    public IQueryable<ProjectBranches> GetProjectBranchesAsQueryable(Guid id) =>
+        context.ProjectBranches.Where(x => x.ProjectId == id);
+
     public async Task AddAsync(Project project)
     {
         await context.Projects.AddAsync(project);

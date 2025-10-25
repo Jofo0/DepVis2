@@ -8,8 +8,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useGetProjectBranchesDetailedQuery } from "@/store/api/projectsApi";
-import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
 
 const chartConfig = {
   vulnerabilityCount: {
@@ -18,10 +16,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export const BranchVulnChart = () => {
-  const projectId = useGetProjectId();
-  const { data = [] } = useGetProjectBranchesDetailedQuery(projectId);
+type BranchVulnChartProps = {
+  data: never[];
+};
 
+export const BranchVulnChart = ({ data }: BranchVulnChartProps) => {
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <BarChart accessibilityLayer data={data}>

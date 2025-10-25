@@ -8,6 +8,11 @@ import { projectsApi } from "../../store";
 import type { GraphDataDto } from "../../types/packages";
 import type { BranchDetailed, Branch } from "@/types/branches";
 
+type IdWithOdata = {
+  id: string;
+  odata?: string;
+};
+
 export const projectApi = projectsApi.injectEndpoints({
   endpoints: (builder) => ({
     getProjects: builder.query<ProjectDto[], void>({
@@ -21,8 +26,9 @@ export const projectApi = projectsApi.injectEndpoints({
     getProjectBranches: builder.query<Branch[], string>({
       query: (id) => `/${id}/branches`,
     }),
-    getProjectBranchesDetailed: builder.query<BranchDetailed[], string>({
-      query: (id) => `/${id}/branches/detailed`,
+    getProjectBranchesDetailed: builder.query<BranchDetailed[], IdWithOdata>({
+      query: ({ id, odata }) =>
+        `/${id}/branches/detailed${odata ? `?${odata}` : ""}`,
     }),
     createProject: builder.mutation<ProjectDto, CreateProjectDto>({
       query: (dto) => ({

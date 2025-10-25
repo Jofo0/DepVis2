@@ -11,6 +11,7 @@ public interface IProjectRepository
     Task AddAsync(Project project);
     Task<ProjectBranches?> GetProjectStats(Guid id);
     Task<List<ProjectBranches>> GetProjectBranches(Guid id);
+    IQueryable<ProjectBranches> GetProjectBranchesAsQueryable(Guid id);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);
 }

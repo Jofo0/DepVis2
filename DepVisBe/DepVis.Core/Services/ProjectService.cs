@@ -5,6 +5,8 @@ using DepVis.Core.Services.Interfaces;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using MassTransit;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Services;
 
@@ -60,9 +62,16 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
     }
 
-    public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(Guid id)
+    public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(
+        Guid id,
+        ODataQueryOptions<ProjectBranches> odata
+    )
     {
-        return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDetailedDto())];
+        var data = await (
+            (IQueryable<ProjectBranches>)odata.ApplyTo(repo.GetProjectBranchesAsQueryable(id))
+        ).ToListAsync();
+
+        return [.. data.Select(x => x.MapToBranchesDetailedDto())];
     }
 
     public async Task<ProjectDto> CreateProject(CreateProjectDto dto)

@@ -5,12 +5,14 @@ using DepVis.Core.Services;
 using DepVis.Core.Services.Interfaces;
 using DepVis.ServiceDefaults;
 using DepVis.Shared.Services;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder
     .Services.AddControllers()
+    .AddOData()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(
