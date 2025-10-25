@@ -33,7 +33,17 @@ export const BranchVulnChart = () => {
           axisLine={false}
           tickFormatter={(value) => value.slice(0, 3)}
         />
-        <YAxis dataKey="vulnerabilityCount" tickMargin={10} axisLine={false} />
+
+        <YAxis
+          dataKey="vulnerabilityCount"
+          tickMargin={10}
+          axisLine={false}
+          label={{
+            value: "Vulnerabilities",
+            angle: -90,
+            position: "insideLeft",
+          }}
+        />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar

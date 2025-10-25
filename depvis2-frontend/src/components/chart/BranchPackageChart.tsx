@@ -31,9 +31,18 @@ export const BranchPackageChart = () => {
           tickLine={false}
           tickMargin={10}
           axisLine={false}
-          tickFormatter={(value) => value.slice(0, 3)}
+          tickFormatter={(value) => value.slice(0, 4)}
         />
-        <YAxis dataKey="packageCount" tickMargin={10} axisLine={false} />
+        <YAxis
+          dataKey="packageCount"
+          tickMargin={10}
+          axisLine={false}
+          label={{
+            value: "Packages",
+            angle: -90,
+            position: "insideLeft",
+          }}
+        />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar
