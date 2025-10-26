@@ -5,7 +5,7 @@ import type {
   ProjectStatsDto,
 } from "../../types/projects";
 import { projectsApi } from "../../store";
-import type { GraphDataDto } from "../../types/packages";
+import type { GraphDataDto, PackageDetailedDto } from "../../types/packages";
 import type { BranchDetailed, Branch } from "@/types/branches";
 
 type IdWithOdata = {
@@ -61,7 +61,9 @@ export const projectApi = projectsApi.injectEndpoints({
     }),
     getProjectGraph: builder.query<GraphDataDto, { id: string }>({
       query: ({ id }) => `/${id}/packages/graph`,
-      providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
+    }),
+    getPackages: builder.query<PackageDetailedDto[], IdWithOdata>({
+      query: ({ id, odata }) => `/${id}/packages${odata ? `?${odata}` : ""}`,
     }),
     getProjectStats: builder.query<ProjectStatsDto, { id: string }>({
       query: ({ id }) => `/${id}/stats`,
@@ -80,4 +82,5 @@ export const {
   useGetProjectBranchesQuery,
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,
+  useGetPackagesQuery,
 } = projectApi;

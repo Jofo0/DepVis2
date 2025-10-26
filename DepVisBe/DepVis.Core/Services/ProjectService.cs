@@ -6,7 +6,6 @@ using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using MassTransit;
 using Microsoft.AspNetCore.OData.Query;
-using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Services;
 
@@ -28,7 +27,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
     // TODO: Move to different package service
     public async Task<GraphDataDto?> GetProjectGraphData(Guid branchId)
     {
-        var sbom = await repo.GetPackagesByIdAndBranch(branchId);
+        var sbom = await repo.GetPackagesAndChildrenByIdAndBranch(branchId);
 
         if (sbom == null)
             return null;
@@ -62,15 +61,22 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
     }
 
+    public async Task<List<PackageDetailedDto>> GetPackages(
+        Guid id,
+        ODataQueryOptions<SbomPackage> odata
+    )
+    {
+        var packages = await odata.ApplyOdata(repo.GetPackagesForBranch(id));
+
+        return [.. packages.Select(x => x.MapToPackagesDetailed())];
+    }
+
     public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(
         Guid id,
         ODataQueryOptions<ProjectBranches> odata
     )
     {
-        var data = await (
-            (IQueryable<ProjectBranches>)odata.ApplyTo(repo.GetProjectBranchesAsQueryable(id))
-        ).ToListAsync();
-
+        var data = await odata.ApplyOdata(repo.GetProjectBranchesAsQueryable(id));
         return [.. data.Select(x => x.MapToBranchesDetailedDto())];
     }
 

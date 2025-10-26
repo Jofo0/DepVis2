@@ -5,6 +5,7 @@ import Layout from "./pages/Layout";
 import SelectProjectPage from "./pages/SelectProjectPage";
 import Branches from "./pages/Branches";
 import Graph from "./pages/Graph";
+import Packages from "./pages/Packages";
 
 const Routes = () => {
   return (
@@ -22,7 +23,7 @@ const Routes = () => {
       <Route element={<Layout />}>
         <Route path="/:id" element={<ProjectDetailPage />} />
         <Route path="/:id/branches" element={<Branches />} />
-        <Route path="/:id/packages" element={<ProjectDetailPage />} />
+        <Route path="/:id/packages" element={<Packages />} />
         <Route path="/:id/vulnerabilities" element={<ProjectDetailPage />} />
         <Route path="/:id/graph" element={<Graph />} />
       </Route>

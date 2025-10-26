@@ -1,7 +1,8 @@
 import { DataTable } from "@/components/table/DataTable";
-import { columns } from "@/utils/columns/branchColumns";
+import { useGetPackagesQuery } from "@/store/api/projectsApi";
+import { columns } from "@/utils/columns/packagesColumns";
 import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
-import { useGetProjectBranchesDetailedQuery } from "@/store/api/projectsApi";
+import { toODataOrderBy } from "@/utils/odataHelper";
 import {
   useReactTable,
   getSortedRowModel,
@@ -9,14 +10,12 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import { XYChart } from "@/components/chart/XYChart";
-import { toODataOrderBy } from "@/utils/odataHelper";
 
-const Branches = () => {
+const Packages = () => {
   const projectId = useGetProjectId();
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const { data = [], isLoading } = useGetProjectBranchesDetailedQuery({
+  const { data = [], isLoading } = useGetPackagesQuery({
     id: projectId,
     odata: toODataOrderBy(sorting),
   });
@@ -32,7 +31,6 @@ const Branches = () => {
     manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
   });
-
   return (
     <div className="flex flex-col gap-3 w-full h-full py-8">
       <div className="flex flex-row gap-10 w-full h-full justify-evenly">
@@ -43,24 +41,9 @@ const Branches = () => {
             table={table}
           />
         </div>
-        <div className="flex flex-col gap-4 w-1/2 h-full">
-          <XYChart
-            data={data}
-            xKey="name"
-            yKey="packageCount"
-            yLabel="Package Count"
-          />
-          <XYChart
-            data={data}
-            xKey="name"
-            yKey="vulnerabilityCount"
-            yLabel="Vulnerabilities Count"
-            color="#d12c2c"
-          />
-        </div>
       </div>
     </div>
   );
 };
 
-export default Branches;
+export default Packages;

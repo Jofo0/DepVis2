@@ -41,7 +41,19 @@ public class ProjectsController(IProjectService service) : ControllerBase
         ODataQueryOptions<ProjectBranches> odata
     )
     {
-        return Ok(await service.GetProjectBranchesDetailed(id, odata));
+        var projectBranchesDetailed = await service.GetProjectBranchesDetailed(id, odata);
+        if (projectBranchesDetailed is null)
+            return NotFound();
+        return Ok(projectBranchesDetailed);
+    }
+
+    [HttpGet("{branchId}/packages")]
+    public async Task<ActionResult<List<PackageDetailedDto>>> GetBranchPackages(Guid branchId)
+    {
+        var project = await service.GetProjectGraphData(branchId);
+        if (project is null)
+            return NotFound();
+        return Ok(project);
     }
 
     [HttpGet("{branchId}/packages/graph")]
