@@ -12,11 +12,21 @@ import { cn } from "@/lib/utils";
 interface DataTableProps<TData> {
   table: import("@tanstack/table-core").Table<TData>;
   className?: string;
+  isLoading?: boolean;
+  loadingRows?: number;
 }
 
-export function DataTable<TData>({ className, table }: DataTableProps<TData>) {
+export function DataTable<TData>({
+  className,
+  table,
+  isLoading = false,
+  loadingRows = 20,
+}: DataTableProps<TData>) {
+  const visibleColCount =
+    table.getVisibleFlatColumns?.().length ?? table.getAllColumns().length;
+
   return (
-    <div className={cn(`rounded-md border`, className)}>
+    <div className={cn("rounded-md border", className)}>
       <Table className={className}>
         <TableHeader className="sticky top-0 z-10 bg-background">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -38,7 +48,17 @@ export function DataTable<TData>({ className, table }: DataTableProps<TData>) {
         </TableHeader>
 
         <TableBody>
-          {table.getRowModel().rows?.length ? (
+          {isLoading ? (
+            Array.from({ length: loadingRows }).map((_, i) => (
+              <TableRow key={`loading-${i}`} className="animate-pulse">
+                <TableCell colSpan={visibleColCount} className="h-12">
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-full rounded bg-muted" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
@@ -53,10 +73,7 @@ export function DataTable<TData>({ className, table }: DataTableProps<TData>) {
             ))
           ) : (
             <TableRow>
-              <TableCell
-                colSpan={table._getColumnDefs.length}
-                className="h-24 text-center"
-              >
+              <TableCell colSpan={visibleColCount} className="h-24 text-center">
                 No results.
               </TableCell>
             </TableRow>
