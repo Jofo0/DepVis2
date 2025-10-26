@@ -41,7 +41,10 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
             .Select(s => s.Id)
             .Take(1);
 
-        return context.SbomPackages.Where(p => latestSbomIdQuery.Contains(p.SbomId)).AsNoTracking();
+        return context
+            .SbomPackages.Where(p => latestSbomIdQuery.Contains(p.SbomId))
+            .Include(x => x.Vulnerabilities)
+            .AsNoTracking();
     }
 
     public async Task<ProjectBranches?> GetProjectStats(Guid id) =>

@@ -11,6 +11,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { BranchProvider } from "@/utils/hooks/BranchProvider";
 import { Outlet } from "react-router-dom";
 
 const Layout = () => {
@@ -35,7 +36,9 @@ const Layout = () => {
           </div>
         </header>
         <div className="px-16 h-full w-full">
-          <Outlet />
+          <BranchProvider>
+            <Outlet />
+          </BranchProvider>
         </div>
       </SidebarInset>
     </SidebarProvider>

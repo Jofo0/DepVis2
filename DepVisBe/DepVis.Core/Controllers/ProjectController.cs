@@ -48,9 +48,12 @@ public class ProjectsController(IProjectService service) : ControllerBase
     }
 
     [HttpGet("{branchId}/packages")]
-    public async Task<ActionResult<List<PackageDetailedDto>>> GetBranchPackages(Guid branchId)
+    public async Task<ActionResult<List<PackageDetailedDto>>> GetBranchPackages(
+        Guid branchId,
+        ODataQueryOptions<SbomPackage> odata
+    )
     {
-        var project = await service.GetProjectGraphData(branchId);
+        var project = await service.GetPackages(branchId, odata);
         if (project is null)
             return NotFound();
         return Ok(project);

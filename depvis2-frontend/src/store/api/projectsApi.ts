@@ -82,5 +82,5 @@ export const {
   useGetProjectBranchesQuery,
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,
-  useGetPackagesQuery,
+  useLazyGetPackagesQuery,
 } = projectApi;

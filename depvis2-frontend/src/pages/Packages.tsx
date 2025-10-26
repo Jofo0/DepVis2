@@ -1,7 +1,8 @@
+import BranchSelector from "@/components/BranchSelector";
 import { DataTable } from "@/components/table/DataTable";
-import { useGetPackagesQuery } from "@/store/api/projectsApi";
+import { useLazyGetPackagesQuery } from "@/store/api/projectsApi";
 import { columns } from "@/utils/columns/packagesColumns";
-import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
+import { useBranch } from "@/utils/hooks/BranchProvider";
 import { toODataOrderBy } from "@/utils/odataHelper";
 import {
   useReactTable,
@@ -9,16 +10,13 @@ import {
   getCoreRowModel,
   type SortingState,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Packages = () => {
-  const projectId = useGetProjectId();
+  const { branch } = useBranch();
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const { data = [], isLoading } = useGetPackagesQuery({
-    id: projectId,
-    odata: toODataOrderBy(sorting),
-  });
+  const [fetchPackages, { data = [], isLoading }] = useLazyGetPackagesQuery();
 
   const table = useReactTable({
     data,
@@ -31,9 +29,20 @@ const Packages = () => {
     manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  useEffect(() => {
+    if (branch) {
+      fetchPackages({
+        id: branch.id,
+        odata: toODataOrderBy(sorting),
+      });
+    }
+  }, [branch]);
+
   return (
     <div className="flex flex-col gap-3 w-full h-full py-8">
       <div className="flex flex-row gap-10 w-full h-full justify-evenly">
+        <BranchSelector />
         <div className="h-max-full w-full">
           <DataTable
             isLoading={isLoading}
