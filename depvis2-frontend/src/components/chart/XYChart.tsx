@@ -9,47 +9,52 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-const chartConfig = {
-  vulnerabilityCount: {
-    label: "Vulnerability Count",
-    color: "#d12c2c",
-  },
-} satisfies ChartConfig;
-
-type BranchVulnChartProps = {
-  data: never[];
+type BranchPackageChartProps = {
+  data: unknown[];
+  xKey: string;
+  yKey: string;
+  yLabel: string;
+  color?: string;
 };
 
-export const BranchVulnChart = ({ data }: BranchVulnChartProps) => {
+export const XYChart = ({
+  data,
+  xKey,
+  yKey,
+  yLabel,
+  color = "#2563eb",
+}: BranchPackageChartProps) => {
+  const chartConfig = {
+    [yKey]: {
+      label: yLabel,
+      color: color,
+    },
+  } satisfies ChartConfig;
+
   return (
-    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+    <ChartContainer config={chartConfig} className="min-h-1/2 w-full">
       <BarChart accessibilityLayer data={data}>
         <CartesianGrid vertical={false} />
         <XAxis
-          dataKey="name"
+          dataKey={xKey}
           tickLine={false}
           tickMargin={10}
           axisLine={false}
-          tickFormatter={(value) => value.slice(0, 3)}
+          tickFormatter={(value) => value.slice(0, 4)}
         />
-
         <YAxis
-          dataKey="vulnerabilityCount"
+          dataKey={yKey}
           tickMargin={10}
           axisLine={false}
           label={{
-            value: "Vulnerabilities",
+            value: yLabel,
             angle: -90,
             position: "insideLeft",
           }}
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar
-          dataKey="vulnerabilityCount"
-          fill="var(--color-vulnerabilityCount)"
-          radius={4}
-        />
+        <Bar dataKey={yKey} fill={`var(--color-${yKey})`} radius={4} />
       </BarChart>
     </ChartContainer>
   );

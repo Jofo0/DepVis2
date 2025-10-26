@@ -1,5 +1,3 @@
-import { BranchVulnChart } from "@/components/chart/BranchVulnChart";
-import { BranchPackageChart } from "@/components/chart/BranchPackageChart";
 import { DataTable } from "@/components/table/DataTable";
 import { columns } from "@/utils/columns/branchColumns";
 import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
@@ -11,6 +9,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { useState } from "react";
+import { XYChart } from "@/components/chart/XYChart";
 
 export const toODataOrderBy = (sorting: SortingState): string => {
   if (!sorting?.length) return "";
@@ -51,8 +50,19 @@ const Branches = () => {
           />
         </div>
         <div className="flex flex-col gap-4 w-1/2 h-full">
-          <BranchPackageChart data={data} />
-          <BranchVulnChart data={data} />
+          <XYChart
+            data={data}
+            xKey="name"
+            yKey="packageCount"
+            yLabel="Package Count"
+          />
+          <XYChart
+            data={data}
+            xKey="name"
+            yKey="vulnerabilityCount"
+            yLabel="Vulnerabilities Count"
+            color="#d12c2c"
+          />
         </div>
       </div>
     </div>
