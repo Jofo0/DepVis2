@@ -19,4 +19,12 @@ export const columns: ColumnDef<BranchDetailed>[] = [
       <SortButton column={column} header="Vulnerability Count" />
     ),
   },
+  {
+    header: "Commit Date",
+    accessorKey: "commitDate",
+  },
+  {
+    accessorKey: "scanDate",
+    header: "Scan Date",
+  },
 ];

@@ -11,7 +11,10 @@ export type PackageDto = {
 export type PackageDetailedDto = {
   name: string;
   id: string;
-  version: string;
+  commitDate: string;
+  commitMessage: string;
+  commitSha: string;
+  scanDate: string;
   ecosystem: string;
   vulnerable: boolean;
 };

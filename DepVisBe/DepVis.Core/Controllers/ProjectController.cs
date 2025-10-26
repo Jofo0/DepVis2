@@ -36,7 +36,7 @@ public class ProjectsController(IProjectService service) : ControllerBase
     }
 
     [HttpGet("{id}/branches/detailed")]
-    public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesTableData(
+    public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesDetailed(
         Guid id,
         ODataQueryOptions<ProjectBranches> odata
     )

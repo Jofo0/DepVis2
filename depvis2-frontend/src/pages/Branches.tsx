@@ -36,25 +36,28 @@ const Branches = () => {
   return (
     <div className="flex flex-col gap-3 w-full h-full py-8">
       <div className="flex flex-row gap-10 w-full h-full justify-evenly">
-        <div className="h-max-full w-full">
+        <div className="h-max-full w-1/2">
           <DataTable
             isLoading={isLoading}
-            className="min-h-[calc(100vh-8.5rem)] max-h-[calc(100vh-8.5rem)]"
+            className="min-h-[calc(90vh)] max-h-[calc(90vh)]"
             table={table}
           />
         </div>
-        <div className="flex flex-col gap-4 w-1/2 h-full">
+        <div className="flex flex-col gap-6 w-1/2 h-full">
           <XYChart
+            className="min-h-[calc(44vh)] max-h-[calc(44vh)]"
             data={data}
             xKey="name"
             yKey="packageCount"
-            yLabel="Package Count"
+            yLabel="Packages"
           />
+
           <XYChart
             data={data}
+            className="min-h-[calc(44vh)] max-h-[calc(44vh)]"
             xKey="name"
             yKey="vulnerabilityCount"
-            yLabel="Vulnerabilities Count"
+            yLabel="Vulnerabilities"
             color="#d12c2c"
           />
         </div>

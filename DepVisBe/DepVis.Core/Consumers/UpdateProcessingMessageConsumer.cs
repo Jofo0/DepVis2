@@ -33,7 +33,14 @@ public class UpdateProcessingMessageConsumer(
 
         if (message.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success)
         {
-            sbom = new Sbom() { FileName = message.FileName, ProjectBranchId = projectBranch.Id };
+            sbom = new Sbom()
+            {
+                FileName = message.FileName,
+                ProjectBranchId = projectBranch.Id,
+                CommitDate = message.CommitDate,
+                CommitMessage = message.CommitMessage,
+                CommitSha = message.CommitSha,
+            };
 
             dbContext.Sboms.Add(sbom);
         }

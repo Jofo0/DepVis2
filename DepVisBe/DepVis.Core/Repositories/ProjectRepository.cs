@@ -54,7 +54,7 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
         await context.ProjectBranches.AsNoTracking().Where(x => x.ProjectId == id).ToListAsync();
 
     public IQueryable<ProjectBranches> GetProjectBranchesAsQueryable(Guid id) =>
-        context.ProjectBranches.AsNoTracking().Where(x => x.ProjectId == id);
+        context.ProjectBranches.Include(x => x.Sboms).AsNoTracking().Where(x => x.ProjectId == id);
 
     public async Task AddAsync(Project project)
     {

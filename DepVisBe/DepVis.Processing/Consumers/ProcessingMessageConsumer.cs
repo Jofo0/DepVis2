@@ -40,6 +40,26 @@ public class ProcessingMessageConsumer(
             Repository.Clone(githubLink, tempDir, cloneOptions);
             _logger.LogDebug("Repository cloned successfully");
 
+            string commitMessage = string.Empty;
+            string commitSha = string.Empty;
+            DateTime commitDate = DateTime.Now;
+            using (var repo = new Repository(tempDir))
+            {
+                _logger.LogInformation("Retrieving latest commit information");
+
+                var commit = repo.Head.Tip;
+                commitMessage = commit.MessageShort;
+                commitDate = commit.Author.When.LocalDateTime;
+                commitSha = commit.Sha;
+
+                _logger.LogInformation(
+                    "Latest commit: {sha} - {message} ({date})",
+                    commitSha,
+                    commitMessage,
+                    commitDate
+                );
+            }
+
             await _trivyLock.WaitAsync(context.CancellationToken);
             try
             {
@@ -60,6 +80,9 @@ public class ProcessingMessageConsumer(
                     ProjectBranchId = context.Message.ProjectBranchId,
                     ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
                     FileName = filename,
+                    CommitDate = commitDate,
+                    CommitMessage = commitMessage,
+                    CommitSha = commitSha,
                 }
             );
         }

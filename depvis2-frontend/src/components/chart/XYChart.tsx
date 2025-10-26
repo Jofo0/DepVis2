@@ -3,11 +3,10 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   type ChartConfig,
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Card, CardHeader } from "../ui/card";
 
 type BranchPackageChartProps = {
   data: unknown[];
@@ -15,6 +14,7 @@ type BranchPackageChartProps = {
   yKey: string;
   yLabel: string;
   color?: string;
+  className?: string;
 };
 
 export const XYChart = ({
@@ -23,6 +23,7 @@ export const XYChart = ({
   yKey,
   yLabel,
   color = "#2563eb",
+  className,
 }: BranchPackageChartProps) => {
   const chartConfig = {
     [yKey]: {
@@ -32,30 +33,23 @@ export const XYChart = ({
   } satisfies ChartConfig;
 
   return (
-    <ChartContainer config={chartConfig} className="min-h-1/2 w-full">
-      <BarChart accessibilityLayer data={data}>
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey={xKey}
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-          tickFormatter={(value) => value.slice(0, 4)}
-        />
-        <YAxis
-          dataKey={yKey}
-          tickMargin={10}
-          axisLine={false}
-          label={{
-            value: yLabel,
-            angle: -90,
-            position: "insideLeft",
-          }}
-        />
-        <ChartTooltip content={<ChartTooltipContent />} />
-        <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey={yKey} fill={`var(--color-${yKey})`} radius={4} />
-      </BarChart>
-    </ChartContainer>
+    <Card className={`p-4 w-full ${className}`}>
+      <CardHeader>{yLabel}</CardHeader>
+      <ChartContainer config={chartConfig} className="min-h-1/2 w-full">
+        <BarChart accessibilityLayer data={data}>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey={xKey}
+            tickLine={false}
+            tickMargin={10}
+            axisLine={false}
+            tickFormatter={(value) => value.slice(0, 4)}
+          />
+          <YAxis dataKey={yKey} tickMargin={10} axisLine={false} />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <Bar dataKey={yKey} fill={`var(--color-${yKey})`} radius={4} />
+        </BarChart>
+      </ChartContainer>
+    </Card>
   );
 };

@@ -8,4 +8,7 @@ public class UpdateProcessingMessage
     public required ProcessStatus ProcessStatus { get; set; }
     public string Branch { get; set; } = string.Empty;
     public string FileName { get; set; } = string.Empty;
+    public string CommitMessage { get; set; } = string.Empty;
+    public string CommitSha { get; set; } = string.Empty;
+    public DateTime CommitDate { get; set; }
 }
