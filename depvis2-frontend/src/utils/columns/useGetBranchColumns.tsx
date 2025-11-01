@@ -10,33 +10,29 @@ export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] =>
       {
         accessorKey: "name",
         header: "Branch",
-        size: 200,
+        size: 100,
       },
       {
         accessorKey: "packageCount",
         header: ({ column }: { column: Column<BranchDetailed, unknown> }) => (
           <SortButton column={column} header="Package Count" />
         ),
-        size: 50,
       },
       {
         accessorKey: "vulnerabilityCount",
         header: ({ column }: { column: Column<BranchDetailed, unknown> }) => (
           <SortButton column={column} header="Vulnerability Count" />
         ),
-        size: 200,
       },
       {
         header: "Commit Date",
         accessorKey: "commitDate",
         cell: ({ row }: { row: Row<BranchDetailed> }) =>
           parseTime(row.original.commitDate),
-        size: 200,
       },
       {
         accessorKey: "scanDate",
         header: "Scan Date",
-        size: 200,
         cell: ({ row }: { row: Row<BranchDetailed> }) =>
           parseTime(row.original.scanDate),
       },

@@ -8,6 +8,7 @@ export const useGetPackagesColumns = (): ColumnDef<PackageItemDto>[] =>
       {
         accessorKey: "name",
         header: "Package",
+        size: 250,
       },
       {
         accessorKey: "version",

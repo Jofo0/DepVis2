@@ -7,6 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData> {
@@ -14,6 +20,35 @@ interface DataTableProps<TData> {
   className?: string;
   isLoading?: boolean;
   loadingRows?: number;
+}
+
+function WithTooltip({
+  children,
+  tooltip,
+  className,
+}: {
+  children: React.ReactNode;
+  tooltip: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          className={cn(
+            "block whitespace-nowrap overflow-hidden text-ellipsis",
+            className
+          )}
+          title={typeof tooltip === "string" ? tooltip : undefined}
+        >
+          {children}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-sm break-words">
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function DataTable<TData>({
@@ -26,60 +61,83 @@ export function DataTable<TData>({
     table.getVisibleFlatColumns?.().length ?? table.getAllColumns().length;
 
   return (
-    <div className={cn("rounded-md border", className)}>
-      <Table className={className}>
-        <TableHeader className="sticky top-0 z-10 bg-background">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
+    <div className={cn("rounded-md border overflow-x-auto", className)}>
+      <TooltipProvider delayDuration={150}>
+        <Table className="w-full table-fixed">
+          <TableHeader className="sticky top-0 z-10 bg-background">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  const headerNode = header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      );
 
-        <TableBody>
-          {isLoading ? (
-            Array.from({ length: loadingRows }).map((_, i) => (
-              <TableRow key={`loading-${i}`} className="animate-pulse">
-                <TableCell colSpan={visibleColCount} className="h-12">
-                  <div className="flex items-center gap-3">
-                    <div className="h-4 w-full rounded bg-muted" />
-                  </div>
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{ width: header.column.getSize() }}
+                      className="p-2"
+                    >
+                      <WithTooltip tooltip={headerNode ?? ""}>
+                        {headerNode}
+                      </WithTooltip>
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+
+          <TableBody>
+            {isLoading ? (
+              Array.from({ length: loadingRows }).map((_, i) => (
+                <TableRow key={`loading-${i}`} className="animate-pulse">
+                  <TableCell colSpan={visibleColCount} className="h-12">
+                    <div className="flex items-center gap-3">
+                      <div className="h-4 w-full rounded bg-muted" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const cellNode = flexRender(
+                      cell.column.columnDef.cell,
+                      cell.getContext()
+                    );
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        style={{ width: cell.column.getSize() }}
+                        className="p-2"
+                      >
+                        <WithTooltip tooltip={cellNode}>{cellNode}</WithTooltip>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={visibleColCount}
+                  className="h-24 text-center"
+                >
+                  No results.
                 </TableCell>
               </TableRow>
-            ))
-          ) : table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={visibleColCount} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            )}
+          </TableBody>
+        </Table>
+      </TooltipProvider>
     </div>
   );
 }
