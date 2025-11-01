@@ -70,7 +70,7 @@ public class IngestProcessingMessageConsumer(
 
                 var packageVulnerabilities =
                     bom.Vulnerabilities?.SelectMany(v =>
-                            v.Affects.Select(a => new PackageVulnerability()
+                            v.Affects.Select(a => new SbomPackageVulnerability()
                             {
                                 VulnerabilityId = v.Id,
                                 SbomPackageId = bomRefToId[a.Ref],
@@ -83,7 +83,7 @@ public class IngestProcessingMessageConsumer(
                 _db.Vulnerabilities.AddRange(vulnerabilities);
                 _db.SbomPackages.AddRange(packages);
                 _db.PackageDependencies.AddRange(createdDeps);
-                _db.PackageVulnerabilities.AddRange(packageVulnerabilities);
+                _db.SbomPackageVulnerabilities.AddRange(packageVulnerabilities);
 
                 projectBranch.PackageCount = packages.Count;
                 projectBranch.VulnerabilityCount = vulnerabilities.Count;

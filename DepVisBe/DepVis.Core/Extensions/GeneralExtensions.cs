@@ -9,4 +9,9 @@ public static class GeneralExtensions
         this ODataQueryOptions<T> odata,
         IQueryable<T> target
     ) => await ((IQueryable<T>)odata.ApplyTo(target)).ToListAsync();
+
+    public static IQueryable<T> ApplyOdataIEnumerable<T>(
+        this ODataQueryOptions<T> odata,
+        IQueryable<T> target
+    ) => (IQueryable<T>)odata.ApplyTo(target);
 }

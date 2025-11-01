@@ -2,7 +2,7 @@ import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -21,11 +21,21 @@ const BranchSelector = () => {
   const { branch, setBranch } = useBranch();
 
   useEffect(() => {
-    if (branch && branches && !branches?.find((x) => x.id === branch.id)) {
+    if (!branches?.length) return;
+    if (branch && !branches.find((x) => x.id === branch.id)) {
       setBranch(branches[0]);
     }
-  }, [branches, branch]);
+  }, [branches, branch, setBranch]);
 
+  const items = useMemo(
+    () =>
+      branches?.map((x) => (
+        <SelectItem value={x.id} key={x.id}>
+          {x.name}
+        </SelectItem>
+      )) ?? null,
+    [branches]
+  );
   return (
     <Select
       value={branch?.id || ""}
@@ -38,14 +48,10 @@ const BranchSelector = () => {
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Select a branch" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent avoidCollisions={false} className="max-h-64">
         <SelectGroup>
           <SelectLabel>Branches</SelectLabel>
-          {branches?.map((x) => (
-            <SelectItem value={x.id} key={x.id}>
-              {x.name}
-            </SelectItem>
-          ))}
+          {items}
         </SelectGroup>
       </SelectContent>
     </Select>

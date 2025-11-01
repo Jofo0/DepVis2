@@ -37,21 +37,6 @@ namespace DepVis.Core.Migrations
                     b.ToTable("PackageDependencies");
                 });
 
-            modelBuilder.Entity("DepVis.Shared.Model.PackageVulnerability", b =>
-                {
-                    b.Property<Guid>("SbomPackageId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("VulnerabilityId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("SbomPackageId", "VulnerabilityId");
-
-                    b.HasIndex("VulnerabilityId");
-
-                    b.ToTable("PackageVulnerabilities");
-                });
-
             modelBuilder.Entity("DepVis.Shared.Model.Project", b =>
                 {
                     b.Property<Guid>("Id")
@@ -196,6 +181,21 @@ namespace DepVis.Core.Migrations
                     b.ToTable("SbomPackages");
                 });
 
+            modelBuilder.Entity("DepVis.Shared.Model.SbomPackageVulnerability", b =>
+                {
+                    b.Property<Guid>("SbomPackageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VulnerabilityId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("SbomPackageId", "VulnerabilityId");
+
+                    b.HasIndex("VulnerabilityId");
+
+                    b.ToTable("SbomPackageVulnerabilities", (string)null);
+                });
+
             modelBuilder.Entity("DepVis.Shared.Model.Vulnerability", b =>
                 {
                     b.Property<string>("Id")
@@ -217,21 +217,6 @@ namespace DepVis.Core.Migrations
                     b.ToTable("Vulnerabilities");
                 });
 
-            modelBuilder.Entity("SbomPackageVulnerability", b =>
-                {
-                    b.Property<Guid>("AffectedPackagesId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("VulnerabilitiesId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("AffectedPackagesId", "VulnerabilitiesId");
-
-                    b.HasIndex("VulnerabilitiesId");
-
-                    b.ToTable("SbomPackageVulnerability");
-                });
-
             modelBuilder.Entity("DepVis.Shared.Model.PackageDependency", b =>
                 {
                     b.HasOne("DepVis.Shared.Model.SbomPackage", "Child")
@@ -249,25 +234,6 @@ namespace DepVis.Core.Migrations
                     b.Navigation("Child");
 
                     b.Navigation("Parent");
-                });
-
-            modelBuilder.Entity("DepVis.Shared.Model.PackageVulnerability", b =>
-                {
-                    b.HasOne("DepVis.Shared.Model.SbomPackage", "Package")
-                        .WithMany()
-                        .HasForeignKey("SbomPackageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DepVis.Shared.Model.Vulnerability", "Vulnerability")
-                        .WithMany()
-                        .HasForeignKey("VulnerabilityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Package");
-
-                    b.Navigation("Vulnerability");
                 });
 
             modelBuilder.Entity("DepVis.Shared.Model.ProjectBranches", b =>
@@ -303,19 +269,23 @@ namespace DepVis.Core.Migrations
                     b.Navigation("Sbom");
                 });
 
-            modelBuilder.Entity("SbomPackageVulnerability", b =>
+            modelBuilder.Entity("DepVis.Shared.Model.SbomPackageVulnerability", b =>
                 {
-                    b.HasOne("DepVis.Shared.Model.SbomPackage", null)
-                        .WithMany()
-                        .HasForeignKey("AffectedPackagesId")
+                    b.HasOne("DepVis.Shared.Model.SbomPackage", "SbomPackage")
+                        .WithMany("SbomPackageVulnerabilities")
+                        .HasForeignKey("SbomPackageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DepVis.Shared.Model.Vulnerability", null)
-                        .WithMany()
-                        .HasForeignKey("VulnerabilitiesId")
+                    b.HasOne("DepVis.Shared.Model.Vulnerability", "Vulnerability")
+                        .WithMany("SbomPackageVulnerabilities")
+                        .HasForeignKey("VulnerabilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("SbomPackage");
+
+                    b.Navigation("Vulnerability");
                 });
 
             modelBuilder.Entity("DepVis.Shared.Model.Project", b =>
@@ -338,6 +308,13 @@ namespace DepVis.Core.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Parents");
+
+                    b.Navigation("SbomPackageVulnerabilities");
+                });
+
+            modelBuilder.Entity("DepVis.Shared.Model.Vulnerability", b =>
+                {
+                    b.Navigation("SbomPackageVulnerabilities");
                 });
 #pragma warning restore 612, 618
         }

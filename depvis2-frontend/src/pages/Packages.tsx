@@ -1,7 +1,7 @@
 import BranchSelector from "@/components/BranchSelector";
 import { DataTable } from "@/components/table/DataTable";
 import { useLazyGetPackagesQuery } from "@/store/api/projectsApi";
-import { columns } from "@/utils/columns/packagesColumns";
+import { useGetPackagesColumns } from "@/utils/columns/useGetPackagesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import { toODataOrderBy } from "@/utils/odataHelper";
 import {
@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 const Packages = () => {
   const { branch } = useBranch();
   const [sorting, setSorting] = useState<SortingState>([]);
+  const columns = useGetPackagesColumns();
 
   const [fetchPackages, { data = [], isFetching: isLoading }] =
     useLazyGetPackagesQuery();

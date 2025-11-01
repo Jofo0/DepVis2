@@ -60,7 +60,7 @@ const ProjectCreateForm = () => {
       };
 
       const result = await createProject(payload).unwrap();
-      navigate(`/projects/${result.id}`);
+      navigate(`/${result.id}`);
     } catch (err) {
       console.error("Failed to create project", err);
     }

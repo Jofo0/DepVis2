@@ -14,15 +14,35 @@ public class DepVisDbContext : DbContext
     public DbSet<SbomPackage> SbomPackages { get; set; }
     public DbSet<PackageDependency> PackageDependencies => Set<PackageDependency>();
     public DbSet<Vulnerability> Vulnerabilities { get; set; }
-    public DbSet<PackageVulnerability> PackageVulnerabilities => Set<PackageVulnerability>();
+    public DbSet<SbomPackageVulnerability> SbomPackageVulnerabilities =>
+        Set<SbomPackageVulnerability>();
     public DbSet<ProjectBranches> ProjectBranches { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<PackageDependency>().HasKey(pd => new { pd.ParentId, pd.ChildId });
         modelBuilder
-            .Entity<PackageVulnerability>()
-            .HasKey(pv => new { pv.SbomPackageId, pv.VulnerabilityId });
+            .Entity<SbomPackage>()
+            .HasMany(p => p.Vulnerabilities)
+            .WithMany(v => v.AffectedPackages)
+            .UsingEntity<SbomPackageVulnerability>(
+                j =>
+                    j.HasOne(pv => pv.Vulnerability)
+                        .WithMany(v => v.SbomPackageVulnerabilities)
+                        .HasForeignKey(pv => pv.VulnerabilityId)
+                        .OnDelete(DeleteBehavior.Cascade),
+                j =>
+                    j.HasOne(pv => pv.SbomPackage)
+                        .WithMany(p => p.SbomPackageVulnerabilities)
+                        .HasForeignKey(pv => pv.SbomPackageId)
+                        .OnDelete(DeleteBehavior.Cascade),
+                j =>
+                {
+                    j.ToTable("SbomPackageVulnerabilities");
+                    j.HasKey(pv => new { pv.SbomPackageId, pv.VulnerabilityId });
+                    j.HasIndex(pv => pv.VulnerabilityId);
+                }
+            );
 
         modelBuilder
             .Entity<PackageDependency>()

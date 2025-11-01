@@ -6,6 +6,7 @@ using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using MassTransit;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Services;
 
@@ -66,9 +67,16 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         ODataQueryOptions<SbomPackage> odata
     )
     {
-        var packages = await odata.ApplyOdata(repo.GetPackagesForBranch(id));
+        var packages = odata.ApplyOdataIEnumerable(repo.GetPackagesForBranch(id));
 
-        return [.. packages.Select(x => x.MapToPackagesDetailed())];
+        var ecosystemGroups = packages
+            .GroupBy(x => x.Ecosystem)
+            .Select(grouped => new NameCount() { Name = grouped.Key, Count = grouped.Count() })
+            .ToList();
+
+        var retrieved = await packages.ToListAsync();
+
+        return [.. retrieved.Select(x => x.MapToPackagesDetailed())];
     }
 
     public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(

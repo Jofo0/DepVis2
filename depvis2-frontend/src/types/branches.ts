@@ -3,6 +3,8 @@ export type BranchDetailed = {
   name: string;
   packageCount: number;
   vulnerablityCount: number;
+  commitDate: string;
+  scanDate: string;
 };
 
 export type Branch = {
