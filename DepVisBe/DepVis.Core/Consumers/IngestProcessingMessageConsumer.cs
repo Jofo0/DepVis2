@@ -86,7 +86,9 @@ public class IngestProcessingMessageConsumer(
                 _db.SbomPackageVulnerabilities.AddRange(packageVulnerabilities);
 
                 projectBranch.PackageCount = packages.Count;
-                projectBranch.VulnerabilityCount = vulnerabilities.Count;
+                projectBranch.VulnerabilityCount = packageVulnerabilities
+                    .DistinctBy(x => x.SbomPackageId)
+                    .Count();
                 projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
                 await _db.SaveChangesAsync(context.CancellationToken);
@@ -148,7 +150,7 @@ public class IngestProcessingMessageConsumer(
                 Name = "ProjectRoot",
                 Version = null,
                 Purl = null,
-                Ecosystem = "",
+                Ecosystem = "None",
                 Type = "ProjectRoot",
                 BomRef = rootRef,
             }
@@ -231,29 +233,18 @@ public class IngestProcessingMessageConsumer(
     private static string? InferEcosystemFromPurl(string? purl)
     {
         if (string.IsNullOrWhiteSpace(purl))
-            return null;
+            return "Unknown";
 
         const string prefix = "pkg:";
         if (!purl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            return null;
+            return "Unknown";
 
         var slash = purl.IndexOf('/', prefix.Length);
         if (slash < 0)
-            return null;
+            return "Unknown";
 
         var type = purl[prefix.Length..slash].ToLowerInvariant();
 
-        return type switch
-        {
-            "nuget" => "NuGet",
-            "npm" => "npm",
-            "maven" => "Maven",
-            "pypi" => "PyPI",
-            "golang" or "go" => "Go",
-            "cargo" => "crates.io",
-            "rubygems" => "RubyGems",
-            "packagist" => "Packagist",
-            _ => null,
-        };
+        return type;
     }
 }

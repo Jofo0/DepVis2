@@ -62,21 +62,41 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
     }
 
-    public async Task<List<PackageDetailedDto>> GetPackages(
+    public async Task<PackageDetailedDto> GetPackageData(
         Guid id,
         ODataQueryOptions<SbomPackage> odata
     )
     {
         var packages = odata.ApplyOdataIEnumerable(repo.GetPackagesForBranch(id));
 
-        var ecosystemGroups = packages
+        var ecosystemGroups = await packages
             .GroupBy(x => x.Ecosystem)
-            .Select(grouped => new NameCount() { Name = grouped.Key, Count = grouped.Count() })
-            .ToList();
+            .Select(grouped => new NameCount()
+            {
+                Name = grouped.Key ?? "",
+                Count = grouped.Count(),
+            })
+            .OrderBy(x => x.Count)
+            .ToListAsync();
+
+        var vulnerableCounts = await packages
+            .GroupBy(x => x.Vulnerabilities.Count > 0)
+            .Select(grouped => new NameCount
+            {
+                Name = grouped.Key ? "Vulnerable" : "OK",
+                Count = grouped.Count(),
+            })
+            .OrderBy(x => x.Count)
+            .ToListAsync();
 
         var retrieved = await packages.ToListAsync();
 
-        return [.. retrieved.Select(x => x.MapToPackagesDetailed())];
+        PackageDetailedDto result = new PackageDetailedDto();
+        result.Vulnerabilities = vulnerableCounts;
+        result.EcoSystems = ecosystemGroups;
+        result.PackageItems = [.. retrieved.Select(x => x.MapToPackageItemDto())];
+
+        return result;
     }
 
     public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(
@@ -171,6 +191,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         if (project is null)
             return false;
 
+        // TODO add deletion of sbom files
         await repo.DeleteAsync(project);
         return true;
     }

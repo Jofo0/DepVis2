@@ -21,6 +21,8 @@ const ProjectSchema = z.object({
 
 type FormValues = z.infer<typeof ProjectSchema>;
 
+// Todo: add is gitavailable func
+
 const ProjectCreateForm = () => {
   const [createProject, { isLoading }] = useCreateProjectMutation();
   const [isGitAvailable, setIsGitAvailable] = useState(false);

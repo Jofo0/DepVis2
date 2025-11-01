@@ -70,20 +70,31 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
 
     public async Task DeleteAsync(Project project)
     {
-        foreach (var projectBranch in project.ProjectBranches)
-        {
-            foreach (var sbom in projectBranch.Sboms)
-            {
-                foreach (var package in sbom.SbomPackages)
-                {
-                    context.PackageDependencies.RemoveRange(package.Children);
-                    context.PackageDependencies.RemoveRange(package.Parents);
-                }
-            }
-            context.Sboms.RemoveRange(projectBranch.Sboms);
-        }
-        await context.SaveChangesAsync();
-        context.Projects.Remove(project);
-        await context.SaveChangesAsync();
+        var projectId = project.Id;
+
+        await context
+            .PackageDependencies.Where(pd =>
+                pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
+                || pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+            )
+            .ExecuteDeleteAsync();
+
+        await context
+            .SbomPackageVulnerabilities.Where(pv =>
+                pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
+            )
+            .ExecuteDeleteAsync();
+
+        await context
+            .SbomPackages.Where(sp => sp.Sbom.ProjectBranch.Project.Id == projectId)
+            .ExecuteDeleteAsync();
+
+        await context
+            .Sboms.Where(s => s.ProjectBranch.Project.Id == projectId)
+            .ExecuteDeleteAsync();
+
+        await context.ProjectBranches.Where(b => b.Project.Id == projectId).ExecuteDeleteAsync();
+
+        await context.Projects.Where(p => p.Id == projectId).ExecuteDeleteAsync();
     }
 }

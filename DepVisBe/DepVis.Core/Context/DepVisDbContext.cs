@@ -30,12 +30,12 @@ public class DepVisDbContext : DbContext
                     j.HasOne(pv => pv.Vulnerability)
                         .WithMany(v => v.SbomPackageVulnerabilities)
                         .HasForeignKey(pv => pv.VulnerabilityId)
-                        .OnDelete(DeleteBehavior.Cascade),
+                        .OnDelete(DeleteBehavior.NoAction),
                 j =>
                     j.HasOne(pv => pv.SbomPackage)
                         .WithMany(p => p.SbomPackageVulnerabilities)
                         .HasForeignKey(pv => pv.SbomPackageId)
-                        .OnDelete(DeleteBehavior.Cascade),
+                        .OnDelete(DeleteBehavior.NoAction),
                 j =>
                 {
                     j.ToTable("SbomPackageVulnerabilities");

@@ -9,6 +9,16 @@ export type PackageDto = {
 };
 
 export type PackageDetailedDto = {
+  packageItems: PackageItemDto[];
+  vulnerabilities: NameCount[];
+  ecoSystems: NameCount[];
+};
+
+export type NameCount = {
+  name: string;
+  count: number;
+};
+export type PackageItemDto = {
   name: string;
   id: string;
   commitDate: string;

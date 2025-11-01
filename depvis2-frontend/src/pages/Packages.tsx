@@ -1,4 +1,5 @@
 import BranchSelector from "@/components/BranchSelector";
+import { PieCustomChart } from "@/components/chart/PieCustomChart";
 import { DataTable } from "@/components/table/DataTable";
 import { useLazyGetPackagesQuery } from "@/store/api/projectsApi";
 import { useGetPackagesColumns } from "@/utils/columns/useGetPackagesColumns";
@@ -17,11 +18,11 @@ const Packages = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const columns = useGetPackagesColumns();
 
-  const [fetchPackages, { data = [], isFetching: isLoading }] =
+  const [fetchPackages, { data, isFetching: isLoading }] =
     useLazyGetPackagesQuery();
 
   const table = useReactTable({
-    data,
+    data: data?.packageItems ?? [],
     columns,
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
@@ -34,10 +35,13 @@ const Packages = () => {
 
   useEffect(() => {
     if (branch) {
-      fetchPackages({
-        id: branch.id,
-        odata: toODataOrderBy(sorting),
-      });
+      fetchPackages(
+        {
+          id: branch.id,
+          odata: toODataOrderBy(sorting),
+        },
+        true
+      );
     }
   }, [branch]);
 
@@ -45,12 +49,27 @@ const Packages = () => {
     <div className="flex flex-col gap-3 w-full h-full py-4">
       <div className="flex flex-col  w-full h-full justify-evenly">
         <BranchSelector />
-        <div className="h-max-full w-full">
-          <DataTable
-            isLoading={isLoading}
-            className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
-            table={table}
-          />
+        <div className="flex flex-row gap-10 w-full h-full justify-evenly">
+          <div className="h-max-full w-1/2">
+            <DataTable
+              isLoading={isLoading}
+              className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
+              table={table}
+            />
+          </div>
+          <div className="flex flex-col gap-6 w-1/2 h-full">
+            <PieCustomChart
+              title="Ecosystems"
+              className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+              pies={data?.ecoSystems ?? []}
+            />
+
+            <PieCustomChart
+              title="Vulnerabilities"
+              className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+              pies={data?.vulnerabilities ?? []}
+            />
+          </div>
         </div>
       </div>
     </div>

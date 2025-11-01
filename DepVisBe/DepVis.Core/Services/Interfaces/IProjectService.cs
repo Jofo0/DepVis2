@@ -13,7 +13,7 @@ public interface IProjectService
         ODataQueryOptions<ProjectBranches> odata
     );
     Task<ProjectDto> CreateProject(CreateProjectDto dto);
-    Task<List<PackageDetailedDto>> GetPackages(Guid id, ODataQueryOptions<SbomPackage> odata);
+    Task<PackageDetailedDto> GetPackageData(Guid id, ODataQueryOptions<SbomPackage> odata);
     Task<bool> UpdateProject(Guid id, UpdateProjectDto dto);
     Task<ProjectStatsDto> GetProjectStats(Guid branchId);
     Task<List<ProjectBranchDto>> GetProjectBranches(Guid id);

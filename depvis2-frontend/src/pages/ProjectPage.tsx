@@ -34,7 +34,7 @@ const ProjectDetailPage = () => {
   const handleRemoveProject = async () => {
     if (project) {
       await removeProject(project.id);
-      navigate("/projects");
+      navigate("/");
     }
   };
 
