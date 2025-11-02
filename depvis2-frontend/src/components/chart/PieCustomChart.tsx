@@ -1,5 +1,5 @@
 import { PieChart, Pie, Tooltip, Legend } from "recharts";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import type { NameCount } from "@/types/packages";
 import str from "string-to-color";
 import {
@@ -29,12 +29,12 @@ export const PieCustomChart = ({
   }, {} as ChartConfig);
 
   return (
-    <Card className={`p-4 w-full ${className}`}>
+    <Card className={`p-4 w-full ${className} overflow-hidden`}>
       <CardHeader className="text-lg font-semibold">{title}</CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <div className="h-full w-full">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
+          className="aspect-square max-h-5/6 min-h-5/6 w-full"
         >
           <PieChart>
             <ChartTooltip
@@ -47,14 +47,13 @@ export const PieCustomChart = ({
               })}
               dataKey="count"
               nameKey="name"
-              outerRadius={80}
               label
             />
             <Tooltip />
             <Legend />
           </PieChart>
         </ChartContainer>
-      </CardContent>
+      </div>
     </Card>
   );
 };
