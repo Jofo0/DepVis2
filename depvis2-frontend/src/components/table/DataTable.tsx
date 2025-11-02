@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { DataTablePagination } from "../DataTablePagination";
 
 interface DataTableProps<TData> {
   table: import("@tanstack/table-core").Table<TData>;
@@ -22,7 +23,7 @@ interface DataTableProps<TData> {
   loadingRows?: number;
 }
 
-function WithTooltip({
+const WithTooltip = ({
   children,
   tooltip,
   className,
@@ -30,7 +31,7 @@ function WithTooltip({
   children: React.ReactNode;
   tooltip: React.ReactNode;
   className?: string;
-}) {
+}) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -49,7 +50,7 @@ function WithTooltip({
       </TooltipContent>
     </Tooltip>
   );
-}
+};
 
 export function DataTable<TData>({
   className,
@@ -61,9 +62,14 @@ export function DataTable<TData>({
     table.getVisibleFlatColumns?.().length ?? table.getAllColumns().length;
 
   return (
-    <div className={cn("rounded-md border overflow-x-auto", className)}>
+    <div
+      className={cn(
+        "rounded-md border overflow-x-auto flex flex-col justify-between",
+        className
+      )}
+    >
       <TooltipProvider delayDuration={150}>
-        <Table className="w-full table-fixed">
+        <Table className="w-full table-fixed h-full">
           <TableHeader className="sticky top-0 z-10 bg-background">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -129,7 +135,7 @@ export function DataTable<TData>({
               <TableRow>
                 <TableCell
                   colSpan={visibleColCount}
-                  className="h-24 text-center"
+                  className="h-full text-center"
                 >
                   No results.
                 </TableCell>
@@ -138,6 +144,7 @@ export function DataTable<TData>({
           </TableBody>
         </Table>
       </TooltipProvider>
+      <DataTablePagination table={table} />
     </div>
   );
 }

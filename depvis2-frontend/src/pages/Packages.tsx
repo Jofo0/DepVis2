@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   getCoreRowModel,
   type SortingState,
+  getPaginationRowModel,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 
@@ -29,6 +30,7 @@ const Packages = () => {
     state: {
       sorting,
     },
+    getPaginationRowModel: getPaginationRowModel(),
     manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
   });
