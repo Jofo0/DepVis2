@@ -71,12 +71,14 @@ const Packages = () => {
               title="Ecosystems"
               className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
               pies={data?.ecoSystems ?? []}
+              isLoading={isLoading}
               onSliceClick={onEcosystemClick}
             />
 
             <PieCustomChart
               title="Vulnerabilities"
               onSliceClick={onVulnerabilityClick}
+              isLoading={isLoading}
               className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
               pies={data?.vulnerabilities ?? []}
             />
