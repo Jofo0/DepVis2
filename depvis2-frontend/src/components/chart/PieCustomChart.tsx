@@ -32,9 +32,9 @@ export const PieCustomChart = ({
     return acc;
   }, {} as ChartConfig);
 
-  const handleSliceClick = (data) => {
-    const name = data?.name ?? data?.payload?.name;
-    if (name && onSliceClick) onSliceClick(name as string);
+  const handleSliceClick = (data: { name: string }) => {
+    const name = data?.name;
+    if (name && onSliceClick) onSliceClick(name);
   };
 
   return (
