@@ -69,6 +69,10 @@ export const projectApi = projectsApi.injectEndpoints({
       query: ({ id }) => `/${id}/stats`,
       providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
     }),
+    getVulnerabilities: builder.query<ProjectStatsDto, IdWithOdata>({
+      query: ({ id, odata }) =>
+        `/${id}/vulnerabilities${odata ? `?${odata}` : ""}`,
+    }),
   }),
 });
 
@@ -83,4 +87,5 @@ export const {
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,
   useLazyGetPackagesQuery,
+  useLazyGetVulnerabilitiesQuery,
 } = projectApi;

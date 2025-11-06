@@ -6,6 +6,7 @@ import SelectProjectPage from "./pages/SelectProjectPage";
 import Branches from "./pages/Branches";
 import Graph from "./pages/Graph";
 import Packages from "./pages/Packages";
+import Vulnerabilities from "./pages/Vulnerabilities";
 
 const Routes = () => {
   return (
@@ -24,7 +25,7 @@ const Routes = () => {
         <Route path="/:id" element={<ProjectDetailPage />} />
         <Route path="/:id/branches" element={<Branches />} />
         <Route path="/:id/packages" element={<Packages />} />
-        <Route path="/:id/vulnerabilities" element={<ProjectDetailPage />} />
+        <Route path="/:id/vulnerabilities" element={<Vulnerabilities />} />
         <Route path="/:id/graph" element={<Graph />} />
       </Route>
     </RoutesReactRouter>

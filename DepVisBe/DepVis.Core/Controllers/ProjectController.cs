@@ -59,6 +59,18 @@ public class ProjectsController(IProjectService service) : ControllerBase
         return Ok(project);
     }
 
+    [HttpGet("{branchId}/vulnerabilities")]
+    public async Task<ActionResult<PackageDetailedDto>> GetVulnerabilities(
+        Guid branchId,
+        ODataQueryOptions<SbomPackage> odata
+    )
+    {
+        var project = await service.GetPackageData(branchId, odata);
+        if (project is null)
+            return NotFound();
+        return Ok(project);
+    }
+
     [HttpGet("{branchId}/packages/graph")]
     public async Task<ActionResult<GraphDataDto>> GetFullGraph(Guid branchId)
     {
