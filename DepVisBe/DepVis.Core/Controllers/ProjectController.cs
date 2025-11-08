@@ -60,9 +60,21 @@ public class ProjectsController(IProjectService service) : ControllerBase
     }
 
     [HttpGet("{branchId}/vulnerabilities")]
-    public async Task<ActionResult<VulnerabilitySmallDto>> GetVulnerabilities(Guid branchId)
+    public async Task<ActionResult<VulnerabilitiesDto>> GetVulnerabilities(
+        Guid branchId,
+        ODataQueryOptions<VulnerabilitySmallDto> odata
+    )
     {
-        var project = await service.GetVulnerabilities(branchId);
+        var project = await service.GetVulnerabilities(branchId, odata);
+        if (project is null)
+            return NotFound();
+        return Ok(project);
+    }
+
+    [HttpGet("{branchId}/vulnerabilities/{vulnId}")]
+    public async Task<ActionResult<VulnerabilityDetailedDto>> GetVulnerability(string vulnId)
+    {
+        var project = await service.GetVulnerability(vulnId);
         if (project is null)
             return NotFound();
         return Ok(project);

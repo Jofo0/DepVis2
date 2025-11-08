@@ -1,7 +1,13 @@
 import BranchSelector from "@/components/BranchSelector";
+import { PieCustomChart } from "@/components/chart/PieCustomChart";
+import SimpleGraph from "@/components/graph/SimpleGraph";
 import { DataTable } from "@/components/table/DataTable";
-import { Card } from "@/components/ui/card";
-import { useLazyGetVulnerabilitiesQuery } from "@/store/api/projectsApi";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  useLazyGetVulnerabilitiesQuery,
+  useLazyGetVulnerabilityQuery,
+} from "@/store/api/projectsApi";
+import { buildOdata } from "@/utils/buildGeneralOdata";
 import { useGetVulnerabilitiesColumns } from "@/utils/columns/useGetVulnerabilitiesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import {
@@ -15,16 +21,19 @@ import { useEffect, useState } from "react";
 const Vulnerabilities = () => {
   const { branch } = useBranch();
   const columns = useGetVulnerabilitiesColumns();
-  const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
-  const [fetchVulnerabilities, { data, isLoading }] =
+  const [riskFilter, setRiskFilter] = useState("");
+  const [fetchVulnerabilities, { data, isFetching: isLoading }] =
     useLazyGetVulnerabilitiesQuery();
+  const [fetchVulnerability, { data: vulnData, isFetching: isLoadingVuln }] =
+    useLazyGetVulnerabilityQuery();
 
-  const [isExpanded, setIsExpanded] = useState(false); // To track card expansion
+  const [selectedVulnerability, setSelectedVulnerability] = useState<
+    string | null
+  >(null); // Track selected vulnerability
 
   const table = useReactTable({
-    data: data || [],
+    data: data?.vulnerabilities || [],
     columns,
-    enableRowSelection: true,
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualSorting: true,
@@ -37,17 +46,22 @@ const Vulnerabilities = () => {
     fetchVulnerabilities(
       {
         id: branch.id,
+        odata: buildOdata({
+          severity: riskFilter || "",
+        }),
       },
       true
     );
-  }, [branch]);
+  }, [branch, riskFilter]);
 
-  const onVulnerabilityClick = (name: string) => {
-    setVulnerabilityFilter((prev) => (prev === name ? "" : name));
-  };
+  useEffect(() => {
+    if (selectedVulnerability) {
+      fetchVulnerability(selectedVulnerability);
+    }
+  }, [selectedVulnerability, fetchVulnerability]);
 
-  const handleExpandClick = () => {
-    setIsExpanded(!isExpanded);
+  const onRiskClick = (name: string) => {
+    setRiskFilter((prev) => (prev === name ? "" : name));
   };
 
   return (
@@ -58,14 +72,65 @@ const Vulnerabilities = () => {
           <div className="h-max-full w-1/2">
             <DataTable
               isLoading={isLoading}
+              onClick={(row) => setSelectedVulnerability(row.vulnerabilityId)}
               className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
               table={table}
             />
           </div>
-          <div className="flex flex-col gap-6 w-1/2 h-full items-center justify-center">
-            <Card className="h-1/6 w-1/3 flex flex-col  items-center justify-center border-dashed border-3 text-gray-600">
-              Select a Vulnerability to see more details
-            </Card>
+          <div className="flex flex-col gap-6 w-1/2 h-full ">
+            <PieCustomChart
+              title="Risk Severities"
+              className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+              pies={data?.risks ?? []}
+              isLoading={isLoading}
+              onSliceClick={onRiskClick}
+            />
+            <div
+              className={`flex items-center justify-center self-center h-1/2 w-full`}
+            >
+              <Card
+                className={`overflow-hidden border-3 self-center ${
+                  selectedVulnerability
+                    ? "h-full w-full max-h-full max-w-full"
+                    : "h-1/6 w-1/3 m-3.5 border-dashed "
+                } transition-all duration-500 ease-in-out`}
+              >
+                {selectedVulnerability ? (
+                  <>
+                    {isLoadingVuln ? (
+                      <p>Loading vulnerability details...</p>
+                    ) : (
+                      vulnData && (
+                        <>
+                          <CardHeader>Vulnerability: {vulnData.id}</CardHeader>
+                          <CardContent className="text-lg">
+                            <p>
+                              <strong>Severity: </strong>
+                              {vulnData.severity}
+                            </p>
+                            <p>
+                              <strong>Description: </strong>
+                              {vulnData.description}
+                            </p>
+                            <p>
+                              <strong>Recommendation: </strong>
+                              {vulnData.recommendation}
+                            </p>
+                          </CardContent>
+                          <div className="max-h-4/6 max-w-full m-4">
+                            <SimpleGraph branch={branch!} />
+                          </div>
+                        </>
+                      )
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p>Select a Vulnerability to see more details</p>
+                  </div>
+                )}
+              </Card>
+            </div>
           </div>
         </div>
       </div>

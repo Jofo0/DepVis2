@@ -14,7 +14,11 @@ public interface IProjectService
     );
     Task<ProjectDto> CreateProject(CreateProjectDto dto);
     Task<PackageDetailedDto> GetPackageData(Guid id, ODataQueryOptions<SbomPackage> odata);
-    Task<List<VulnerabilitySmallDto>> GetVulnerabilities(Guid id);
+    Task<VulnerabilitiesDto> GetVulnerabilities(
+        Guid branchId,
+        ODataQueryOptions<VulnerabilitySmallDto> odata
+    );
+    Task<VulnerabilityDetailedDto?> GetVulnerability(string vulnId);
     Task<bool> UpdateProject(Guid id, UpdateProjectDto dto);
     Task<ProjectStatsDto> GetProjectStats(Guid branchId);
     Task<List<ProjectBranchDto>> GetProjectBranches(Guid id);

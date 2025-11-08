@@ -38,8 +38,8 @@ export const PieCustomChart = ({
   };
 
   return (
-    <Card className={`p-4 w-full ${className} overflow-hidden`}>
-      <CardHeader className="text-lg font-semibold">{title}</CardHeader>
+    <Card className={`w-full ${className} overflow-hidden`}>
+      <CardHeader>{title}</CardHeader>
       <CardDescription className="px-7">
         Click on any slice to filter by the value
       </CardDescription>

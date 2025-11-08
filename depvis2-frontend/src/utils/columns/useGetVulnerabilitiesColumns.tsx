@@ -1,4 +1,4 @@
-import type { VulnerabilitySmallDto } from "@/types/projects";
+import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 

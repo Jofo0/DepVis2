@@ -20,6 +20,7 @@ interface DataTableProps<TData> {
   table: import("@tanstack/table-core").Table<TData>;
   className?: string;
   isLoading?: boolean;
+  onClick?: (row: TData) => void;
   loadingRows?: number;
 }
 
@@ -57,6 +58,7 @@ export function DataTable<TData>({
   table,
   isLoading = false,
   loadingRows = 20,
+  onClick,
 }: DataTableProps<TData>) {
   const visibleColCount =
     table.getVisibleFlatColumns?.().length ?? table.getAllColumns().length;
@@ -112,6 +114,7 @@ export function DataTable<TData>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
+                  onClick={onClick ? () => onClick(row.original) : undefined}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => {

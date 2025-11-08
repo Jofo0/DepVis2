@@ -47,6 +47,9 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
             .AsNoTracking();
     }
 
+    public async Task<Vulnerability?> GetVulnerability(string id) =>
+        await context.Vulnerabilities.AsNoTracking().FirstAsync(x => x.Id == id);
+
     public async Task<ProjectBranches?> GetProjectStats(Guid id) =>
         await context.ProjectBranches.AsNoTracking().FirstAsync(x => x.Id == id);
 

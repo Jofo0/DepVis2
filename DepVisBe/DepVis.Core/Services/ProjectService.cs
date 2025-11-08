@@ -62,9 +62,12 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
     }
 
-    public async Task<List<VulnerabilitySmallDto>> GetVulnerabilities(Guid branchId)
+    public async Task<VulnerabilitiesDto> GetVulnerabilities(
+        Guid branchId,
+        ODataQueryOptions<VulnerabilitySmallDto> odata
+    )
     {
-        return await repo.GetPackagesForBranch(branchId)
+        var vulnerabilities = repo.GetPackagesForBranch(branchId)
             .SelectMany(
                 x => x.Vulnerabilities,
                 (x, vuln) =>
@@ -74,8 +77,33 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
                         Severity = vuln.Severity,
                         PackageName = x.Name,
                     }
-            )
-            .ToListAsync();
+            );
+
+        var result = await odata.ApplyOdata(vulnerabilities);
+
+        return new()
+        {
+            Vulnerabilities = [.. result],
+            Risks = await vulnerabilities
+                .GroupBy(x => x.Severity)
+                .Select(grouped => new NameCount() { Name = grouped.Key, Count = grouped.Count() })
+                .OrderBy(x => x.Count)
+                .ToListAsync(),
+        };
+    }
+
+    public async Task<VulnerabilityDetailedDto?> GetVulnerability(string vulnId)
+    {
+        var vuln = await repo.GetVulnerability(vulnId);
+        return vuln == null
+            ? null
+            : new VulnerabilityDetailedDto
+            {
+                Id = vuln.Id,
+                Description = vuln.Description,
+                Recommendation = vuln.Recommendation,
+                Severity = vuln.Severity,
+            };
     }
 
     public async Task<PackageDetailedDto> GetPackageData(
@@ -107,12 +135,12 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
 
         var retrieved = await packages.ToListAsync();
 
-        PackageDetailedDto result = new PackageDetailedDto();
-        result.Vulnerabilities = vulnerableCounts;
-        result.EcoSystems = ecosystemGroups;
-        result.PackageItems = [.. retrieved.Select(x => x.MapToPackageItemDto())];
-
-        return result;
+        return new()
+        {
+            Vulnerabilities = vulnerableCounts,
+            EcoSystems = ecosystemGroups,
+            PackageItems = [.. retrieved.Select(x => x.MapToPackageItemDto())],
+        };
     }
 
     public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(

@@ -3,11 +3,14 @@ import type {
   CreateProjectDto,
   UpdateProjectDto,
   ProjectStatsDto,
-  VulnerabilitySmallDto,
 } from "../../types/projects";
 import { projectsApi } from "../../store";
 import type { GraphDataDto, PackageDetailedDto } from "../../types/packages";
 import type { BranchDetailed, Branch } from "@/types/branches";
+import type {
+  VulnerabilitiesDto,
+  VulnerabilityDetailedDto,
+} from "@/types/vulnerabilities";
 
 type IdWithOdata = {
   id: string;
@@ -70,9 +73,12 @@ export const projectApi = projectsApi.injectEndpoints({
       query: ({ id }) => `/${id}/stats`,
       providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
     }),
-    getVulnerabilities: builder.query<VulnerabilitySmallDto[], IdWithOdata>({
+    getVulnerabilities: builder.query<VulnerabilitiesDto, IdWithOdata>({
       query: ({ id, odata }) =>
-        `/${id}/vulnerabilities${odata ? `?${odata}` : ""}`,
+        `/${id}/vulnerabilities${odata ? `${odata}` : ""}`,
+    }),
+    getVulnerability: builder.query<VulnerabilityDetailedDto, string>({
+      query: (id) => `/${id}/vulnerabilities/${id}`,
     }),
   }),
 });
@@ -87,6 +93,7 @@ export const {
   useGetProjectBranchesQuery,
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,
+  useLazyGetVulnerabilityQuery,
   useLazyGetPackagesQuery,
   useLazyGetVulnerabilitiesQuery,
 } = projectApi;

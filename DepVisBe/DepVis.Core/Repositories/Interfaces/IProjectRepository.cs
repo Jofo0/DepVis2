@@ -9,6 +9,7 @@ public interface IProjectRepository
     Task<Project?> GetByIdDetailedAsync(Guid id);
     Task<Sbom?> GetPackagesAndChildrenByIdAndBranch(Guid id);
     Task AddAsync(Project project);
+    Task<Vulnerability?> GetVulnerability(string id);
     Task<ProjectBranches?> GetProjectStats(Guid id);
     Task<List<ProjectBranches>> GetProjectBranches(Guid id);
     IQueryable<SbomPackage> GetPackagesForBranch(Guid branchId);
