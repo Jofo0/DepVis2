@@ -62,6 +62,22 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
     }
 
+    public async Task<List<VulnerabilitySmallDto>> GetVulnerabilities(Guid branchId)
+    {
+        return await repo.GetPackagesForBranch(branchId)
+            .SelectMany(
+                x => x.Vulnerabilities,
+                (x, vuln) =>
+                    new VulnerabilitySmallDto
+                    {
+                        VulnerabilityId = vuln.Id,
+                        Severity = vuln.Severity,
+                        PackageName = x.Name,
+                    }
+            )
+            .ToListAsync();
+    }
+
     public async Task<PackageDetailedDto> GetPackageData(
         Guid id,
         ODataQueryOptions<SbomPackage> odata

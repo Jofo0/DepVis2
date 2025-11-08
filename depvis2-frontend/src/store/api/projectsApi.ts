@@ -3,6 +3,7 @@ import type {
   CreateProjectDto,
   UpdateProjectDto,
   ProjectStatsDto,
+  VulnerabilitySmallDto,
 } from "../../types/projects";
 import { projectsApi } from "../../store";
 import type { GraphDataDto, PackageDetailedDto } from "../../types/packages";
@@ -69,7 +70,7 @@ export const projectApi = projectsApi.injectEndpoints({
       query: ({ id }) => `/${id}/stats`,
       providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
     }),
-    getVulnerabilities: builder.query<ProjectStatsDto, IdWithOdata>({
+    getVulnerabilities: builder.query<VulnerabilitySmallDto[], IdWithOdata>({
       query: ({ id, odata }) =>
         `/${id}/vulnerabilities${odata ? `?${odata}` : ""}`,
     }),

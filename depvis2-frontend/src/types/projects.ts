@@ -26,3 +26,9 @@ export interface ProjectStatsDto {
   packageCount: number;
   vulnerabilityCount: number;
 }
+
+export interface VulnerabilitySmallDto {
+  vulnerabilityId: string;
+  severity: string;
+  packageName: number;
+}

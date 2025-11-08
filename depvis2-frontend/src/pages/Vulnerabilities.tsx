@@ -16,11 +16,13 @@ const Vulnerabilities = () => {
   const { branch } = useBranch();
   const columns = useGetVulnerabilitiesColumns();
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
-  const [fetchVulnerabilities, { data, isFetching: isLoading }] =
+  const [fetchVulnerabilities, { data, isLoading }] =
     useLazyGetVulnerabilitiesQuery();
 
+  const [isExpanded, setIsExpanded] = useState(false); // To track card expansion
+
   const table = useReactTable({
-    data: [],
+    data: data || [],
     columns,
     enableRowSelection: true,
     getSortedRowModel: getSortedRowModel(),
@@ -38,11 +40,16 @@ const Vulnerabilities = () => {
       },
       true
     );
-  }, [branch, vulnerabilityFilter, fetchVulnerabilities]);
+  }, [branch]);
 
   const onVulnerabilityClick = (name: string) => {
     setVulnerabilityFilter((prev) => (prev === name ? "" : name));
   };
+
+  const handleExpandClick = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full h-full py-4">
       <div className="flex flex-col  w-full h-full justify-evenly">
