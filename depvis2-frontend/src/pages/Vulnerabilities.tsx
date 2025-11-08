@@ -7,6 +7,7 @@ import {
   useLazyGetVulnerabilitiesQuery,
   useLazyGetVulnerabilityQuery,
 } from "@/store/api/projectsApi";
+import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
 import { buildOdata } from "@/utils/buildGeneralOdata";
 import { useGetVulnerabilitiesColumns } from "@/utils/columns/useGetVulnerabilitiesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
@@ -27,9 +28,8 @@ const Vulnerabilities = () => {
   const [fetchVulnerability, { data: vulnData, isFetching: isLoadingVuln }] =
     useLazyGetVulnerabilityQuery();
 
-  const [selectedVulnerability, setSelectedVulnerability] = useState<
-    string | null
-  >(null); // Track selected vulnerability
+  const [selectedVulnerability, setSelectedVulnerability] =
+    useState<VulnerabilitySmallDto | null>(null);
 
   const table = useReactTable({
     data: data?.vulnerabilities || [],
@@ -56,7 +56,7 @@ const Vulnerabilities = () => {
 
   useEffect(() => {
     if (selectedVulnerability) {
-      fetchVulnerability(selectedVulnerability);
+      fetchVulnerability(selectedVulnerability.vulnerabilityId);
     }
   }, [selectedVulnerability, fetchVulnerability]);
 
@@ -72,7 +72,7 @@ const Vulnerabilities = () => {
           <div className="h-max-full w-1/2">
             <DataTable
               isLoading={isLoading}
-              onClick={(row) => setSelectedVulnerability(row.vulnerabilityId)}
+              onClick={(row) => setSelectedVulnerability(row)}
               className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
               table={table}
             />
@@ -118,7 +118,10 @@ const Vulnerabilities = () => {
                             </p>
                           </CardContent>
                           <div className="max-h-4/6 max-w-full m-4">
-                            <SimpleGraph branch={branch!} />
+                            <SimpleGraph
+                              branch={branch!}
+                              packageId={selectedVulnerability.packageId}
+                            />
                           </div>
                         </>
                       )

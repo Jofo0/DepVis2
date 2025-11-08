@@ -63,8 +63,12 @@ export const projectApi = projectsApi.injectEndpoints({
       }),
       invalidatesTags: ["Projects"],
     }),
-    getProjectGraph: builder.query<GraphDataDto, { id: string }>({
-      query: ({ id }) => `/${id}/packages/graph`,
+    getProjectGraph: builder.query<
+      GraphDataDto,
+      { id: string; packageId?: string }
+    >({
+      query: ({ id, packageId }) =>
+        `/${id}/packages/graph/${packageId ? packageId : ""}`,
     }),
     getPackages: builder.query<PackageDetailedDto, IdWithOdata>({
       query: ({ id, odata }) => `/${id}/packages${odata ? `?${odata}` : ""}`,

@@ -9,6 +9,7 @@ export interface VulnerabilitySmallDto {
   vulnerabilityId: string;
   severity: string;
   packageName: number;
+  packageId: string;
 }
 
 export interface VulnerabilityDetailedDto {

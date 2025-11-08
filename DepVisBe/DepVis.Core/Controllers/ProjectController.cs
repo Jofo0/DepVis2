@@ -89,6 +89,18 @@ public class ProjectsController(IProjectService service) : ControllerBase
         return Ok(project);
     }
 
+    [HttpGet("{branchId}/packages/graph/{packageId}")]
+    public async Task<ActionResult<GraphDataDto>> GetPackageHierarchyGraphData(
+        Guid branchId,
+        Guid packageId
+    )
+    {
+        var project = await service.GetPackageHierarchyGraphData(branchId, packageId);
+        if (project is null)
+            return NotFound();
+        return Ok(project);
+    }
+
     [HttpGet("{branchId}/stats")]
     public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid branchId)
     {

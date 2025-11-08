@@ -22,12 +22,14 @@ const LABEL_MARGIN = 4;
 
 type SimpleGraphProps = {
   branch: Branch;
+  packageId?: string;
   className?: string;
 };
 
-const SimpleGraph = ({ branch, className }: SimpleGraphProps) => {
+const SimpleGraph = ({ branch, className, packageId }: SimpleGraphProps) => {
   const { data, isLoading, isFetching, error } = useGetProjectGraphQuery({
     id: branch.id,
+    packageId,
   });
 
   const graphData = useMemo(() => {

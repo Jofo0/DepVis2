@@ -50,6 +50,47 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return new GraphDataDto { Packages = packages, Relationships = relations };
     }
 
+    public async Task<GraphDataDto?> GetPackageHierarchyGraphData(Guid branchId, Guid packageId)
+    {
+        var sbom = await repo.GetPackagesAndChildrenByIdAndBranch(branchId);
+
+        if (sbom == null)
+            return null;
+
+        var relations = new List<PackageRelationDto>();
+        var packages = new List<PackageDto>();
+
+        var targetPackage = sbom
+            .SbomPackages.SelectMany(
+                pkg => pkg.Children,
+                (pkg, child) => new { Parent = pkg, Child = child }
+            )
+            .Where(x => x.Child.ChildId == packageId)
+            .ToList();
+
+        while (targetPackage.Count != 0)
+        {
+            foreach (var item in targetPackage)
+            {
+                var nextTargetPackage = sbom
+                    .SbomPackages.SelectMany(
+                        pkg => pkg.Children,
+                        (pkg, child) => new { Parent = pkg, Child = child }
+                    )
+                    .Where(x => x.Child.ChildId == item.Parent.Id)
+                    .ToList();
+
+                packages.Add(new PackageDto { Name = item.Parent.Name, Id = item.Parent.Id });
+                relations.Add(
+                    new PackageRelationDto { From = item.Parent.Id, To = item.Child.ChildId }
+                );
+                targetPackage = nextTargetPackage;
+            }
+        }
+
+        return new GraphDataDto { Packages = packages, Relationships = relations };
+    }
+
     // TODO: Move to different service
 
     public async Task<ProjectStatsDto?> GetProjectStats(Guid branchId)
@@ -76,6 +117,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
                         VulnerabilityId = vuln.Id,
                         Severity = vuln.Severity,
                         PackageName = x.Name,
+                        PackageId = x.Id,
                     }
             );
 

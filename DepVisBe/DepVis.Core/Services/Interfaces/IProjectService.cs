@@ -18,6 +18,7 @@ public interface IProjectService
         Guid branchId,
         ODataQueryOptions<VulnerabilitySmallDto> odata
     );
+    Task<GraphDataDto?> GetPackageHierarchyGraphData(Guid branchId, Guid packageId);
     Task<VulnerabilityDetailedDto?> GetVulnerability(string vulnId);
     Task<bool> UpdateProject(Guid id, UpdateProjectDto dto);
     Task<ProjectStatsDto> GetProjectStats(Guid branchId);
