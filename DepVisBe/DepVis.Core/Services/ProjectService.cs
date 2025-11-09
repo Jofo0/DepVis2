@@ -78,7 +78,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
             foreach (var parent in nextTargetPackage)
             {
                 relations.Add(
-                    new PackageRelationDto { From = parent.Id, To = packageToProcess.Id }
+                    new PackageRelationDto { To = parent.Id, From = packageToProcess.Id }
                 );
                 if (!processedPackages.Contains(parent.Id))
                 {
@@ -120,17 +120,22 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
                         PackageId = x.Id,
                     }
             );
-
-        var result = await odata.ApplyOdata(vulnerabilities);
+        var result = (await odata.ApplyOdata(vulnerabilities)).DistinctBy(x => x.VulnerabilityId);
 
         return new()
         {
             Vulnerabilities = [.. result],
-            Risks = await vulnerabilities
-                .GroupBy(x => x.Severity)
-                .Select(grouped => new NameCount() { Name = grouped.Key, Count = grouped.Count() })
-                .OrderBy(x => x.Count)
-                .ToListAsync(),
+            Risks =
+            [
+                .. result
+                    .GroupBy(x => x.Severity)
+                    .Select(grouped => new NameCount()
+                    {
+                        Name = grouped.Key,
+                        Count = grouped.Count(),
+                    })
+                    .OrderBy(x => x.Count),
+            ],
         };
     }
 

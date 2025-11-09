@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { useGetProjectGraphQuery } from "../../store/api/projectsApi";
 import Measure from "react-measure";
 import type { Branch } from "@/types/branches";
+import { cn } from "@/lib/utils";
 
 type GraphNode = {
   id: string;
@@ -37,6 +38,7 @@ const SimpleGraph = ({
     id: branch.id,
     packageId,
   });
+  const [size, setSize] = useState({ w: 0, h: 0 });
 
   const graphData = useMemo(() => {
     if (!data) return { nodes: [] as GraphNode[], links: [] as GraphLink[] };
@@ -65,25 +67,39 @@ const SimpleGraph = ({
     return { nodes, links };
   }, [data]);
 
-  if (isLoading || isFetching)
-    return <div style={{ padding: 12 }}>Loading graph…</div>;
-  if (error) return <div style={{ padding: 12 }}>Failed to load graph.</div>;
-  if (!data) return <div style={{ padding: 12 }}>No graph data.</div>;
-
   return (
-    <Measure bounds>
+    <Measure
+      bounds
+      onResize={({ bounds }) => {
+        const w = Math.round(bounds?.width ?? 0);
+        const h = Math.round(bounds?.height ?? 0);
+        if (Math.abs(w - size.w) >= 4 || Math.abs(h - size.h) >= 4) {
+          setSize({ w, h });
+        }
+      }}
+    >
       {({ measureRef, contentRect }) => (
-        <div ref={measureRef} className={"max-h-full max-w-full" + className}>
+        <div
+          ref={measureRef}
+          className={cn("max-h-full max-w-full w-full h-full", className)}
+        >
           <ForceGraph2D
             graphData={graphData}
             nodeLabel="name"
             height={contentRect?.bounds?.height}
             width={contentRect?.bounds?.width}
-            nodeAutoColorBy="id"
+            cooldownTicks={lr ? 0 : 60}
+            d3AlphaMin={0.05}
             linkDirectionalArrowLength={6}
             linkDirectionalArrowRelPos={1}
-            dagMode={lr ? "lr" : undefined}
+            dagMode={lr ? "rl" : undefined}
             dagLevelDistance={lr ? 75 : null}
+            nodeColor={(node) => {
+              const n = node as GraphNode;
+              if (n.id === packageId) return "#dc2626";
+              return "";
+            }}
+            nodeAutoColorBy="id"
             nodeCanvasObject={(node, ctx, globalScale) => {
               const graphNode = node as GraphNode;
               const label = graphNode.name ?? String(graphNode.id);
@@ -96,7 +112,6 @@ const SimpleGraph = ({
               ctx.font = `${fontSize}px Sans-Serif`;
               ctx.textAlign = "center";
               ctx.textBaseline = "top";
-
               const textWidth = ctx.measureText(label).width;
               const x = graphNode.x ?? 0;
               const y = graphNode.y ?? 0;
