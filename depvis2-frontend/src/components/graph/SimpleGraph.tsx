@@ -23,10 +23,16 @@ const LABEL_MARGIN = 4;
 type SimpleGraphProps = {
   branch: Branch;
   packageId?: string;
+  lr?: boolean;
   className?: string;
 };
 
-const SimpleGraph = ({ branch, className, packageId }: SimpleGraphProps) => {
+const SimpleGraph = ({
+  branch,
+  className,
+  packageId,
+  lr,
+}: SimpleGraphProps) => {
   const { data, isLoading, isFetching, error } = useGetProjectGraphQuery({
     id: branch.id,
     packageId,
@@ -37,15 +43,15 @@ const SimpleGraph = ({ branch, className, packageId }: SimpleGraphProps) => {
 
     // Map packages to nodes
     const nodes: GraphNode[] = data.packages.map((p) => ({
-      id: String(p.id),
+      id: p.id,
       name: p.name,
       val: 1,
     }));
 
     // Map relationships to links
     const links: GraphLink[] = data.relationships.map((r) => ({
-      source: String(r.to),
-      target: String(r.from),
+      source: r.to,
+      target: r.from,
     }));
 
     // Compute degree to scale node size
@@ -76,6 +82,8 @@ const SimpleGraph = ({ branch, className, packageId }: SimpleGraphProps) => {
             nodeAutoColorBy="id"
             linkDirectionalArrowLength={6}
             linkDirectionalArrowRelPos={1}
+            dagMode={lr ? "lr" : undefined}
+            dagLevelDistance={lr ? 75 : null}
             nodeCanvasObject={(node, ctx, globalScale) => {
               const graphNode = node as GraphNode;
               const label = graphNode.name ?? String(graphNode.id);
@@ -100,7 +108,6 @@ const SimpleGraph = ({ branch, className, packageId }: SimpleGraphProps) => {
                 textWidth + margin * 2,
                 fontSize + margin * 2
               );
-
               ctx.fillStyle = "#222";
               ctx.fillText(label, x, y + radius + margin * 2);
             }}

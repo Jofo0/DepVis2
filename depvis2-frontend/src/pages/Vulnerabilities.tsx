@@ -119,6 +119,7 @@ const Vulnerabilities = () => {
                           </CardContent>
                           <div className="max-h-4/6 max-w-full m-4">
                             <SimpleGraph
+                              lr
                               branch={branch!}
                               packageId={selectedVulnerability.packageId}
                             />

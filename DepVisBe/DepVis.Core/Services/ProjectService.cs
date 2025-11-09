@@ -67,10 +67,7 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
 
         while (packagesToProcess.TryPop(out var packageToProcess))
         {
-            processedPackages.Add(packageToProcess.Id);
-            var package = new PackageDto { Name = packageToProcess.Name, Id = packageToProcess.Id };
-
-            packages.Add(package);
+            packages.Add(new PackageDto { Name = packageToProcess.Name, Id = packageToProcess.Id });
 
             var nextTargetPackage = sbom
                 .SbomPackages.Where(x =>
@@ -84,7 +81,10 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
                     new PackageRelationDto { From = parent.Id, To = packageToProcess.Id }
                 );
                 if (!processedPackages.Contains(parent.Id))
+                {
+                    processedPackages.Add(parent.Id);
                     packagesToProcess.Push(parent);
+                }
             }
         }
 
