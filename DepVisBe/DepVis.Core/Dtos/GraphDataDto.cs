@@ -10,6 +10,16 @@ public class PackageDto
 {
     public string Name { get; set; }
     public Guid Id { get; set; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is PackageDto dto && Name == dto.Name && Id.Equals(dto.Id);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Name, Id);
+    }
 }
 
 public class PackageRelationDto

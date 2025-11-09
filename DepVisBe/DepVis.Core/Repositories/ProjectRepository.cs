@@ -33,6 +33,16 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync();
 
+    public async Task<Sbom?> GetPackagesAndParentsByIdAndBranch(Guid id) =>
+        await context
+            .Sboms.AsNoTracking()
+            .Where(x => x.ProjectBranchId == id)
+            .Include(sboms => sboms.SbomPackages)
+            .ThenInclude(sp => sp.Parents)
+            .ThenInclude(x => x.Parent)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+
     public IQueryable<SbomPackage> GetPackagesForBranch(Guid branchId)
     {
         var latestSbomIdQuery = context

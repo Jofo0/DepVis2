@@ -52,39 +52,39 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
 
     public async Task<GraphDataDto?> GetPackageHierarchyGraphData(Guid branchId, Guid packageId)
     {
-        var sbom = await repo.GetPackagesAndChildrenByIdAndBranch(branchId);
+        var sbom = await repo.GetPackagesAndParentsByIdAndBranch(branchId);
 
         if (sbom == null)
             return null;
 
         var relations = new List<PackageRelationDto>();
         var packages = new List<PackageDto>();
+        var processedPackages = new HashSet<Guid>();
 
-        var targetPackage = sbom
-            .SbomPackages.SelectMany(
-                pkg => pkg.Children,
-                (pkg, child) => new { Parent = pkg, Child = child }
-            )
-            .Where(x => x.Child.ChildId == packageId)
-            .ToList();
+        var packagesToProcess = new Stack<SbomPackage>(
+            [.. sbom.SbomPackages.Where(x => x.Id == packageId)]
+        );
 
-        while (targetPackage.Count != 0)
+        while (packagesToProcess.TryPop(out var packageToProcess))
         {
-            foreach (var item in targetPackage)
-            {
-                var nextTargetPackage = sbom
-                    .SbomPackages.SelectMany(
-                        pkg => pkg.Children,
-                        (pkg, child) => new { Parent = pkg, Child = child }
-                    )
-                    .Where(x => x.Child.ChildId == item.Parent.Id)
-                    .ToList();
+            processedPackages.Add(packageToProcess.Id);
+            var package = new PackageDto { Name = packageToProcess.Name, Id = packageToProcess.Id };
 
-                packages.Add(new PackageDto { Name = item.Parent.Name, Id = item.Parent.Id });
+            packages.Add(package);
+
+            var nextTargetPackage = sbom
+                .SbomPackages.Where(x =>
+                    packageToProcess.Parents.Select(x => x.Parent.Id).Contains(x.Id)
+                )
+                .ToList();
+
+            foreach (var parent in nextTargetPackage)
+            {
                 relations.Add(
-                    new PackageRelationDto { From = item.Parent.Id, To = item.Child.ChildId }
+                    new PackageRelationDto { From = parent.Id, To = packageToProcess.Id }
                 );
-                targetPackage = nextTargetPackage;
+                if (!processedPackages.Contains(parent.Id))
+                    packagesToProcess.Push(parent);
             }
         }
 

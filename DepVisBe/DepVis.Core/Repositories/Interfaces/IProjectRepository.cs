@@ -12,6 +12,7 @@ public interface IProjectRepository
     Task<Vulnerability?> GetVulnerability(string id);
     Task<ProjectBranches?> GetProjectStats(Guid id);
     Task<List<ProjectBranches>> GetProjectBranches(Guid id);
+    Task<Sbom?> GetPackagesAndParentsByIdAndBranch(Guid id);
     IQueryable<SbomPackage> GetPackagesForBranch(Guid branchId);
     IQueryable<ProjectBranches> GetProjectBranchesAsQueryable(Guid id);
     Task UpdateAsync(Project project);
