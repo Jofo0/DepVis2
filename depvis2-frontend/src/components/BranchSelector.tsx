@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { ProcessStep } from "@/types/branches";
 
 const BranchSelector = () => {
   const id = useGetProjectId();
@@ -29,13 +30,16 @@ const BranchSelector = () => {
 
   const items = useMemo(
     () =>
-      branches?.map((x) => (
-        <SelectItem value={x.id} key={x.id}>
-          {x.name}
-        </SelectItem>
-      )) ?? null,
+      branches
+        ?.filter((b) => b.processStep === ProcessStep.Processed)
+        .map((x) => (
+          <SelectItem value={x.id} key={x.id}>
+            {x.name}
+          </SelectItem>
+        )) ?? null,
     [branches]
   );
+
   return (
     <Select
       value={branch?.id || ""}
@@ -50,7 +54,9 @@ const BranchSelector = () => {
       </SelectTrigger>
       <SelectContent avoidCollisions={false} className="max-h-64">
         <SelectGroup>
-          <SelectLabel>Branches</SelectLabel>
+          <SelectLabel>
+            {items?.length === 0 ? "No Branches processed yet" : "Branches"}
+          </SelectLabel>
           {items}
         </SelectGroup>
       </SelectContent>
