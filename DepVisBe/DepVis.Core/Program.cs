@@ -22,10 +22,12 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<MinioStorageService>();
 builder.Services.AddScoped<GitService>();
+
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<GraphService>();
 builder.Services.AddScoped<VulnerabilityService>();
 builder.Services.AddScoped<PackageService>();
+builder.Services.AddScoped<ProjectBranchService>();
 
 builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<ProjectBranchRepository>();

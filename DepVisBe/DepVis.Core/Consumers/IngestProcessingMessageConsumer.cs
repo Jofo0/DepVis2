@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
-using DepVis.Core.Context;
+﻿using DepVis.Core.Context;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace DepVis.Core.Consumers;
 
@@ -90,6 +90,7 @@ public class IngestProcessingMessageConsumer(
                     .DistinctBy(x => x.SbomPackageId)
                     .Count();
                 projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+                projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
 
                 await _db.SaveChangesAsync(context.CancellationToken);
                 await tx.CommitAsync(context.CancellationToken);
@@ -118,16 +119,16 @@ public class IngestProcessingMessageConsumer(
     {
         var vulnerabilities =
             bom.Vulnerabilities?.Select(x => new Vulnerability
-                {
-                    Id = x.Id,
-                    Description = x.Description,
-                    Recommendation = x.Recommendation,
-                    Severity =
+            {
+                Id = x.Id,
+                Description = x.Description,
+                Recommendation = x.Recommendation,
+                Severity =
                         x.Ratings.GroupBy(r => r.Severity)
                             .OrderByDescending(g => g.Count())
                             .Select(g => g.Key)
                             .FirstOrDefault() ?? "Unknown",
-                })
+            })
                 .ToList() ?? [];
 
         var existingIds = _db.Vulnerabilities.Select(v => v.Id).ToHashSet();

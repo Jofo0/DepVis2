@@ -13,20 +13,20 @@ public class ProjectBranchesController(
     ProjectService projectService
 ) : ControllerBase
 {
-    [HttpGet("{id}/branches")]
-    public async Task<ActionResult<List<ProjectBranchDto>>> GetProjectBranches(Guid id)
+    [HttpGet("{branchId}/branches")]
+    public async Task<ActionResult<List<ProjectBranchDto>>> GetProjectBranches(Guid branchId)
     {
-        var branches = await branchService.GetProjectBranches(id);
+        var branches = await branchService.GetProjectBranches(branchId);
         return Ok(branches);
     }
 
-    [HttpGet("{id}/branches/detailed")]
+    [HttpGet("{branchId}/branches/detailed")]
     public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesDetailed(
-        Guid id,
+        Guid branchId,
         ODataQueryOptions<ProjectBranches> odata
     )
     {
-        var detailed = await branchService.GetProjectBranchesDetailed(id, odata);
+        var detailed = await branchService.GetProjectBranchesDetailed(branchId, odata);
         return Ok(detailed);
     }
 

@@ -6,8 +6,9 @@ import {
 } from "../store/api/projectsApi";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import type { ProjectBranchDto } from "../types/projects";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ProcessStep, type Branch } from "@/types/branches";
+import ProcessingCard from "@/components/cards/ProcessingCard";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +22,7 @@ const ProjectDetailPage = () => {
     return branches[0];
   }, [branches]);
 
-  const [selectedBranch, setSelectedBranch] = useState<ProjectBranchDto>();
+  const [selectedBranch, setSelectedBranch] = useState<Branch>();
 
   useEffect(() => {
     if (!branches || branches.length === 0) return;
@@ -43,12 +44,47 @@ const ProjectDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-0 shadow-none">
         <CardHeader>Processing</CardHeader>
-        <CardContent className="flex flex-row justify-around">
-          <Card></Card>
-          <Card></Card>
-          <Card></Card>
+
+        <CardContent className="flex flex-row justify-around w-full gap-4 items-center">
+          <ProcessingCard
+            branches={
+              branches?.filter((b) => b.processStep === ProcessStep.Created) ??
+              []
+            }
+            header="Preparing for Processing"
+            description="Branch/Tag/Commit is ready to be processed"
+          />
+          <ProcessingCard
+            branches={
+              branches?.filter(
+                (b) => b.processStep === ProcessStep.SbomCreation
+              ) ?? []
+            }
+            header="Creating SBOM"
+            description="Branch/Tag/Commit is being processed and the SBOM is being created"
+          />
+
+          <ProcessingCard
+            branches={
+              branches?.filter(
+                (b) => b.processStep === ProcessStep.SbomIngest
+              ) ?? []
+            }
+            header="Processing SBOM"
+            description="The SBOM is being processed and the reports are being generated"
+          />
+
+          <ProcessingCard
+            branches={
+              branches?.filter(
+                (b) => b.processStep === ProcessStep.Processed
+              ) ?? []
+            }
+            header="Finished Processing"
+            description="Branch/Tag/Commit has finished processing and reports are ready"
+          />
         </CardContent>
       </Card>
       <button

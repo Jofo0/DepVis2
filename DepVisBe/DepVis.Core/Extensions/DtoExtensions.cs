@@ -18,7 +18,13 @@ public static class DtoExtensions
         new() { PackageCount = stats.PackageCount, VulnerabilityCount = stats.VulnerabilityCount };
 
     public static ProjectBranchDto MapToBranchesDto(this ProjectBranches pb) =>
-        new() { Id = pb.Id, Name = pb.Name };
+        new()
+        {
+            Id = pb.Id,
+            Name = pb.Name,
+            ProcessStatus = pb.ProcessStatus.ToString(),
+            ProcessStep = pb.ProcessStep.ToString(),
+        };
 
     public static PackageItemDto MapToPackageItemDto(this SbomPackage pb) =>
         new()

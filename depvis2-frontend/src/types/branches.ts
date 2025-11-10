@@ -10,4 +10,19 @@ export type BranchDetailed = {
 export type Branch = {
   name: string;
   id: string;
+  processStep: ProcessStep;
+  processType: string;
 };
+
+export enum ProcessStep {
+  Created = "Created",
+  SbomCreation = "SbomCreation",
+  SbomIngest = "SbomIngest",
+  Processed = "Processed",
+}
+
+export enum ProcessStatus {
+  Pending = "Pending",
+  Success = "Success",
+  Failed = "Failed",
+}
