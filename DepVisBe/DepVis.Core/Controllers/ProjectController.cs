@@ -1,113 +1,21 @@
 ﻿using DepVis.Core.Dtos;
-using DepVis.Core.Services.Interfaces;
-using DepVis.Shared.Model;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ProjectsController(IProjectService service) : ControllerBase
+public class ProjectsController(ProjectService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects()
-    {
-        var projects = await service.GetProjects();
-        return Ok(projects);
-    }
+    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects() =>
+        Ok(await service.GetProjects());
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ProjectDto>> GetProject(Guid id)
     {
         var project = await service.GetProject(id);
-        if (project is null)
-            return NotFound();
-        return Ok(project);
-    }
-
-    [HttpGet("{id}/branches")]
-    public async Task<ActionResult<List<ProjectBranchDto>>> GetProjectBranches(Guid id)
-    {
-        var projectBranches = await service.GetProjectBranches(id);
-        if (projectBranches is null)
-            return NotFound();
-        return Ok(projectBranches);
-    }
-
-    [HttpGet("{id}/branches/detailed")]
-    public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesDetailed(
-        Guid id,
-        ODataQueryOptions<ProjectBranches> odata
-    )
-    {
-        var projectBranchesDetailed = await service.GetProjectBranchesDetailed(id, odata);
-        if (projectBranchesDetailed is null)
-            return NotFound();
-        return Ok(projectBranchesDetailed);
-    }
-
-    [HttpGet("{branchId}/packages")]
-    public async Task<ActionResult<PackageDetailedDto>> GetBranchPackages(
-        Guid branchId,
-        ODataQueryOptions<SbomPackage> odata
-    )
-    {
-        var project = await service.GetPackageData(branchId, odata);
-        if (project is null)
-            return NotFound();
-        return Ok(project);
-    }
-
-    [HttpGet("{branchId}/vulnerabilities")]
-    public async Task<ActionResult<VulnerabilitiesDto>> GetVulnerabilities(
-        Guid branchId,
-        ODataQueryOptions<VulnerabilitySmallDto> odata
-    )
-    {
-        var project = await service.GetVulnerabilities(branchId, odata);
-        if (project is null)
-            return NotFound();
-        return Ok(project);
-    }
-
-    [HttpGet("{branchId}/vulnerabilities/{vulnId}")]
-    public async Task<ActionResult<VulnerabilityDetailedDto>> GetVulnerability(string vulnId)
-    {
-        var project = await service.GetVulnerability(vulnId);
-        if (project is null)
-            return NotFound();
-        return Ok(project);
-    }
-
-    [HttpGet("{branchId}/packages/graph")]
-    public async Task<ActionResult<GraphDataDto>> GetFullGraph(Guid branchId)
-    {
-        var project = await service.GetProjectGraphData(branchId);
-        if (project is null)
-            return NotFound();
-        return Ok(project);
-    }
-
-    [HttpGet("{branchId}/packages/graph/{packageId}")]
-    public async Task<ActionResult<GraphDataDto>> GetPackageHierarchyGraphData(
-        Guid branchId,
-        Guid packageId
-    )
-    {
-        var project = await service.GetPackageHierarchyGraphData(branchId, packageId);
-        if (project is null)
-            return NotFound();
-        return Ok(project);
-    }
-
-    [HttpGet("{branchId}/stats")]
-    public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid branchId)
-    {
-        var project = await service.GetProjectStats(branchId);
-        if (project is null)
-            return NotFound();
-        return Ok(project);
+        return project is null ? NotFound() : Ok(project);
     }
 
     [HttpPost]
@@ -118,16 +26,10 @@ public class ProjectsController(IProjectService service) : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateProject(Guid id, UpdateProjectDto dto)
-    {
-        var ok = await service.UpdateProject(id, dto);
-        return ok ? NoContent() : NotFound();
-    }
+    public async Task<IActionResult> UpdateProject(Guid id, UpdateProjectDto dto) =>
+        (await service.UpdateProject(id, dto)) ? NoContent() : NotFound();
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProject(Guid id)
-    {
-        var ok = await service.DeleteProject(id);
-        return ok ? NoContent() : NotFound();
-    }
+    public async Task<IActionResult> DeleteProject(Guid id) =>
+        (await service.DeleteProject(id)) ? NoContent() : NotFound();
 }

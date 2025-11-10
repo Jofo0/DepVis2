@@ -1,11 +1,8 @@
 ﻿using DepVis.Core.Context;
-using DepVis.Core.Repositories.Interfaces;
 using DepVis.Shared.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace DepVis.Core.Repositories;
-
-public class ProjectRepository(DepVisDbContext context) : IProjectRepository
+public class ProjectRepository(DepVisDbContext context)
 {
     public async Task<List<Project>> GetAllAsync() =>
         await context.Projects.AsNoTracking().ToListAsync();
@@ -22,52 +19,6 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
             .ThenInclude(sp => sp.Children)
             .ThenInclude(cd => cd.Child)
             .FirstOrDefaultAsync(p => p.Id == id);
-
-    // TODO move to PackagesRepo
-    public async Task<Sbom?> GetPackagesAndChildrenByIdAndBranch(Guid id) =>
-        await context
-            .Sboms.AsNoTracking()
-            .Where(x => x.ProjectBranchId == id)
-            .Include(sboms => sboms.SbomPackages)
-            .ThenInclude(sp => sp.Children)
-            .OrderByDescending(x => x.CreatedAt)
-            .FirstOrDefaultAsync();
-
-    public async Task<Sbom?> GetPackagesAndParentsByIdAndBranch(Guid id) =>
-        await context
-            .Sboms.AsNoTracking()
-            .Where(x => x.ProjectBranchId == id)
-            .Include(sboms => sboms.SbomPackages)
-            .ThenInclude(sp => sp.Parents)
-            .ThenInclude(x => x.Parent)
-            .OrderByDescending(x => x.CreatedAt)
-            .FirstOrDefaultAsync();
-
-    public IQueryable<SbomPackage> GetPackagesForBranch(Guid branchId)
-    {
-        var latestSbomIdQuery = context
-            .Sboms.Where(s => s.ProjectBranchId == branchId)
-            .OrderByDescending(s => s.CreatedAt)
-            .Select(s => s.Id)
-            .Take(1);
-
-        return context
-            .SbomPackages.Where(p => latestSbomIdQuery.Contains(p.SbomId))
-            .Include(x => x.Vulnerabilities)
-            .AsNoTracking();
-    }
-
-    public async Task<Vulnerability?> GetVulnerability(string id) =>
-        await context.Vulnerabilities.AsNoTracking().FirstAsync(x => x.Id == id);
-
-    public async Task<ProjectBranches?> GetProjectStats(Guid id) =>
-        await context.ProjectBranches.AsNoTracking().FirstAsync(x => x.Id == id);
-
-    public async Task<List<ProjectBranches>> GetProjectBranches(Guid id) =>
-        await context.ProjectBranches.AsNoTracking().Where(x => x.ProjectId == id).ToListAsync();
-
-    public IQueryable<ProjectBranches> GetProjectBranchesAsQueryable(Guid id) =>
-        context.ProjectBranches.Include(x => x.Sboms).AsNoTracking().Where(x => x.ProjectId == id);
 
     public async Task AddAsync(Project project)
     {
@@ -110,4 +61,7 @@ public class ProjectRepository(DepVisDbContext context) : IProjectRepository
 
         await context.Projects.Where(p => p.Id == projectId).ExecuteDeleteAsync();
     }
+
+    public async Task<ProjectBranches?> GetProjectStatsAsync(Guid branchId) =>
+        await context.ProjectBranches.AsNoTracking().FirstOrDefaultAsync(x => x.Id == branchId);
 }

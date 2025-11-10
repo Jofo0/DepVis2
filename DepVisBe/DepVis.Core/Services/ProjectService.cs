@@ -1,23 +1,13 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Extensions;
-using DepVis.Core.Repositories.Interfaces;
-using DepVis.Core.Services.Interfaces;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using MassTransit;
-using Microsoft.AspNetCore.OData.Query;
-using Microsoft.EntityFrameworkCore;
 
-namespace DepVis.Core.Services;
-
-public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEndpoint)
-    : IProjectService
+public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndpoint)
 {
-    public async Task<IEnumerable<ProjectDto>> GetProjects()
-    {
-        var projects = await repo.GetAllAsync();
-        return projects.Select(x => x.MapToDto());
-    }
+    public async Task<IEnumerable<ProjectDto>> GetProjects() =>
+        (await repo.GetAllAsync()).Select(x => x.MapToDto());
 
     public async Task<ProjectDto?> GetProject(Guid id)
     {
@@ -25,229 +15,46 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         return project is null ? null : project.MapToDto();
     }
 
-    // TODO: Move to different package service
-    public async Task<GraphDataDto?> GetProjectGraphData(Guid branchId)
-    {
-        var sbom = await repo.GetPackagesAndChildrenByIdAndBranch(branchId);
-
-        if (sbom == null)
-            return null;
-
-        var relations = sbom
-            .SbomPackages.SelectMany(pkg =>
-                pkg.Children.Select(child => new PackageRelationDto
-                {
-                    To = child.ChildId,
-                    From = child.ParentId,
-                })
-            )
-            .ToList();
-
-        var packages = sbom
-            .SbomPackages.Select(x => new PackageDto { Name = x.Name, Id = x.Id })
-            .ToList();
-
-        return new GraphDataDto { Packages = packages, Relationships = relations };
-    }
-
-    public async Task<GraphDataDto?> GetPackageHierarchyGraphData(Guid branchId, Guid packageId)
-    {
-        var sbom = await repo.GetPackagesAndParentsByIdAndBranch(branchId);
-
-        if (sbom == null)
-            return null;
-
-        var relations = new List<PackageRelationDto>();
-        var packages = new List<PackageDto>();
-        var processedPackages = new HashSet<Guid>();
-
-        var packagesToProcess = new Stack<SbomPackage>(
-            [.. sbom.SbomPackages.Where(x => x.Id == packageId)]
-        );
-
-        while (packagesToProcess.TryPop(out var packageToProcess))
-        {
-            packages.Add(new PackageDto { Name = packageToProcess.Name, Id = packageToProcess.Id });
-
-            var nextTargetPackage = sbom
-                .SbomPackages.Where(x =>
-                    packageToProcess.Parents.Select(x => x.Parent.Id).Contains(x.Id)
-                )
-                .ToList();
-
-            foreach (var parent in nextTargetPackage)
-            {
-                relations.Add(
-                    new PackageRelationDto { To = parent.Id, From = packageToProcess.Id }
-                );
-                if (!processedPackages.Contains(parent.Id))
-                {
-                    processedPackages.Add(parent.Id);
-                    packagesToProcess.Push(parent);
-                }
-            }
-        }
-
-        return new GraphDataDto { Packages = packages, Relationships = relations };
-    }
-
-    // TODO: Move to different service
-
-    public async Task<ProjectStatsDto?> GetProjectStats(Guid branchId)
-    {
-        return (await repo.GetProjectStats(branchId))?.MapToDto();
-    }
-
-    public async Task<List<ProjectBranchDto>> GetProjectBranches(Guid id)
-    {
-        return [.. (await repo.GetProjectBranches(id)).Select(x => x.MapToBranchesDto())];
-    }
-
-    public async Task<VulnerabilitiesDto> GetVulnerabilities(
-        Guid branchId,
-        ODataQueryOptions<VulnerabilitySmallDto> odata
-    )
-    {
-        var vulnerabilities = repo.GetPackagesForBranch(branchId)
-            .SelectMany(
-                x => x.Vulnerabilities,
-                (x, vuln) =>
-                    new VulnerabilitySmallDto
-                    {
-                        VulnerabilityId = vuln.Id,
-                        Severity = vuln.Severity,
-                        PackageName = x.Name,
-                        PackageId = x.Id,
-                    }
-            );
-        var result = (await odata.ApplyOdata(vulnerabilities)).DistinctBy(x => x.VulnerabilityId);
-
-        return new()
-        {
-            Vulnerabilities = [.. result],
-            Risks =
-            [
-                .. result
-                    .GroupBy(x => x.Severity)
-                    .Select(grouped => new NameCount()
-                    {
-                        Name = grouped.Key,
-                        Count = grouped.Count(),
-                    })
-                    .OrderBy(x => x.Count),
-            ],
-        };
-    }
-
-    public async Task<VulnerabilityDetailedDto?> GetVulnerability(string vulnId)
-    {
-        var vuln = await repo.GetVulnerability(vulnId);
-        return vuln == null
-            ? null
-            : new VulnerabilityDetailedDto
-            {
-                Id = vuln.Id,
-                Description = vuln.Description,
-                Recommendation = vuln.Recommendation,
-                Severity = vuln.Severity,
-            };
-    }
-
-    public async Task<PackageDetailedDto> GetPackageData(
-        Guid id,
-        ODataQueryOptions<SbomPackage> odata
-    )
-    {
-        var packages = odata.ApplyOdataIEnumerable(repo.GetPackagesForBranch(id));
-
-        var ecosystemGroups = await packages
-            .GroupBy(x => x.Ecosystem)
-            .Select(grouped => new NameCount()
-            {
-                Name = grouped.Key ?? "",
-                Count = grouped.Count(),
-            })
-            .OrderBy(x => x.Count)
-            .ToListAsync();
-
-        var vulnerableCounts = await packages
-            .GroupBy(x => x.Vulnerabilities.Count > 0)
-            .Select(grouped => new NameCount
-            {
-                Name = grouped.Key ? "Vulnerable" : "OK",
-                Count = grouped.Count(),
-            })
-            .OrderBy(x => x.Count)
-            .ToListAsync();
-
-        var retrieved = await packages.ToListAsync();
-
-        return new()
-        {
-            Vulnerabilities = vulnerableCounts,
-            EcoSystems = ecosystemGroups,
-            PackageItems = [.. retrieved.Select(x => x.MapToPackageItemDto())],
-        };
-    }
-
-    public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(
-        Guid id,
-        ODataQueryOptions<ProjectBranches> odata
-    )
-    {
-        var data = await odata.ApplyOdata(repo.GetProjectBranchesAsQueryable(id));
-        return [.. data.Select(x => x.MapToBranchesDetailedDto())];
-    }
-
     public async Task<ProjectDto> CreateProject(CreateProjectDto dto)
     {
         var projectId = Guid.NewGuid();
-
         var project = new Project
         {
             Id = projectId,
             Name = dto.Name,
             ProjectType = dto.ProjectType,
             ProjectLink = dto.ProjectLink,
+            ProjectBranches =
+            [
+                .. dto.Branches.Select(b => new ProjectBranches
+                {
+                    IsTag = false,
+                    Name = b,
+                    ProjectId = projectId,
+                }),
+                .. dto.Tags.Select(t => new ProjectBranches
+                {
+                    IsTag = true,
+                    Name = t,
+                    ProjectId = projectId,
+                }),
+            ],
         };
 
-        List<ProjectBranches> projectBranches =
-        [
-            .. dto.Branches.Select(x => new ProjectBranches()
-            {
-                IsTag = false,
-                Name = x,
-                ProjectId = projectId,
-            }),
-        ];
-
-        projectBranches.AddRange(
-            dto.Tags.Select(x => new ProjectBranches()
-            {
-                IsTag = true,
-                Name = x,
-                ProjectId = projectId,
-            })
-        );
-
-        if (projectBranches.Count == 0)
-        {
-            projectBranches.Add(
-                new ProjectBranches()
+        if (project.ProjectBranches.Count == 0)
+            project.ProjectBranches.Add(
+                new ProjectBranches
                 {
                     IsTag = false,
                     Name = "master",
                     ProjectId = projectId,
                 }
             );
-        }
-
-        project.ProjectBranches = projectBranches;
 
         await repo.AddAsync(project);
 
-        // todo maybe move this somewhere else, and just send one message that processing should be started
-        foreach (var branch in projectBranches)
+        // orchestration: publish per-branch processing messages
+        foreach (var branch in project.ProjectBranches)
         {
             await publishEndpoint.Publish<ProcessingMessage>(
                 new()
@@ -261,6 +68,9 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
 
         return project.MapToDto();
     }
+
+    public async Task<ProjectStatsDto?> GetProjectStats(Guid branchId) =>
+        (await repo.GetProjectStatsAsync(branchId))?.MapToDto();
 
     public async Task<bool> UpdateProject(Guid id, UpdateProjectDto dto)
     {
@@ -282,7 +92,6 @@ public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEnd
         if (project is null)
             return false;
 
-        // TODO add deletion of sbom files
         await repo.DeleteAsync(project);
         return true;
     }

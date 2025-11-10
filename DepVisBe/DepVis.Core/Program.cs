@@ -1,8 +1,6 @@
 using DepVis.Core.Context;
 using DepVis.Core.Repositories;
-using DepVis.Core.Repositories.Interfaces;
 using DepVis.Core.Services;
-using DepVis.Core.Services.Interfaces;
 using DepVis.ServiceDefaults;
 using DepVis.Shared.Services;
 using Microsoft.AspNetCore.OData;
@@ -24,8 +22,17 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<MinioStorageService>();
 builder.Services.AddScoped<GitService>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<GraphService>();
+builder.Services.AddScoped<VulnerabilityService>();
+builder.Services.AddScoped<PackageService>();
+
+builder.Services.AddScoped<ProjectRepository>();
+builder.Services.AddScoped<ProjectBranchRepository>();
+builder.Services.AddScoped<SbomRepository>();
+builder.Services.AddScoped<PackageRepository>();
+builder.Services.AddScoped<VulnerabilityRepository>();
+
 builder.Services.AddDbContext<DepVisDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("Database")

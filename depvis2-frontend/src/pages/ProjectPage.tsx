@@ -6,8 +6,8 @@ import {
 } from "../store/api/projectsApi";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ProjectStats } from "../components/project/ProjectStats";
 import type { ProjectBranchDto } from "../types/projects";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,83 +43,27 @@ const ProjectDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-medium tracking-tight text-text">
-        {project.name}
-      </h2>
-
-      {!branchesLoading && selectedBranch && (
-        <ProjectStats branch={selectedBranch} />
-      )}
-
-      <div className="space-y-2">
-        <label htmlFor="branch" className="text-sm font-medium text-text">
-          Branch
-        </label>
-        <select
-          id="branch"
-          className="w-full px-3 py-2 text-sm transition border rounded-xl bg-surface border-border focus:outline-hidden focus:ring-2 focus:ring-accent"
-          value={selectedBranch?.id}
-          onChange={(e) =>
-            setSelectedBranch(branches?.find((x) => x.id == e.target.value))
-          }
-          disabled={branchesLoading || !branches || branches.length === 0}
-        >
-          {branchesLoading && <option>Loading branches…</option>}
-          {!branchesLoading && (!branches || branches.length === 0) && (
-            <option>No branches found</option>
-          )}
-          {(branches ?? []).map((branch) => (
-            <option key={branch.id} value={branch.id}>
-              {branch.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="p-6 space-y-3 border bg-surface border-border rounded-2xl">
-        <p className="text-sm">
-          <span className="font-medium text-text">Type:</span>{" "}
-          <span className="text-subtle">{project.projectType}</span>
-        </p>
-
-        <p className="text-sm">
-          <span className="font-medium text-text">Status:</span>{" "}
-          <span className="text-subtle">{project.processStatus}</span>
-        </p>
-
-        <p className="text-sm">
-          <span className="font-medium text-text">Step:</span>{" "}
-          <span className="text-subtle">{project.processStep}</span>
-        </p>
-
-        {project.projectLink && (
-          <p className="text-sm">
-            <span className="font-medium text-text">Link:</span>{" "}
-            <a
-              href={project.projectLink}
-              className="text-accent hover:underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {project.projectLink}
-            </a>
-          </p>
+      <Card>
+        <CardHeader>Processing</CardHeader>
+        <CardContent className="flex flex-row justify-around">
+          <Card></Card>
+          <Card></Card>
+          <Card></Card>
+        </CardContent>
+      </Card>
+      <button
+        onClick={handleRemoveProject}
+        className="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-center text-white transition bg-red-700 rounded-lg hover:bg-red-700/60"
+      >
+        {isRemoving ? (
+          "Removing..."
+        ) : (
+          <>
+            Remove
+            <Trash />
+          </>
         )}
-
-        <button
-          onClick={handleRemoveProject}
-          className="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-center text-white transition bg-red-700 rounded-lg hover:bg-red-700/60"
-        >
-          {isRemoving ? (
-            "Removing..."
-          ) : (
-            <>
-              Remove
-              <Trash />
-            </>
-          )}
-        </button>
-      </div>
+      </button>
     </div>
   );
 };
