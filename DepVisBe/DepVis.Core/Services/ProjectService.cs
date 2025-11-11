@@ -53,7 +53,6 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
 
         await repo.AddAsync(project);
 
-        // orchestration: publish per-branch processing messages
         foreach (var branch in project.ProjectBranches)
         {
             await publishEndpoint.Publish<ProcessingMessage>(
@@ -61,7 +60,8 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
                 {
                     GitHubLink = project.ProjectLink,
                     ProjectBranchId = branch.Id,
-                    Branch = branch.Name,
+                    Location = branch.Name,
+                    IsTag = branch.IsTag,
                 }
             );
         }

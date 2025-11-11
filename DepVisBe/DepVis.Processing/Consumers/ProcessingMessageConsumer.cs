@@ -17,7 +17,8 @@ public class ProcessingMessageConsumer(
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
-        var branch = context.Message.Branch;
+        var isTag = context.Message.IsTag;
+        var location = context.Message.Location;
 
         await _publishEndpoint.Publish(
             new UpdateProcessingMessage
@@ -36,7 +37,7 @@ public class ProcessingMessageConsumer(
         try
         {
             _logger.LogDebug("Cloning repository {githubLink}", githubLink);
-            var cloneOptions = new CloneOptions { BranchName = branch, Checkout = true };
+            var cloneOptions = new CloneOptions { Checkout = true };
             Repository.Clone(githubLink, tempDir, cloneOptions);
             _logger.LogDebug("Repository cloned successfully");
 
@@ -45,6 +46,24 @@ public class ProcessingMessageConsumer(
             DateTime commitDate = DateTime.Now;
             using (var repo = new Repository(tempDir))
             {
+                var checkoutOptions = new CheckoutOptions()
+                {
+                    CheckoutModifiers = CheckoutModifiers.Force,
+                };
+
+                if (isTag)
+                {
+                    Tag tag =
+                        repo.Tags[location]
+                        ?? throw new Exception($"Tag {location} not found in the repository");
+
+                    Commands.Checkout(repo, tag.Target.Sha, checkoutOptions);
+                }
+                else
+                {
+                    Commands.Checkout(repo, location, checkoutOptions);
+                }
+
                 _logger.LogInformation("Retrieving latest commit information");
 
                 var commit = repo.Head.Tip;
