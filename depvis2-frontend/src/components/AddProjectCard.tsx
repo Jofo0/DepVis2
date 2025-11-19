@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 
 const AddProjectCard = () => {
   return (
-    <Card className="w-72 h-36 border-dashed">
+    <Card className="w-80 h-36 border-dashed">
       <CardHeader>
         <CardTitle className="text-gray-500">Add New Project</CardTitle>
         <CardAction>

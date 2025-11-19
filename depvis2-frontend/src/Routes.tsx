@@ -1,6 +1,6 @@
 import { Routes as RoutesReactRouter, Route, Outlet } from "react-router-dom";
 import ProjectCreatePage from "./pages/ProjectCreatePage";
-import ProjectDetailPage from "./pages/ProjectPage";
+import ProjectDetailPage from "./pages/ProjectPage/ProjectPage";
 import Layout from "./pages/Layout";
 import SelectProjectPage from "./pages/SelectProjectPage";
 import Branches from "./pages/Branches";

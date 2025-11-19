@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import MultiSelection from "@/components/MultiSelection";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 
 const ProjectSchema = z
   .object({
@@ -95,7 +96,12 @@ const ProjectCreateForm = () => {
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col gap-5 p-3"
       >
-        <h3 className="text-xl font-medium tracking-tight">Create Project</h3>
+        <div className="flex flex-row justify-between w-full">
+          <h3 className="text-xl font-medium tracking-tight">Create Project</h3>
+          <Button variant={"ghost"} onClick={() => navigate("/")}>
+            <ArrowLeft />
+          </Button>
+        </div>
 
         <DevInput
           title="Name"
@@ -112,6 +118,7 @@ const ProjectCreateForm = () => {
               placeholder="https://github.com/owner/repo"
               error={errors.projectLink?.message}
               buttonText="Fetch Git Info"
+              isLoading={gitLoading}
               disabledButton={
                 !projectLink || !!errors.projectLink || gitLoading
               }

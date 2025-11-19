@@ -50,7 +50,6 @@ const InputButton = ({
   isLoading: boolean;
   onClick: () => void;
   disabledButton: boolean;
-  loadingText: string;
   buttonText: string;
 }) => {
   return (
@@ -58,7 +57,12 @@ const InputButton = ({
       <label className="block text-sm font-medium">{title}</label>
       <div className="w-full flex flex-row gap-2">
         <Input {...props} className={`${error ? "border-red-500" : ""}`} />
-        <Button type="button" onClick={onClick} disabled={disabledButton}>
+        <Button
+          type="button"
+          onClick={onClick}
+          disabled={disabledButton}
+          className="w-26"
+        >
           {isLoading ? <Loader2 className="animate-spin" /> : buttonText}
         </Button>
       </div>
