@@ -55,7 +55,9 @@ const BranchSelector = () => {
       <SelectContent avoidCollisions={false} className="max-h-64">
         <SelectGroup>
           <SelectLabel>
-            {items?.length === 0 ? "No Branches processed yet" : "Branches"}
+            {items?.length === 0
+              ? "No Branches/Tags processed yet"
+              : "Branches/Tags"}
           </SelectLabel>
           {items}
         </SelectGroup>

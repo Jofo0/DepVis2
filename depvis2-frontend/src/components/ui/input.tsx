@@ -1,6 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { Loader2 } from "lucide-react";
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
@@ -15,7 +17,54 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       )}
       {...props}
     />
-  )
+  );
 }
 
-export { Input }
+const DevInput = ({
+  title,
+  error,
+  className,
+  ...props
+}: React.ComponentProps<"input"> & { title: string; error?: string }) => {
+  return (
+    <div className={cn("space-y-1", className)}>
+      <label className="block text-sm font-medium">{title}</label>
+      <Input {...props} className={`${error ? "border-red-500" : ""}`} />
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+};
+
+const InputButton = ({
+  title,
+  error,
+  className,
+  isLoading,
+  onClick,
+  disabledButton,
+  buttonText,
+  ...props
+}: React.ComponentProps<"input"> & {
+  title: string;
+  error?: string;
+  isLoading: boolean;
+  onClick: () => void;
+  disabledButton: boolean;
+  loadingText: string;
+  buttonText: string;
+}) => {
+  return (
+    <div className={cn("space-y-1", className)}>
+      <label className="block text-sm font-medium">{title}</label>
+      <div className="w-full flex flex-row gap-2">
+        <Input {...props} className={`${error ? "border-red-500" : ""}`} />
+        <Button type="button" onClick={onClick} disabled={disabledButton}>
+          {isLoading ? <Loader2 className="animate-spin" /> : buttonText}
+        </Button>
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
+  );
+};
+
+export { Input, DevInput, InputButton };

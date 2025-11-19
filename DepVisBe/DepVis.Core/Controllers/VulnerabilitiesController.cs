@@ -19,11 +19,8 @@ public class VulnerabilitiesController(VulnerabilityService vulnerabilityService
         return Ok(dto);
     }
 
-    [HttpGet("{branchId}/vulnerabilities/{vulnId}")]
-    public async Task<ActionResult<VulnerabilityDetailedDto>> GetVulnerability(
-        Guid branchId,
-        string vulnId
-    )
+    [HttpGet("vulnerabilities/{vulnId}")]
+    public async Task<ActionResult<VulnerabilityDetailedDto>> GetVulnerability(string vulnId)
     {
         var dto = await vulnerabilityService.GetVulnerability(vulnId);
         return dto is null ? NotFound() : Ok(dto);
