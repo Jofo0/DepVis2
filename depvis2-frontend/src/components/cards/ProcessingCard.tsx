@@ -25,8 +25,9 @@ const ProcessingCard = ({
       {!isLoading && (
         <CardContent className="mt-2 flex flex-col items-center py-4">
           {branches.length === 0 ? (
-            <p className="text-2xl text-green-800 flex flex-row gap-3">
-              All finished! <CheckCircle2 />
+            <p className="text-xl text-green-800 flex flex-row gap-3 self-end items-center">
+              Finished!
+              <CheckCircle2 />
             </p>
           ) : (
             branches.map((branch) => <div key={branch.id}>{branch.name}</div>)

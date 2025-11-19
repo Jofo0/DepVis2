@@ -1,4 +1,3 @@
-import { Trash } from "lucide-react";
 import {
   useDeleteProjectMutation,
   useGetProjectBranchesQuery,
@@ -9,6 +8,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { type Branch } from "@/types/branches";
 import Processing from "./Processing";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Trash } from "lucide-react";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -56,22 +57,23 @@ const ProjectDetailPage = () => {
               {project.projectLink}
             </a>
           </p>
+          <Button
+            onClick={handleRemoveProject}
+            variant={"destructive"}
+            className="w-24"
+          >
+            {isRemoving ? (
+              "Removing..."
+            ) : (
+              <>
+                Remove
+                <Trash />
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
       <Processing />
-      <button
-        onClick={handleRemoveProject}
-        className="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-center text-white transition bg-red-700 rounded-lg hover:bg-red-700/60"
-      >
-        {isRemoving ? (
-          "Removing..."
-        ) : (
-          <>
-            Remove
-            <Trash />
-          </>
-        )}
-      </button>
     </div>
   );
 };

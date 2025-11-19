@@ -1,15 +1,29 @@
 import ProcessingCard from "@/components/cards/ProcessingCard";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
 import { ProcessStep } from "@/types/branches";
+import { RefreshCcw } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 const Processing = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: branches, isLoading } = useGetProjectBranchesQuery(id!);
+  const {
+    data: branches,
+    isFetching: isLoading,
+    refetch,
+  } = useGetProjectBranchesQuery(id!);
+
   return (
     <Card className="pb-10">
-      <CardHeader>Processing Statistics</CardHeader>
+      <CardHeader>
+        <div className="flex flex-row gap-2 items-center">
+          Processing Statistics
+          <Button variant={"ghost"} onClick={() => refetch()}>
+            <RefreshCcw className="text-gray-400" />
+          </Button>
+        </div>
+      </CardHeader>
       <CardContent className="flex flex-row justify-around w-full gap-4 items-center">
         <ProcessingCard
           isLoading={isLoading}
