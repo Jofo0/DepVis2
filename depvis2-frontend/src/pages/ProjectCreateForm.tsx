@@ -98,7 +98,7 @@ const ProjectCreateForm = () => {
       >
         <div className="flex flex-row justify-between w-full">
           <h3 className="text-xl font-medium tracking-tight">Create Project</h3>
-          <Button variant={"ghost"} onClick={() => navigate("/")}>
+          <Button variant={"ghost"} onClick={() => navigate(-1)}>
             <ArrowLeft />
           </Button>
         </div>
