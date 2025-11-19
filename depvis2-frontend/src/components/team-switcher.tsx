@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { ChevronsUpDown, LayoutDashboard, Plus } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -30,7 +30,7 @@ export type Project = {
   logo: React.ElementType;
 };
 
-export const TeamSwitcher = ({ projects, isLoading }: TeamSwitchProps) => {
+export const ProjectSwitcher = ({ projects, isLoading }: TeamSwitchProps) => {
   const { id } = useParams<{ id: string }>();
   const { isMobile } = useSidebar();
   const nav = useNavigate();
@@ -75,6 +75,34 @@ export const TeamSwitcher = ({ projects, isLoading }: TeamSwitchProps) => {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
+            <Link
+              to="/"
+              className="text-sm font-medium transition text-subtle hover:text-accent"
+            >
+              <DropdownMenuItem className="gap-2 p-2">
+                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                  <LayoutDashboard className="size-4" />
+                </div>
+                <div className="text-muted-foreground font-medium">
+                  Dashboard
+                </div>
+              </DropdownMenuItem>
+            </Link>
+            <Link
+              to="/new"
+              className="text-sm font-medium transition text-subtle hover:text-accent"
+            >
+              <DropdownMenuItem className="gap-2 p-2">
+                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                  <Plus className="size-4" />
+                </div>
+                <div className="text-muted-foreground font-medium">
+                  Add project
+                </div>
+              </DropdownMenuItem>
+            </Link>
+            <DropdownMenuSeparator />
+
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Projects
             </DropdownMenuLabel>
@@ -90,20 +118,6 @@ export const TeamSwitcher = ({ projects, isLoading }: TeamSwitchProps) => {
                 {project.name}
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <Link
-              to="/new"
-              className="text-sm font-medium transition text-subtle hover:text-accent"
-            >
-              <DropdownMenuItem className="gap-2 p-2">
-                <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                  <Plus className="size-4" />
-                </div>
-                <div className="text-muted-foreground font-medium">
-                  Add project
-                </div>
-              </DropdownMenuItem>
-            </Link>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
