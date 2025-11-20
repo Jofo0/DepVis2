@@ -1,30 +1,31 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+FROM mcr.microsoft.com/dotnet/sdk:9.0@sha256:3fcf6f1e809c0553f9feb222369f58749af314af6f063f389cbd2f913b4ad556 AS build
 
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-USER $APP_UID
+RUN apt-get update && apt-get install -y curl \
+    && curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+    | sh -s -- -b /usr/local/bin v0.67.2 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
 
+# Copy needed projects
 
-# This stage is used to build the service project
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["DepVis.Processing/DepVis.Processing.csproj", "DepVis.Processing/"]
-RUN dotnet restore "./DepVis.Processing/DepVis.Processing.csproj"
+COPY DepVis.Processing/DepVis.SbomProcessing.csproj ./DepVis.Processing/
+COPY DepVis.ServiceDefaults/DepVis.ServiceDefaults.csproj ./DepVis.ServiceDefaults/
+COPY DepVis.Shared/DepVis.Shared.csproj ./DepVis.Shared/
+
+RUN dotnet restore DepVis.Processing/DepVis.SbomProcessing.csproj
+
 COPY . .
-WORKDIR "/src/DepVis.Processing"
-RUN dotnet build "./DepVis.Processing.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./DepVis.Processing.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish DepVis.Processing/DepVis.SbomProcessing.csproj -c Release -o /app/publish
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/sdk:9.0@sha256:3fcf6f1e809c0553f9feb222369f58749af314af6f063f389cbd2f913b4ad556 AS runtime
+
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "DepVis.Processing.dll"]
+
+COPY --from=build /app/publish .
+
+ENV ConnectionStrings__Database="Server=localhost,1433;Database=MyDatabase;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True"
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "DepVis.SbomProcessing.dll"]

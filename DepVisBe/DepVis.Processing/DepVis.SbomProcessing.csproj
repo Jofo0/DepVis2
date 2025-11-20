@@ -10,12 +10,13 @@
 
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.31.0" />
+    <PackageReference Include="MassTransit" Version="8.5.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="Minio" Version="6.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DepVis.Core\DepVis.Core.csproj" />
+    <ProjectReference Include="..\DepVis.ServiceDefaults\DepVis.ServiceDefaults.csproj" />
     <ProjectReference Include="..\DepVis.Shared\DepVis.Shared.csproj" />
   </ItemGroup>
 
