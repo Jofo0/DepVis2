@@ -1,10 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { API_BASE_URL } from "./config";
 
 export const projectsApi = createApi({
   reducerPath: "projectsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://localhost:7185" + "/api/projects",
+    baseUrl: API_BASE_URL + "/api/projects",
   }),
   endpoints: () => ({}),
   tagTypes: ["Projects"],
@@ -13,7 +14,7 @@ export const projectsApi = createApi({
 export const gitApi = createApi({
   reducerPath: "gitApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://localhost:7185" + "/api/git",
+    baseUrl: API_BASE_URL + "/api/git",
   }),
   endpoints: () => ({}),
   tagTypes: ["GitInformation"],

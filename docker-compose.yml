@@ -36,6 +36,17 @@ services:
     networks:
       - my_network
       
+  frontend:
+    build:
+      context: ./DepVisFe
+      dockerfile: Dockerfile
+    container_name: DepVis2-Frontend
+    depends_on:
+      - depviscore
+    ports:
+      - "8080:80"      # frontend now on http://localhost:8080
+    networks:
+      - my_network
   minio:
     image: minio/minio
     container_name: DepVis2-MinIO
