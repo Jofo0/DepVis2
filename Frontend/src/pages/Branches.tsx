@@ -35,7 +35,7 @@ const Branches = () => {
   });
 
   return (
-    <div className="flex flex-col gap-3 w-full h-full py-8">
+    <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-row gap-10 w-full h-full justify-evenly">
         <div className="h-max-full w-2/3">
           <DataTable

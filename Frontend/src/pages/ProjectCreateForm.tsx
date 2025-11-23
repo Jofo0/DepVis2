@@ -141,7 +141,7 @@ const ProjectCreateForm = () => {
               title="Branches"
               placeholder="Select branches..."
               data={gitData?.branches ?? []}
-              className="w-full"
+              className="w-full max-w-1/2"
             />
             <MultiSelection
               onValuesChange={(values) => setValue("selectedTags", values)}
@@ -149,7 +149,7 @@ const ProjectCreateForm = () => {
               title="Tags"
               placeholder="Select tags..."
               data={gitData?.tags ?? []}
-              className="w-full"
+              className="w-full max-w-1/2"
             />
           </div>
         )}

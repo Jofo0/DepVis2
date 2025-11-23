@@ -53,7 +53,7 @@ const Vulnerabilities = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 w-full h-full py-4">
+    <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full justify-evenly gap-2">
         <BranchSelector />
         <div className="flex flex-row gap-10 w-full h-full justify-evenly">

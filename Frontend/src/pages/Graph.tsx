@@ -1,3 +1,4 @@
+import BranchSelector from "@/components/BranchSelector";
 import SimpleGraph from "@/components/graph/SimpleGraph";
 import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
 import type { Branch } from "@/types/branches";
@@ -22,7 +23,10 @@ const Graph = () => {
     }
   }, [branches, preferredDefault, selectedBranch]);
   return (
-    <div> {selectedBranch && <SimpleGraph branch={selectedBranch} />}</div>
+    <div>
+      <BranchSelector />
+      {selectedBranch && <SimpleGraph branch={selectedBranch} />}
+    </div>
   );
 };
 

@@ -41,28 +41,31 @@ const BranchSelector = () => {
   );
 
   return (
-    <Select
-      value={branch?.id || ""}
-      onValueChange={(value) => {
-        const selected = branches?.find((b) => b.id === value);
-        if (selected) setBranch(selected);
-      }}
-      disabled={branchesLoading}
-    >
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Select a branch" />
-      </SelectTrigger>
-      <SelectContent avoidCollisions={false} className="max-h-64">
-        <SelectGroup>
-          <SelectLabel>
-            {items?.length === 0
-              ? "No Branches/Tags processed yet"
-              : "Branches/Tags"}
-          </SelectLabel>
-          {items}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <div className="flex flex-col">
+      <div className="text-gray-700 text-sm">Select a branch/tag</div>
+      <Select
+        value={branch?.id || ""}
+        onValueChange={(value) => {
+          const selected = branches?.find((b) => b.id === value);
+          if (selected) setBranch(selected);
+        }}
+        disabled={branchesLoading}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select a branch" />
+        </SelectTrigger>
+        <SelectContent avoidCollisions={false} className="max-h-64">
+          <SelectGroup>
+            <SelectLabel>
+              {items?.length === 0
+                ? "No Branches/Tags processed yet"
+                : "Branches/Tags"}
+            </SelectLabel>
+            {items}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
   );
 };
 

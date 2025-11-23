@@ -33,7 +33,9 @@ export function NavMain({
             asChild
             defaultOpen={item.isActive}
             onClick={() => nav(item.url)}
-            className="group/collapsible"
+            className={`rounded-md ${
+              item.isActive ? "bg-gray-200" : ""
+            } hover:bg-gray-300`}
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>

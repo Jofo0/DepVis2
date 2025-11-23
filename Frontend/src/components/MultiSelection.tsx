@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import {
   MultiSelect,
   MultiSelectTrigger,
@@ -25,10 +26,10 @@ const MultiSelection = ({
   className,
 }: SelectionProps) => {
   return (
-    <div className={"space-y-1 w-full"}>
+    <div className={cn("space-y-1", className)}>
       <label className="block text-sm font-medium">{title}</label>
       <MultiSelect onValuesChange={onValuesChange} values={values}>
-        <MultiSelectTrigger className={className}>
+        <MultiSelectTrigger className="w-full">
           <MultiSelectValue placeholder={placeholder} />
         </MultiSelectTrigger>
 

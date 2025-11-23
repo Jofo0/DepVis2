@@ -5,15 +5,45 @@ import {
   AlertTriangle,
   Frame,
   PieChart,
+  CircleDashed,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 const useSidebar = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
 
   if (!id) {
     return { data: { navMain: [], user: null } };
   }
+
+  const navItems = [
+    {
+      title: "Home",
+      url: `/${id}`,
+      icon: Home,
+    },
+    {
+      title: "Branches",
+      url: `/${id}/branches`,
+      icon: GitBranch,
+    },
+    {
+      title: "Packages",
+      url: `/${id}/packages`,
+      icon: Package,
+    },
+    {
+      title: "Vulnerabilities",
+      url: `/${id}/vulnerabilities`,
+      icon: AlertTriangle,
+    },
+    {
+      title: "Graph",
+      url: `/${id}/graph`,
+      icon: CircleDashed,
+    },
+  ];
 
   const data = {
     user: {
@@ -22,38 +52,11 @@ const useSidebar = () => {
       avatar: "/avatars/shadcn.jpg",
     },
 
-    navMain: [
-      {
-        title: "Home",
-        url: id,
-        icon: Home,
-        isActive: true,
-      },
-      {
-        title: "Branches",
-        url: `${id}/branches`,
-        icon: GitBranch,
-        isActive: true,
-      },
-      {
-        title: "Packages",
-        url: `${id}/packages`,
-        icon: Package,
-        isActive: true,
-      },
-      {
-        title: "Vulnerabilities",
-        url: `${id}/vulnerabilities`,
-        icon: AlertTriangle,
-        isActive: false,
-      },
-      {
-        title: "Graph",
-        url: `${id}/graph`,
-        icon: AlertTriangle,
-        isActive: false,
-      },
-    ],
+    navMain: navItems.map((item) => ({
+      ...item,
+      isActive: location.pathname === item.url,
+    })),
+
     projects: [
       {
         name: "Design Engineering",
@@ -72,6 +75,7 @@ const useSidebar = () => {
       },
     ],
   };
+
   return { data };
 };
 
