@@ -26,12 +26,14 @@ type SimpleGraphProps = {
   packageId?: string;
   lr?: boolean;
   className?: string;
+  showNames?: boolean;
 };
 
 const SimpleGraph = ({
   branch,
   className,
   packageId,
+  showNames = false,
   lr,
 }: SimpleGraphProps) => {
   const { data } = useGetProjectGraphQuery({
@@ -101,6 +103,9 @@ const SimpleGraph = ({
             }}
             nodeAutoColorBy="id"
             nodeCanvasObject={(node, ctx, globalScale) => {
+              if (!showNames) {
+                return;
+              }
               const graphNode = node as GraphNode;
               const label = graphNode.name ?? String(graphNode.id);
               const fontSize = LABEL_FONT_SIZE / globalScale;
