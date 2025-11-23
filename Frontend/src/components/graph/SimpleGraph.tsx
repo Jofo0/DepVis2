@@ -34,7 +34,7 @@ const SimpleGraph = ({
   packageId,
   lr,
 }: SimpleGraphProps) => {
-  const { data, isLoading, isFetching, error } = useGetProjectGraphQuery({
+  const { data } = useGetProjectGraphQuery({
     id: branch.id,
     packageId,
   });
