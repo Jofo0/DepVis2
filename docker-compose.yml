@@ -35,7 +35,7 @@ services:
       - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisDB;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
     networks:
       - my_network
-      
+
   frontend:
     build:
       context: ./DepVisFe
@@ -47,6 +47,7 @@ services:
       - "8080:80"      # frontend now on http://localhost:8080
     networks:
       - my_network
+
   minio:
     image: minio/minio
     container_name: DepVis2-MinIO
