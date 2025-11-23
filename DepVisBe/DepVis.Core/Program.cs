@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var dbConnectionString =
+    builder.Configuration.GetConnectionString("Database")
+    ?? throw new Exception("Database ConnectionString is not set.");
 
 builder
     .Services.AddControllers()
@@ -35,14 +38,8 @@ builder.Services.AddScoped<SbomRepository>();
 builder.Services.AddScoped<PackageRepository>();
 builder.Services.AddScoped<VulnerabilityRepository>();
 
-builder.Services.AddDbContext<DepVisDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("Database")
-            ?? throw new Exception("Database ConnectionString is not set.")
-    )
-);
-
-builder.AddServiceDefaults();
+builder.Services.AddDbContext<DepVisDbContext>(options => options.UseSqlServer(dbConnectionString));
+builder.AddServiceDefaults(dbConnectionString);
 
 var frontendCors = "AllowFrontend";
 
