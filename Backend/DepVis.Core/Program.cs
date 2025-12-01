@@ -2,6 +2,7 @@ using DepVis.Core.Context;
 using DepVis.Core.Repositories;
 using DepVis.Core.Services;
 using DepVis.ServiceDefaults;
+using DepVis.Shared.Options;
 using DepVis.Shared.Services;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
@@ -60,6 +61,10 @@ builder.Services.AddCors(options =>
         }
     );
 });
+
+builder.Services.Configure<ConnectionStrings>(
+    builder.Configuration.GetSection(key: nameof(ConnectionStrings))
+);
 
 var app = builder.Build();
 app.UseCors(frontendCors);

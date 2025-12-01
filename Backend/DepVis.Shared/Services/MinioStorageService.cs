@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DepVis.Shared.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 
@@ -10,12 +12,16 @@ public class MinioStorageService
     private readonly string _bucketName;
     readonly ILogger<MinioStorageService> _logger;
 
-    public MinioStorageService(ILogger<MinioStorageService> logger)
+    public MinioStorageService(
+        ILogger<MinioStorageService> logger,
+        IOptions<ConnectionStrings> connectionStrings
+    )
     {
         _logger = logger;
         _bucketName = "sbom-bucket";
+
         _minio = new MinioClient()
-            .WithEndpoint("localhost:9000")
+            .WithEndpoint(connectionStrings.Value.MinioEndpoint, 9000)
             .WithCredentials("minioadmin", "minioadmin")
             .Build();
     }
