@@ -18,11 +18,15 @@ public static class ServiceDefaults
     /// <returns></returns>
     public static IHostApplicationBuilder AddServiceDefaults(
         this IHostApplicationBuilder builder,
-        string databaseConnectionString
+        string databaseConnectionString,
+        bool createMassTransitInfra = false
     )
     {
         EnsureDatabaseExists(databaseConnectionString);
-        builder.Services.ConfigureMassTransit(builder.Configuration);
+        builder.Services.ConfigureMassTransit(
+            builder.Configuration,
+            createInfra: createMassTransitInfra
+        );
 
         return builder;
     }
@@ -83,7 +87,8 @@ public static class ServiceDefaults
         this IServiceCollection services,
         IConfiguration configuration,
         Action<IBusRegistrationConfigurator>? massTransitConfig = null,
-        bool includeAll = true
+        bool includeAll = true,
+        bool createInfra = false
     )
     {
         Log.Information("Configuring MassTransit");
@@ -102,6 +107,7 @@ public static class ServiceDefaults
         services.AddSqlServerMigrationHostedService(x =>
         {
             x.CreateDatabase = false;
+            x.CreateInfrastructure = createInfra;
         });
 
         services.AddMassTransit(x =>

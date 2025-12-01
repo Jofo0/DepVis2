@@ -40,7 +40,7 @@ builder.Services.AddScoped<PackageRepository>();
 builder.Services.AddScoped<VulnerabilityRepository>();
 
 builder.Services.AddDbContext<DepVisDbContext>(options => options.UseSqlServer(dbConnectionString));
-builder.AddServiceDefaults(dbConnectionString);
+builder.AddServiceDefaults(dbConnectionString, createMassTransitInfra: true);
 
 var frontendCors = "AllowFrontend";
 
