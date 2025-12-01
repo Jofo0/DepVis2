@@ -44,7 +44,7 @@ services:
       context: ./Frontend
       dockerfile: ./dockerfile
       args:
-        VITE_API_BASE_URL: "http://localhost:5000"
+        VITE_API_BASE_URL: "http://147.251.115.226:5000"
     container_name: DepVis2-Frontend
     depends_on:
       - depviscore
