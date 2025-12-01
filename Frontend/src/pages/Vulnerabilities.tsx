@@ -16,7 +16,7 @@ import {
 import { useEffect, useState } from "react";
 
 const Vulnerabilities = () => {
-  const { branch } = useBranch();
+  const { branch, isLoading: isLoadingBranch } = useBranch();
   const columns = useGetVulnerabilitiesColumns();
   const [riskFilter, setRiskFilter] = useState("");
   const [fetchVulnerabilities, { data, isFetching: isLoading }] =
@@ -56,7 +56,7 @@ const Vulnerabilities = () => {
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full justify-evenly gap-2">
         <BranchSelector />
-        {branch && (
+        {!isLoadingBranch && branch && (
           <div className="flex flex-row gap-10 w-full h-full justify-evenly">
             <div className="h-max-full w-1/2">
               <DataTable
