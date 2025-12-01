@@ -23,7 +23,7 @@ const BranchSelector = () => {
 
   useEffect(() => {
     if (!branches?.length) return;
-    if (branch && !branches.find((x) => x.id === branch.id)) {
+    if ((branch && !branches.find((x) => x.id === branch.id)) || !branch) {
       setBranch(branches[0]);
     }
   }, [branches, branch, setBranch]);

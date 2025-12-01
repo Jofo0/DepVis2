@@ -56,32 +56,34 @@ const Vulnerabilities = () => {
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full justify-evenly gap-2">
         <BranchSelector />
-        <div className="flex flex-row gap-10 w-full h-full justify-evenly">
-          <div className="h-max-full w-1/2">
-            <DataTable
-              isLoading={isLoading}
-              onClick={(row) => setSelectedVulnerability(row)}
-              className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
-              table={table}
-            />
-          </div>
-          <div className="flex flex-col gap-6 w-1/2 h-full ">
-            <PieCustomChart
-              title="Risk Severities"
-              className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-              pies={data?.risks ?? []}
-              isLoading={isLoading}
-              onSliceClick={onRiskClick}
-            />
-            <div
-              className={`flex items-center justify-center self-center h-1/2 w-full`}
-            >
-              <VulnerabilityCard
-                selectedVulnerability={selectedVulnerability}
+        {branch && (
+          <div className="flex flex-row gap-10 w-full h-full justify-evenly">
+            <div className="h-max-full w-1/2">
+              <DataTable
+                isLoading={isLoading}
+                onClick={(row) => setSelectedVulnerability(row)}
+                className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
+                table={table}
               />
             </div>
+            <div className="flex flex-col gap-6 w-1/2 h-full ">
+              <PieCustomChart
+                title="Risk Severities"
+                className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+                pies={data?.risks ?? []}
+                isLoading={isLoading}
+                onSliceClick={onRiskClick}
+              />
+              <div
+                className={`flex items-center justify-center self-center h-1/2 w-full`}
+              >
+                <VulnerabilityCard
+                  selectedVulnerability={selectedVulnerability}
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

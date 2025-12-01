@@ -58,32 +58,34 @@ const Packages = () => {
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full justify-evenly gap-2">
         <BranchSelector />
-        <div className="flex flex-row gap-10 w-full h-full justify-evenly">
-          <div className="h-max-full w-1/2">
-            <DataTable
-              isLoading={isLoading}
-              className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
-              table={table}
-            />
-          </div>
-          <div className="flex flex-col gap-6 w-1/2 h-full">
-            <PieCustomChart
-              title="Ecosystems"
-              className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-              pies={data?.ecoSystems ?? []}
-              isLoading={isLoading}
-              onSliceClick={onEcosystemClick}
-            />
+        {branch && (
+          <div className="flex flex-row gap-10 w-full h-full justify-evenly">
+            <div className="h-max-full w-1/2">
+              <DataTable
+                isLoading={isLoading}
+                className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
+                table={table}
+              />
+            </div>
+            <div className="flex flex-col gap-6 w-1/2 h-full">
+              <PieCustomChart
+                title="Ecosystems"
+                className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+                pies={data?.ecoSystems ?? []}
+                isLoading={isLoading}
+                onSliceClick={onEcosystemClick}
+              />
 
-            <PieCustomChart
-              title="Vulnerabilities"
-              onSliceClick={onVulnerabilityClick}
-              isLoading={isLoading}
-              className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-              pies={data?.vulnerabilities ?? []}
-            />
+              <PieCustomChart
+                title="Vulnerabilities"
+                onSliceClick={onVulnerabilityClick}
+                isLoading={isLoading}
+                className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+                pies={data?.vulnerabilities ?? []}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
