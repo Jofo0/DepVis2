@@ -62,6 +62,8 @@ builder.Services.AddCors(options =>
     );
 });
 
+// TODO REMOVE DUPLICIT
+
 builder.Services.Configure<ConnectionStrings>(
     builder.Configuration.GetSection(key: nameof(ConnectionStrings))
 );
