@@ -19,7 +19,9 @@ services:
       sqlserver:
         condition: service_started
     environment:
-      - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+        - ConnectionStrings__FrontEnd=http://147.251.115.226:8080
+        - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+        - ConnectionStrings__MinioEndpoint=minio
     networks:
       - my_network
 
@@ -36,6 +38,7 @@ services:
     environment:
       - ConnectionStrings__FrontEnd=http://147.251.115.226:8080
       - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__MinioEndpoint=minio
     networks:
       - my_network
 
