@@ -34,6 +34,7 @@ services:
       sqlserver:
         condition: service_started
     environment:
+      - ConnectionStrings__FrontEnd=http://localhost:8080
       - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisDB;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
     networks:
       - my_network
