@@ -163,7 +163,7 @@ public class IngestProcessingMessageConsumer(
                 await _db.SaveChangesAsync(cancellationToken);
                 return;
             }
-            catch (DbUpdateException ex) when (attempt < maxRetries)
+            catch (DbUpdateException) when (attempt < maxRetries)
             {
                 var addedEntries = _db
                     .ChangeTracker.Entries<Vulnerability>()
