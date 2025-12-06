@@ -22,6 +22,7 @@ public class MinioStorageService
 
         _minio = new MinioClient()
             .WithEndpoint(connectionStrings.Value.MinioEndpoint, 9000)
+            // TODO: Use proper credentials management
             .WithCredentials("minioadmin", "minioadmin")
             .Build();
     }

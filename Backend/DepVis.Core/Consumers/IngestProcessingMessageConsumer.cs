@@ -142,7 +142,7 @@ public class IngestProcessingMessageConsumer(
 
         var incomingIds = incoming.Select(v => v.Id).ToList();
 
-        const int maxRetries = 3;
+        const int maxRetries = 10;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
@@ -165,6 +165,16 @@ public class IngestProcessingMessageConsumer(
             }
             catch (DbUpdateException ex) when (attempt < maxRetries)
             {
+                var addedEntries = _db
+                    .ChangeTracker.Entries<Vulnerability>()
+                    .Where(e => e.State == EntityState.Added)
+                    .ToList();
+
+                foreach (var entry in addedEntries)
+                {
+                    entry.State = EntityState.Detached;
+                }
+
                 continue;
             }
         }
