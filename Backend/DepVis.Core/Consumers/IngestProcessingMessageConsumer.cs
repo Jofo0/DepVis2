@@ -1,10 +1,10 @@
-﻿using DepVis.Core.Context;
+﻿using System.Text.Json;
+using DepVis.Core.Context;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace DepVis.Core.Consumers;
 
@@ -50,14 +50,9 @@ public class IngestProcessingMessageConsumer(
                 JsonSerializer.Deserialize<CycloneDxBom>(cycloneDxStream, _jsonOptions)
                 ?? new CycloneDxBom { Components = [] };
 
-            await using var tx = await _db.Database.BeginTransactionAsync(
-                System.Data.IsolationLevel.Serializable,
-                context.CancellationToken
-            );
-
             try
             {
-                var vulnerabilities = BuildVulnerabilities(bom);
+                await IngestVulnerablities(bom);
 
                 var packages = BuildPackages(sbom.Id, bom);
 
@@ -80,7 +75,6 @@ public class IngestProcessingMessageConsumer(
 
                 var createdDeps = BuildDependencies(edges, bomRefToId);
 
-                _db.Vulnerabilities.AddRange(vulnerabilities);
                 _db.SbomPackages.AddRange(packages);
                 _db.PackageDependencies.AddRange(createdDeps);
                 _db.SbomPackageVulnerabilities.AddRange(packageVulnerabilities);
@@ -93,7 +87,6 @@ public class IngestProcessingMessageConsumer(
                 projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
 
                 await _db.SaveChangesAsync(context.CancellationToken);
-                await tx.CommitAsync(context.CancellationToken);
                 _logger.LogDebug(
                     "Ingestion finished successfully. Packages: {pkgCount}, Deps: {depCount}",
                     packages.Count,
@@ -102,7 +95,6 @@ public class IngestProcessingMessageConsumer(
             }
             catch
             {
-                await tx.RollbackAsync(context.CancellationToken);
                 throw;
             }
         }
@@ -115,25 +107,67 @@ public class IngestProcessingMessageConsumer(
         }
     }
 
-    private List<Vulnerability> BuildVulnerabilities(CycloneDxBom bom)
+    private async Task IngestVulnerablities(
+        CycloneDxBom bom,
+        CancellationToken cancellationToken = default
+    )
     {
-        var vulnerabilities =
-            bom.Vulnerabilities?.Select(x => new Vulnerability
+        var bomVulns = bom.Vulnerabilities ?? [];
+        if (bomVulns.Count == 0)
+            return;
+
+        var incoming = bomVulns
+            .Where(x => !string.IsNullOrWhiteSpace(x.Id))
+            .GroupBy(x => x.Id!, StringComparer.OrdinalIgnoreCase)
+            .Select(g =>
             {
-                Id = x.Id,
-                Description = x.Description,
-                Recommendation = x.Recommendation,
-                Severity =
-                        x.Ratings.GroupBy(r => r.Severity)
-                            .OrderByDescending(g => g.Count())
-                            .Select(g => g.Key)
+                var x = g.First();
+                return new Vulnerability
+                {
+                    Id = x.Id!,
+                    Description = x.Description,
+                    Recommendation = x.Recommendation,
+                    Severity =
+                        (x.Ratings ?? [])
+                            .GroupBy(r => r.Severity)
+                            .OrderByDescending(gr => gr.Count())
+                            .Select(gr => gr.Key)
                             .FirstOrDefault() ?? "Unknown",
+                };
             })
-                .ToList() ?? [];
+            .ToList();
 
-        var existingIds = _db.Vulnerabilities.Select(v => v.Id).ToHashSet();
+        if (incoming.Count == 0)
+            return;
 
-        return [.. vulnerabilities.Where(v => !existingIds.Contains(v.Id))];
+        var incomingIds = incoming.Select(v => v.Id).ToList();
+
+        const int maxRetries = 3;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            var existingIds = await _db
+                .Vulnerabilities.Where(v => incomingIds.Contains(v.Id))
+                .Select(v => v.Id)
+                .ToListAsync(cancellationToken);
+
+            var toInsert = incoming.Where(v => !existingIds.Contains(v.Id)).ToList();
+
+            if (toInsert.Count == 0)
+                return;
+
+            _db.Vulnerabilities.AddRange(toInsert);
+
+            try
+            {
+                await _db.SaveChangesAsync(cancellationToken);
+                return;
+            }
+            catch (DbUpdateException ex) when (attempt < maxRetries)
+            {
+                continue;
+            }
+        }
     }
 
     private static List<SbomPackage> BuildPackages(Guid sbomId, CycloneDxBom bom)
@@ -212,7 +246,7 @@ public class IngestProcessingMessageConsumer(
         Dictionary<string, Guid> bomRefToId
     )
     {
-        var created = new HashSet<PackageDependency>(); // relies on PackageDependency equality (ParentId, ChildId)
+        var created = new HashSet<PackageDependency>();
 
         foreach (var (parentRef, children) in edges)
         {
