@@ -1,17 +1,36 @@
 import type { Severity } from "@/types/packages";
-import { Circle, CirclePlus } from "lucide-react";
 
 const SEVERITIES: {
   text: string;
-  color: string;
   value: Severity;
+  borderClass: string;
+  bgClass: string;
 }[] = [
-  { text: "Low", color: "text-yellow-500", value: "low" },
-  { text: "Medium", color: "text-orange-500", value: "medium" },
-  { text: "High", color: "text-red-500", value: "high" },
-  { text: "Critical", color: "text-red-900", value: "critical" },
+  {
+    text: "Low",
+    value: "low",
+    borderClass: "border-yellow-500",
+    bgClass: "bg-yellow-500",
+  },
+  {
+    text: "Medium",
+    value: "medium",
+    borderClass: "border-orange-500",
+    bgClass: "bg-orange-500",
+  },
+  {
+    text: "High",
+    value: "high",
+    borderClass: "border-red-500",
+    bgClass: "bg-red-500",
+  },
+  {
+    text: "Critical",
+    value: "critical",
+    borderClass: "border-red-900",
+    bgClass: "bg-red-900",
+  },
 ];
-
 type SeveritySelectorProps = {
   selected?: Severity;
   onSelect: (severity?: Severity) => void;
@@ -24,17 +43,21 @@ const SeveritySelector = ({ selected, onSelect }: SeveritySelectorProps) => {
       <div className="gap-2 flex flex-row pt-1 text-black">
         {SEVERITIES.map((severity) => (
           <div
-            className=" px-2 py-1 "
+            className="flex flex-row px-2 py-1"
             key={severity.text}
             onClick={() =>
               onSelect(severity.value === selected ? undefined : severity.value)
             }
           >
-            {selected === severity.value ? (
-              <CirclePlus className={`${severity.color} inline-block mr-2`} />
-            ) : (
-              <Circle className={`${severity.color} inline-block mr-2`} />
-            )}
+            <div
+              className={`relative mr-2 w-6 h-6 border-2 ${severity.borderClass} rounded-2xl`}
+            >
+              <div
+                className={`absolute inset-1 rounded-full ${
+                  selected === severity.value ? severity.bgClass : "bg-white"
+                }`}
+              />
+            </div>
             {severity.text}
           </div>
         ))}

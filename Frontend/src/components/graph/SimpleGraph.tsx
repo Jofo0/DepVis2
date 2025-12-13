@@ -21,6 +21,8 @@ type GraphLink = {
   target: string;
 };
 
+export type GraphNames = "none" | "all" | "severity";
+
 const LABEL_FONT_SIZE = 12;
 const LABEL_MARGIN = 4;
 
@@ -29,7 +31,7 @@ type SimpleGraphProps = {
   packageId?: string;
   lr?: boolean;
   className?: string;
-  showNames?: boolean;
+  showNames?: GraphNames;
   severityFilter?: Severity;
 };
 
@@ -37,7 +39,7 @@ const SimpleGraph = ({
   branch,
   className,
   packageId,
-  showNames = false,
+  showNames = "none",
   lr,
   severityFilter,
 }: SimpleGraphProps) => {
@@ -116,10 +118,17 @@ const SimpleGraph = ({
             }}
             nodeAutoColorBy="id"
             nodeCanvasObject={(node, ctx, globalScale) => {
-              if (!showNames) {
+              const graphNode = node as GraphNode;
+
+              if (
+                showNames === "none" ||
+                (showNames === "severity" &&
+                  (graphNode.severity === undefined ||
+                    graphNode.severity === "None"))
+              ) {
                 return;
               }
-              const graphNode = node as GraphNode;
+
               const label = graphNode.name ?? String(graphNode.id);
               const fontSize = LABEL_FONT_SIZE / globalScale;
               const margin = LABEL_MARGIN / globalScale;

@@ -1,45 +1,37 @@
 import BranchSelector from "@/components/BranchSelector";
-import SimpleGraph from "@/components/graph/SimpleGraph";
+import SimpleGraph, { type GraphNames } from "@/components/graph/SimpleGraph";
+import NamesSelector from "@/components/NamesSelector";
+import Separator from "@/components/Separator";
 import SeveritySelector from "@/components/SeveritySelector";
-import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
-import type { Branch } from "@/types/branches";
 import type { Severity } from "@/types/packages";
-import { useMemo, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useBranch } from "@/utils/hooks/BranchProvider";
+import { useState } from "react";
 
 const Graph = () => {
-  const { id } = useParams<{ id: string }>();
-
-  const { data: branches } = useGetProjectBranchesQuery(id!);
-  const [selectedBranch, setSelectedBranch] = useState<Branch>();
+  const { branch } = useBranch();
   const [selectedSeverity, setSelectedSeverity] = useState<
     Severity | undefined
   >();
+  const [showNames, setShowNames] = useState<GraphNames>("none");
 
-  const preferredDefault = useMemo(() => {
-    if (!branches || branches.length === 0) return undefined;
-    return branches[0];
-  }, [branches]);
-
-  useEffect(() => {
-    if (!branches || branches.length === 0) return;
-    if (!selectedBranch || !branches.includes(selectedBranch)) {
-      setSelectedBranch(preferredDefault ?? branches[0]);
-    }
-  }, [branches, preferredDefault, selectedBranch]);
   return (
     <div>
-      <div className="flex flex-row gap-4">
+      <div className="flex flex-row gap-4 border-2 rounded-2xl w-1/2 p-4">
         <BranchSelector />
+        <Separator />
+
         <SeveritySelector
           selected={selectedSeverity}
           onSelect={setSelectedSeverity}
         />
+        <Separator />
+        <NamesSelector selected={showNames} onSelect={setShowNames} />
       </div>
-      {selectedBranch && (
+      {branch && (
         <SimpleGraph
-          branch={selectedBranch}
+          branch={branch}
           severityFilter={selectedSeverity}
+          showNames={showNames}
         />
       )}
     </div>
