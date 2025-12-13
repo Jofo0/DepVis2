@@ -5,7 +5,11 @@ import type {
   ProjectStatsDto,
 } from "../../types/projects";
 import { projectsApi } from "../../store";
-import type { GraphDataDto, PackageDetailedDto } from "../../types/packages";
+import type {
+  GraphDataDto,
+  PackageDetailedDto,
+  Severity,
+} from "../../types/packages";
 import type { BranchDetailed, Branch } from "@/types/branches";
 import type {
   VulnerabilitiesDto,
@@ -65,10 +69,12 @@ export const projectApi = projectsApi.injectEndpoints({
     }),
     getProjectGraph: builder.query<
       GraphDataDto,
-      { id: string; packageId?: string }
+      { id: string; packageId?: string; severityFilter?: Severity }
     >({
-      query: ({ id, packageId }) =>
-        `/${id}/packages/graph/${packageId ? packageId : ""}`,
+      query: ({ id, packageId, severityFilter }) =>
+        `/${id}/packages/graph/${packageId ? packageId : ""}${
+          severityFilter ? `?severity=${severityFilter}` : ""
+        }`,
     }),
     getPackages: builder.query<PackageDetailedDto, IdWithOdata>({
       query: ({ id, odata }) => `/${id}/packages${odata ? `?${odata}` : ""}`,

@@ -6,11 +6,41 @@ namespace DepVis.Core.Services;
 
 public class GraphService(SbomRepository repo)
 {
-    public async Task<GraphDataDto?> GetProjectGraphData(Guid branchId)
+    public async Task<GraphDataDto?> GetProjectGraphData(
+        Guid branchId,
+        string? severityFilter = null
+    )
     {
         var sbom = await repo.GetLatestWithPackagesAndChildrenAsync(branchId);
+
         if (sbom == null)
             return null;
+
+        if (!string.IsNullOrEmpty(severityFilter))
+        {
+            var sbomPackages = sbom.SbomPackages.Where(x => x.Severity == severityFilter);
+
+            if (sbomPackages == null)
+                return null;
+
+            HashSet<PackageRelationDto> relationsNew = [];
+            HashSet<PackageDto> packagesNew = [];
+
+            foreach (var pkg in sbomPackages)
+            {
+                var result = GetToRootPath(pkg, sbom, severityFilter);
+                if (result == null)
+                    continue;
+                packagesNew.UnionWith(result.Packages);
+                relationsNew.UnionWith(result.Relationships);
+            }
+
+            return new GraphDataDto
+            {
+                Packages = packagesNew.ToList(),
+                Relationships = relationsNew.ToList(),
+            };
+        }
 
         var relations = sbom
             .SbomPackages.SelectMany(pkg =>
@@ -29,7 +59,7 @@ public class GraphService(SbomRepository repo)
             {
                 Name = x.Name,
                 Id = x.Id,
-                Severity = x.Vulnerabilities.FirstOrDefault()?.Severity ?? "None",
+                Severity = x.Severity,
             })
             .ToList();
 
@@ -42,10 +72,19 @@ public class GraphService(SbomRepository repo)
         if (sbom == null)
             return null;
 
+        return GetToRootPath(sbom.SbomPackages.Where(x => x.Id == packageId).First(), sbom);
+    }
+
+    private static GraphDataDto? GetToRootPath(
+        SbomPackage destinationPackage,
+        Sbom sbom,
+        string? severityFilter = null
+    )
+    {
         var relations = new List<PackageRelationDto>();
         var packages = new List<PackageDto>();
         var processed = new HashSet<Guid>();
-        var stack = new Stack<SbomPackage>(sbom.SbomPackages.Where(x => x.Id == packageId));
+        var stack = new Stack<SbomPackage>([destinationPackage]);
 
         while (stack.TryPop(out var pkg))
         {
@@ -53,7 +92,20 @@ public class GraphService(SbomRepository repo)
                 continue;
             processed.Add(pkg.Id);
 
-            packages.Add(new PackageDto { Name = pkg.Name, Id = pkg.Id });
+            var newPackage = new PackageDto
+            {
+                Name = pkg.Name,
+                Id = pkg.Id,
+                Severity = pkg.Severity,
+            };
+
+            if (!string.IsNullOrEmpty(severityFilter))
+            {
+                newPackage.Severity =
+                    newPackage.Severity == severityFilter ? severityFilter : "None";
+            }
+
+            packages.Add(newPackage);
 
             var parents = sbom
                 .SbomPackages.Where(x => pkg.Parents.Select(p => p.Parent.Id).Contains(x.Id))

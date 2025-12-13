@@ -5,6 +5,7 @@ import Measure from "react-measure";
 import type { Branch } from "@/types/branches";
 import { cn } from "@/lib/utils";
 import type { Severity } from "@/types/packages";
+import { colors } from "@/theme/colors";
 
 type GraphNode = {
   id: string;
@@ -29,6 +30,7 @@ type SimpleGraphProps = {
   lr?: boolean;
   className?: string;
   showNames?: boolean;
+  severityFilter?: Severity;
 };
 
 const SimpleGraph = ({
@@ -37,10 +39,12 @@ const SimpleGraph = ({
   packageId,
   showNames = false,
   lr,
+  severityFilter,
 }: SimpleGraphProps) => {
   const { data } = useGetProjectGraphQuery({
     id: branch.id,
     packageId,
+    severityFilter,
   });
   const [size, setSize] = useState({ w: 0, h: 0 });
 
@@ -101,16 +105,12 @@ const SimpleGraph = ({
             dagLevelDistance={lr ? 75 : null}
             nodeColor={(node) => {
               const n = node as GraphNode;
-              if (
-                n.id === packageId ||
-                n.severity === "critical" ||
-                n.severity === "high"
-              )
-                return "#dc2626";
+              if (n.id === packageId || n.severity === "critical")
+                return colors.darkRed;
 
-              if (n.severity === "medium") return "#f59e0b";
-
-              if (n.severity === "low") return "#f8ec49";
+              if (n.severity === "high") return colors.red;
+              if (n.severity === "medium") return colors.orange;
+              if (n.severity === "low") return colors.yellow;
 
               return "";
             }}

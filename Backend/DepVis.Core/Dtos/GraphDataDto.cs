@@ -2,8 +2,8 @@
 
 public class GraphDataDto
 {
-    public List<PackageDto> Packages { get; set; }
-    public List<PackageRelationDto> Relationships { get; set; }
+    public List<PackageDto> Packages { get; set; } = [];
+    public List<PackageRelationDto> Relationships { get; set; } = [];
 }
 
 public class PackageDto
@@ -28,4 +28,14 @@ public class PackageRelationDto
 {
     public Guid From { get; set; }
     public Guid To { get; set; }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is PackageRelationDto dto && From == dto.From && To == dto.To;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(From, To);
+    }
 }

@@ -87,6 +87,24 @@ public class IngestProcessingMessageConsumer(
                 projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
 
                 await _db.SaveChangesAsync(context.CancellationToken);
+                _db.ChangeTracker.Clear();
+
+                // Update package severities based on associated vulnerabilities
+
+                var packagesToTransform = _db
+                    .SbomPackages.Include(x => x.Vulnerabilities)
+                    .Where(x => x.SbomId == sbom.Id);
+
+                foreach (var pkg in packagesToTransform)
+                {
+                    pkg.Severity =
+                        pkg.Vulnerabilities.Select(v => v.Severity)
+                            .OrderByDescending(s => SeverityRank.GetValueOrDefault(s, 0))
+                            .FirstOrDefault() ?? "None";
+                }
+
+                await _db.SaveChangesAsync(context.CancellationToken);
+
                 _logger.LogDebug(
                     "Ingestion finished successfully. Packages: {pkgCount}, Deps: {depCount}",
                     packages.Count,
@@ -165,16 +183,7 @@ public class IngestProcessingMessageConsumer(
             }
             catch (DbUpdateException) when (attempt < maxRetries)
             {
-                var addedEntries = _db
-                    .ChangeTracker.Entries<Vulnerability>()
-                    .Where(e => e.State == EntityState.Added)
-                    .ToList();
-
-                foreach (var entry in addedEntries)
-                {
-                    entry.State = EntityState.Detached;
-                }
-
+                _db.ChangeTracker.Clear();
                 continue;
             }
         }
@@ -292,4 +301,15 @@ public class IngestProcessingMessageConsumer(
 
         return type;
     }
+
+    public static readonly Dictionary<string, int> SeverityRank = new(
+        StringComparer.OrdinalIgnoreCase
+    )
+    {
+        ["None"] = 0,
+        ["low"] = 1,
+        ["medium"] = 2,
+        ["high"] = 3,
+        ["critical"] = 4,
+    };
 }

@@ -11,9 +11,10 @@ public class SbomRepository(DepVisDbContext context)
             .Sboms.AsNoTracking()
             .Where(x => x.ProjectBranchId == branchId)
             .Include(x => x.SbomPackages)
-            .ThenInclude(x => x.Vulnerabilities)
-            .Include(x => x.SbomPackages)
             .ThenInclude(x => x.Children)
+            .Include(x => x.SbomPackages)
+            .ThenInclude(x => x.Parents)
+            .ThenInclude(x => x.Parent)
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync();
 

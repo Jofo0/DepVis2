@@ -22,9 +22,12 @@ public class PackagesController(PackageService packageService, GraphService grap
     }
 
     [HttpGet("{branchId}/packages/graph")]
-    public async Task<ActionResult<GraphDataDto>> GetFullGraph(Guid branchId)
+    public async Task<ActionResult<GraphDataDto>> GetFullGraph(
+        Guid branchId,
+        [FromQuery] string? severity
+    )
     {
-        var graph = await graphService.GetProjectGraphData(branchId);
+        var graph = await graphService.GetProjectGraphData(branchId, severity);
         return graph is null ? NotFound() : Ok(graph);
     }
 
