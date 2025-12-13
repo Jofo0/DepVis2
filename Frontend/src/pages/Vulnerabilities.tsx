@@ -3,10 +3,12 @@ import { PieCustomChart } from "@/components/chart/PieCustomChart";
 import { DataTable } from "@/components/table/DataTable";
 import VulnerabilityCard from "@/components/VulnerabilityCard";
 import { useLazyGetVulnerabilitiesQuery } from "@/store/api/projectsApi";
+import type { Severity } from "@/types/packages";
 import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
 import { buildOdata } from "@/utils/buildGeneralOdata";
 import { useGetVulnerabilitiesColumns } from "@/utils/columns/useGetVulnerabilitiesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
+import { riskToColor } from "@/utils/riskToColor";
 import {
   useReactTable,
   getSortedRowModel,
@@ -70,7 +72,12 @@ const Vulnerabilities = () => {
               <PieCustomChart
                 title="Risk Severities"
                 className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-                pies={data?.risks ?? []}
+                pies={
+                  data?.risks.map((risk) => ({
+                    ...risk,
+                    color: riskToColor(risk.name as Severity),
+                  })) ?? []
+                }
                 isLoading={isLoading}
                 onSliceClick={onRiskClick}
               />

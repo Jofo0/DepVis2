@@ -27,8 +27,8 @@ const SEVERITIES: {
   {
     text: "Critical",
     value: "critical",
-    borderClass: "border-red-900",
-    bgClass: "bg-red-900",
+    borderClass: "border-red-800",
+    bgClass: "bg-red-800",
   },
 ];
 type SeveritySelectorProps = {
