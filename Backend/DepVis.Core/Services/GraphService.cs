@@ -22,8 +22,15 @@ public class GraphService(SbomRepository repo)
             )
             .ToList();
 
+        // Also pick the highest Severity out of all vulnerabilities
+
         var packages = sbom
-            .SbomPackages.Select(x => new PackageDto { Name = x.Name, Id = x.Id })
+            .SbomPackages.Select(x => new PackageDto
+            {
+                Name = x.Name,
+                Id = x.Id,
+                Severity = x.Vulnerabilities.FirstOrDefault()?.Severity ?? "None",
+            })
             .ToList();
 
         return new GraphDataDto { Packages = packages, Relationships = relations };

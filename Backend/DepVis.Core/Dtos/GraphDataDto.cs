@@ -8,7 +8,9 @@ public class GraphDataDto
 
 public class PackageDto
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Severity { get; set; } = string.Empty;
+
     public Guid Id { get; set; }
 
     public override bool Equals(object? obj)

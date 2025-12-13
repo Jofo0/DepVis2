@@ -4,10 +4,12 @@ import { useGetProjectGraphQuery } from "../../store/api/projectsApi";
 import Measure from "react-measure";
 import type { Branch } from "@/types/branches";
 import { cn } from "@/lib/utils";
+import type { Severity } from "@/types/packages";
 
 type GraphNode = {
   id: string;
   name: string;
+  severity?: Severity;
   val: number;
   x?: number;
   y?: number;
@@ -48,6 +50,7 @@ const SimpleGraph = ({
     // Map packages to nodes
     const nodes: GraphNode[] = data.packages.map((p) => ({
       id: p.id,
+      severity: p.severity,
       name: p.name,
       val: 1,
     }));
@@ -98,7 +101,17 @@ const SimpleGraph = ({
             dagLevelDistance={lr ? 75 : null}
             nodeColor={(node) => {
               const n = node as GraphNode;
-              if (n.id === packageId) return "#dc2626";
+              if (
+                n.id === packageId ||
+                n.severity === "critical" ||
+                n.severity === "high"
+              )
+                return "#dc2626";
+
+              if (n.severity === "medium") return "#f59e0b";
+
+              if (n.severity === "low") return "#f8ec49";
+
               return "";
             }}
             nodeAutoColorBy="id"

@@ -3,8 +3,11 @@ export type GraphDataDto = {
   relationships: PackageRelationDto[];
 };
 
+export type Severity = "low" | "medium" | "high" | "critical";
+
 export type PackageDto = {
   name: string;
+  severity?: Severity;
   id: string;
 };
 
