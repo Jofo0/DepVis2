@@ -63,6 +63,55 @@ public class IngestProcessingMessageConsumer(
                     StringComparer.Ordinal
                 );
 
+                var maxRankByBomRef = new Dictionary<string, int>(StringComparer.Ordinal);
+
+                if (bom.Vulnerabilities is not null)
+                {
+                    foreach (var v in bom.Vulnerabilities)
+                    {
+                        var rank = SeverityRank.GetValueOrDefault(
+                            (v.Ratings ?? [])
+                                .GroupBy(r => r.Severity)
+                                .OrderByDescending(gr => gr.Count())
+                                .Select(gr => gr.Key)
+                                .FirstOrDefault() ?? "Unknown",
+                            0
+                        );
+
+                        foreach (var a in v.Affects ?? [])
+                        {
+                            if (string.IsNullOrWhiteSpace(a.Ref))
+                                continue;
+
+                            if (
+                                !maxRankByBomRef.TryGetValue(a.Ref, out var existing)
+                                || rank > existing
+                            )
+                                maxRankByBomRef[a.Ref] = rank;
+                        }
+                    }
+                }
+
+                foreach (var p in packages)
+                {
+                    if (p.BomRef is null)
+                    {
+                        p.Severity = "None";
+                        continue;
+                    }
+
+                    var rank = maxRankByBomRef.GetValueOrDefault(p.BomRef, 0);
+
+                    p.Severity = rank switch
+                    {
+                        4 => "critical",
+                        3 => "high",
+                        2 => "medium",
+                        1 => "low",
+                        _ => "None",
+                    };
+                }
+
                 var packageVulnerabilities =
                     bom.Vulnerabilities?.SelectMany(v =>
                             v.Affects.Select(a => new SbomPackageVulnerability()
@@ -85,23 +134,6 @@ public class IngestProcessingMessageConsumer(
                     .Count();
                 projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
                 projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
-
-                await _db.SaveChangesAsync(context.CancellationToken);
-                _db.ChangeTracker.Clear();
-
-                // Update package severities based on associated vulnerabilities
-
-                var packagesToTransform = _db
-                    .SbomPackages.Include(x => x.Vulnerabilities)
-                    .Where(x => x.SbomId == sbom.Id);
-
-                foreach (var pkg in packagesToTransform)
-                {
-                    pkg.Severity =
-                        pkg.Vulnerabilities.Select(v => v.Severity)
-                            .OrderByDescending(s => SeverityRank.GetValueOrDefault(s, 0))
-                            .FirstOrDefault() ?? "None";
-                }
 
                 await _db.SaveChangesAsync(context.CancellationToken);
 
@@ -140,7 +172,7 @@ public class IngestProcessingMessageConsumer(
             .Select(g =>
             {
                 var x = g.First();
-                return new Vulnerability
+                return new Shared.Model.Vulnerability
                 {
                     Id = x.Id!,
                     Description = x.Description,
