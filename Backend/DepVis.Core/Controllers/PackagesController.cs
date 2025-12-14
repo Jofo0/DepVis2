@@ -12,13 +12,23 @@ public class PackagesController(PackageService packageService, GraphService grap
     : ControllerBase
 {
     [HttpGet("{branchId}/packages")]
-    public async Task<ActionResult<PackageDetailedDto>> GetBranchPackages(
+    public async Task<ActionResult<PackagesDto>> GetBranchPackages(
         Guid branchId,
         ODataQueryOptions<SbomPackage> odata
     )
     {
         var dto = await packageService.GetPackageData(branchId, odata);
         return Ok(dto);
+    }
+
+    [HttpGet("packages/{packageId}")]
+    public async Task<ActionResult<PackageDetailedDto>> GetBranchPackages(
+        Guid packageId,
+        CancellationToken cancellation
+    )
+    {
+        var dto = await packageService.GetPackageData(packageId, cancellation);
+        return dto is null ? NotFound() : Ok(dto);
     }
 
     [HttpGet("{branchId}/packages/graph")]

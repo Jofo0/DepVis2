@@ -1,4 +1,5 @@
 import type { GraphNames } from "../SimpleGraph";
+import RadioSelect from "./RadioSelect";
 
 const NAMES: {
   text: string;
@@ -25,14 +26,7 @@ const NamesSelector = ({ selected, onSelect }: NamesSelectorProps) => {
             key={severity.text}
             onClick={() => onSelect(severity.value)}
           >
-            <div className="relative mr-2 w-6 h-6 border-2 border-black rounded-2xl">
-              <div
-                className={`absolute inset-1 rounded-full ${
-                  selected === severity.value ? "bg-gray-700" : "bg-white"
-                }`}
-              />
-            </div>
-
+            <RadioSelect selected={selected === severity.value} />
             {severity.text}
           </div>
         ))}

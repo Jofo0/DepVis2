@@ -31,6 +31,7 @@ const SEVERITIES: {
     bgClass: "bg-red-800",
   },
 ];
+
 type SeveritySelectorProps = {
   selected?: Severity;
   onSelect: (severity?: Severity) => void;

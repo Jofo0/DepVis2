@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using DepVis.Core.Context;
+using DepVis.Core.Util;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
@@ -69,7 +70,7 @@ public class IngestProcessingMessageConsumer(
                 {
                     foreach (var v in bom.Vulnerabilities)
                     {
-                        var rank = SeverityRank.GetValueOrDefault(
+                        var rank = SeveritySort.SeverityRank.GetValueOrDefault(
                             (v.Ratings ?? [])
                                 .GroupBy(r => r.Severity)
                                 .OrderByDescending(gr => gr.Count())
@@ -333,15 +334,4 @@ public class IngestProcessingMessageConsumer(
 
         return type;
     }
-
-    public static readonly Dictionary<string, int> SeverityRank = new(
-        StringComparer.OrdinalIgnoreCase
-    )
-    {
-        ["None"] = 0,
-        ["low"] = 1,
-        ["medium"] = 2,
-        ["high"] = 3,
-        ["critical"] = 4,
-    };
 }

@@ -19,4 +19,13 @@ public class PackageRepository(DepVisDbContext context)
             .Include(x => x.Vulnerabilities)
             .AsNoTracking();
     }
+
+    public async Task<SbomPackage?> GetPackage(Guid packageId, CancellationToken cancellation)
+    {
+        return await context
+            .SbomPackages.Where(p => p.Id == packageId)
+            .Include(x => x.Vulnerabilities)
+            .AsNoTracking()
+            .FirstAsync(cancellation);
+    }
 }

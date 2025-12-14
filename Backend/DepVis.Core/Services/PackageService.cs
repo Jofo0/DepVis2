@@ -9,10 +9,7 @@ namespace DepVis.Core.Services;
 
 public class PackageService(PackageRepository repo)
 {
-    public async Task<PackageDetailedDto> GetPackageData(
-        Guid id,
-        ODataQueryOptions<SbomPackage> odata
-    )
+    public async Task<PackagesDto> GetPackageData(Guid id, ODataQueryOptions<SbomPackage> odata)
     {
         var packages = odata.ApplyOdataIEnumerable(repo.GetLatestPackagesForBranch(id));
 
@@ -35,6 +32,48 @@ public class PackageService(PackageRepository repo)
             Vulnerabilities = vulnerableCounts,
             EcoSystems = ecosystemGroups,
             PackageItems = [.. retrieved.Select(x => x.MapToPackageItemDto())],
+        };
+    }
+
+    public async Task<PackageDetailedDto?> GetPackageData(
+        Guid packageId,
+        CancellationToken cancellation
+    )
+    {
+        var package = await repo.GetPackage(packageId, cancellation);
+
+        if (package == null)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            Id = package.Id,
+            Ecosystem = package.Ecosystem ?? "",
+            Name = package.Name,
+            Version = package.Version ?? "",
+            Vulnerabilities =
+            [
+                .. package
+                    .Vulnerabilities.Select(vuln => new VulnerabilityDetailedDto()
+                    {
+                        Id = vuln.Id,
+                        Description = vuln.Description,
+                        Recommendation = vuln.Recommendation,
+                        Severity = vuln.Severity,
+                    })
+                    .OrderByDescending(x =>
+                        x.Severity switch
+                        {
+                            "Critical" => 4,
+                            "High" => 3,
+                            "Medium" => 2,
+                            "Low" => 1,
+                            _ => 0,
+                        }
+                    ),
+            ],
         };
     }
 }

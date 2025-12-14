@@ -15,3 +15,19 @@ export const riskToColor = (risk: Severity): string => {
       return colors.green;
   }
 };
+
+export const severityToBgColor: Record<Severity, string> = {
+  low: "bg-yellow-500",
+  medium: "bg-orange-500",
+  high: "bg-red-500",
+  critical: "bg-red-900",
+  None: "",
+};
+
+export const severityToBorderColor: Record<Severity, string> = {
+  low: "border-yellow-500",
+  medium: "border-orange-500",
+  high: "border-red-500",
+  critical: "border-red-900",
+  None: "",
+};

@@ -19,6 +19,10 @@ const Graph = () => {
   const [showParents, setShowParents] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | undefined>();
 
+  const onInformationClose = () => {
+    setSelectedNode(undefined);
+  };
+
   return (
     <div className="h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] w-[calc(100vw-25rem)] max-w-[calc(100vw-25rem)] overflow-hidden">
       <div className="flex flex-row gap-4 border-2 rounded-2xl  p-4 absolute top-20 z-1000 bg-white">
@@ -38,7 +42,7 @@ const Graph = () => {
         )}
       </div>
       <Legend />
-      <NodeInformation packageId={selectedNode} />
+      <NodeInformation packageId={selectedNode} onClose={onInformationClose} />
       {branch && (
         <SimpleGraph
           onNodeClick={(node) => {

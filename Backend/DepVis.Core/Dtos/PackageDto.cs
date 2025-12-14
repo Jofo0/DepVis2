@@ -1,10 +1,10 @@
 ﻿namespace DepVis.Core.Dtos;
 
-public class PackageDetailedDto
+public class PackagesDto
 {
-    public List<PackageItemDto> PackageItems { get; set; }
-    public List<NameCount> Vulnerabilities { get; set; }
-    public List<NameCount> EcoSystems { get; set; }
+    public List<PackageItemDto> PackageItems { get; set; } = [];
+    public List<NameCount> Vulnerabilities { get; set; } = [];
+    public List<NameCount> EcoSystems { get; set; } = [];
 }
 
 public class PackageItemDto

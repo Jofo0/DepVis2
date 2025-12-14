@@ -13,7 +13,7 @@ public interface IProjectService
         ODataQueryOptions<ProjectBranches> odata
     );
     Task<ProjectDto> CreateProject(CreateProjectDto dto);
-    Task<PackageDetailedDto> GetPackageData(Guid id, ODataQueryOptions<SbomPackage> odata);
+    Task<PackagesDto> GetPackageData(Guid id, ODataQueryOptions<SbomPackage> odata);
     Task<VulnerabilitiesDto> GetVulnerabilities(
         Guid branchId,
         ODataQueryOptions<VulnerabilitySmallDto> odata

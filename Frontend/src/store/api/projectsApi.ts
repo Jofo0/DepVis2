@@ -8,6 +8,7 @@ import { projectsApi } from "../../store";
 import type {
   GraphDataDto,
   PackageDetailedDto,
+  PackagesDetailedDto,
   Severity,
 } from "../../types/packages";
 import type { BranchDetailed, Branch } from "@/types/branches";
@@ -83,8 +84,11 @@ export const projectApi = projectsApi.injectEndpoints({
             : ""
         }`,
     }),
-    getPackages: builder.query<PackageDetailedDto, IdWithOdata>({
+    getPackages: builder.query<PackagesDetailedDto, IdWithOdata>({
       query: ({ id, odata }) => `/${id}/packages${odata ? `?${odata}` : ""}`,
+    }),
+    getPackage: builder.query<PackageDetailedDto, string>({
+      query: (id) => `/packages/${id}`,
     }),
     getProjectStats: builder.query<ProjectStatsDto, { id: string }>({
       query: ({ id }) => `/${id}/stats`,
@@ -102,6 +106,7 @@ export const projectApi = projectsApi.injectEndpoints({
 
 export const {
   useGetProjectsQuery,
+  useLazyGetPackageQuery,
   useGetProjectQuery,
   useCreateProjectMutation,
   useUpdateProjectMutation,

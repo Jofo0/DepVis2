@@ -1,3 +1,5 @@
+import type { VulnerabilityDetailedDto } from "./vulnerabilities";
+
 export type GraphDataDto = {
   packages: PackageDto[];
   relationships: PackageRelationDto[];
@@ -11,10 +13,18 @@ export type PackageDto = {
   id: string;
 };
 
-export type PackageDetailedDto = {
+export type PackagesDetailedDto = {
   packageItems: PackageItemDto[];
   vulnerabilities: NameCount[];
   ecoSystems: NameCount[];
+};
+
+export type PackageDetailedDto = {
+  name: string;
+  id: string;
+  version: string;
+  ecosystem: string;
+  vulnerabilities: VulnerabilityDetailedDto[];
 };
 
 export type NameCount = {
