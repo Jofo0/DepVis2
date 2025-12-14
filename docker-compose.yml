@@ -6,9 +6,16 @@ services:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=YourStrong!Passw0rd
     ports:
-      - "127.0.0.1:1433:1433" 
+      - "127.0.0.1:1433:1433"
     networks:
       - my_network
+    healthcheck:
+      # Wait until SQL Server is accepting logins and can run a query
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
 
   depvisprocessing:
     build:
@@ -17,11 +24,11 @@ services:
     container_name: DepVis2-Processing
     depends_on:
       sqlserver:
-        condition: service_started
+        condition: service_healthy
     environment:
-        - ConnectionStrings__FrontEnd=http://147.251.115.226:8080
-        - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
-        - ConnectionStrings__MinioEndpoint=minio
+      - ConnectionStrings__FrontEnd=http://147.251.115.226:8080
+      - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__MinioEndpoint=minio
     networks:
       - my_network
 
@@ -31,10 +38,10 @@ services:
       dockerfile: ./DepVis.Core/Dockerfile
     container_name: DepVis2-Core
     ports:
-      - "5000:8080" 
+      - "5000:8080"
     depends_on:
       sqlserver:
-        condition: service_started
+        condition: service_healthy
     environment:
       - ConnectionStrings__FrontEnd=http://147.251.115.226:8080
       - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
@@ -60,8 +67,8 @@ services:
     image: minio/minio
     container_name: DepVis2-MinIO
     ports:
-      - "127.0.0.1:9000:9000"   # S3 API
-      - "127.0.0.1:9001:9001"   # MinIO Console
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -74,4 +81,3 @@ services:
 networks:
   my_network:
     driver: bridge
-
