@@ -1,5 +1,6 @@
+import { SortButton } from "@/components/table/SortButton";
 import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Column, ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 export const useGetVulnerabilitiesColumns =
@@ -8,16 +9,28 @@ export const useGetVulnerabilitiesColumns =
       () => [
         {
           accessorKey: "vulnerabilityId",
-          header: "Vulnerability ID",
+          header: ({
+            column,
+          }: {
+            column: Column<VulnerabilitySmallDto, unknown>;
+          }) => <SortButton column={column} header="Vulnerability Id" />,
           size: 250,
         },
         {
           accessorKey: "packageName",
-          header: "Package Name",
+          header: ({
+            column,
+          }: {
+            column: Column<VulnerabilitySmallDto, unknown>;
+          }) => <SortButton column={column} header="Package Name" />,
         },
         {
           accessorKey: "severity",
-          header: "Severity",
+          header: ({
+            column,
+          }: {
+            column: Column<VulnerabilitySmallDto, unknown>;
+          }) => <SortButton column={column} header="Severity" />,
         },
       ],
       []

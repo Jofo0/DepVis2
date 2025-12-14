@@ -6,5 +6,5 @@ export const buildOdata = (filters: Record<string, string>): string => {
     })
     .join(" and ");
 
-  return odataFilters ? `?$filter=${odataFilters}` : "";
+  return odataFilters ? `?$filter=${odataFilters}` : "?";
 };

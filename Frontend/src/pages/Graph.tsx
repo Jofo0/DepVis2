@@ -1,6 +1,7 @@
 import BranchSelector from "@/components/BranchSelector";
 import SimpleGraph, { type GraphNames } from "@/components/graph/SimpleGraph";
 import NamesSelector from "@/components/NamesSelector";
+import ParentsSelector from "@/components/ParentsSelector";
 import Separator from "@/components/Separator";
 import SeveritySelector from "@/components/SeveritySelector";
 import type { Severity } from "@/types/packages";
@@ -12,11 +13,12 @@ const Graph = () => {
   const [selectedSeverity, setSelectedSeverity] = useState<
     Severity | undefined
   >();
-  const [showNames, setShowNames] = useState<GraphNames>("none");
+  const [showNames, setShowNames] = useState<GraphNames>("severity");
+  const [showParents, setShowParents] = useState(true);
 
   return (
     <div>
-      <div className="flex flex-row gap-4 border-2 rounded-2xl w-1/2 p-4">
+      <div className="flex flex-row gap-4 border-2 rounded-2xl w-3/5 p-4">
         <BranchSelector />
         <Separator />
 
@@ -26,12 +28,19 @@ const Graph = () => {
         />
         <Separator />
         <NamesSelector selected={showNames} onSelect={setShowNames} />
+        {selectedSeverity && (
+          <>
+            <Separator />
+            <ParentsSelector selected={showParents} onSelect={setShowParents} />
+          </>
+        )}
       </div>
       {branch && (
         <SimpleGraph
           branch={branch}
           severityFilter={selectedSeverity}
           showNames={showNames}
+          showParents={showParents}
         />
       )}
     </div>

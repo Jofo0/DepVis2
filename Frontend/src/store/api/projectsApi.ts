@@ -69,11 +69,18 @@ export const projectApi = projectsApi.injectEndpoints({
     }),
     getProjectGraph: builder.query<
       GraphDataDto,
-      { id: string; packageId?: string; severityFilter?: Severity }
+      {
+        id: string;
+        packageId?: string;
+        severityFilter?: Severity;
+        showParents: boolean;
+      }
     >({
-      query: ({ id, packageId, severityFilter }) =>
-        `/${id}/packages/graph/${packageId ? packageId : ""}${
-          severityFilter ? `?severity=${severityFilter}` : ""
+      query: ({ id, packageId, severityFilter, showParents }) =>
+        `/${id}/packages/graph/${packageId ? packageId : ""}?${
+          severityFilter
+            ? `severity=${severityFilter}&showAllParents=${showParents}`
+            : ""
         }`,
     }),
     getPackages: builder.query<PackageDetailedDto, IdWithOdata>({

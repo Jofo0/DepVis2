@@ -8,12 +8,14 @@ import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
 import { buildOdata } from "@/utils/buildGeneralOdata";
 import { useGetVulnerabilitiesColumns } from "@/utils/columns/useGetVulnerabilitiesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
+import { toODataOrderBy } from "@/utils/odataHelper";
 import { riskToColor } from "@/utils/riskToColor";
 import {
   useReactTable,
   getSortedRowModel,
   getCoreRowModel,
   getPaginationRowModel,
+  type SortingState,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 
@@ -21,6 +23,8 @@ const Vulnerabilities = () => {
   const { branch, isLoading: isLoadingBranch } = useBranch();
   const columns = useGetVulnerabilitiesColumns();
   const [riskFilter, setRiskFilter] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
+
   const [fetchVulnerabilities, { data, isFetching: isLoading }] =
     useLazyGetVulnerabilitiesQuery();
 
@@ -30,7 +34,11 @@ const Vulnerabilities = () => {
   const table = useReactTable({
     data: data?.vulnerabilities || [],
     columns,
+    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
     getPaginationRowModel: getPaginationRowModel(),
     manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
@@ -39,16 +47,21 @@ const Vulnerabilities = () => {
   useEffect(() => {
     if (!branch) return;
 
+    const filterData = buildOdata({
+      severity: riskFilter || "",
+    });
+    const sortOdata = toODataOrderBy(sorting);
+
+    const fullOdata = [filterData, sortOdata].filter(Boolean).join("&");
+
     fetchVulnerabilities(
       {
         id: branch.id,
-        odata: buildOdata({
-          severity: riskFilter || "",
-        }),
+        odata: fullOdata,
       },
       true
     );
-  }, [branch, riskFilter]);
+  }, [branch, riskFilter, sorting]);
 
   const onRiskClick = (name: string) => {
     setRiskFilter((prev) => (prev === name ? "" : name));

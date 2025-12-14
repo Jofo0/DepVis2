@@ -8,6 +8,7 @@ public class GraphService(SbomRepository repo)
 {
     public async Task<GraphDataDto?> GetProjectGraphData(
         Guid branchId,
+        bool showAllParents = true,
         string? severityFilter = null
     )
     {
@@ -28,7 +29,7 @@ public class GraphService(SbomRepository repo)
 
             foreach (var pkg in sbomPackages)
             {
-                var result = GetToRootPath(pkg, sbom, severityFilter);
+                var result = GetToRootPath(pkg, sbom, showAllParents, severityFilter);
                 if (result == null)
                     continue;
                 packagesNew.UnionWith(result.Packages);
@@ -78,6 +79,7 @@ public class GraphService(SbomRepository repo)
     private static GraphDataDto? GetToRootPath(
         SbomPackage destinationPackage,
         Sbom sbom,
+        bool showAllParents = true,
         string? severityFilter = null
     )
     {
@@ -110,6 +112,17 @@ public class GraphService(SbomRepository repo)
             var parents = sbom
                 .SbomPackages.Where(x => pkg.Parents.Select(p => p.Parent.Id).Contains(x.Id))
                 .ToList();
+
+            if (!showAllParents)
+            {
+                var parent = parents.FirstOrDefault();
+                if (parent != null)
+                {
+                    relations.Add(new PackageRelationDto { To = parent.Id, From = pkg.Id });
+                    stack.Push(parent);
+                }
+                continue;
+            }
 
             foreach (var parent in parents)
             {

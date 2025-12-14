@@ -33,6 +33,7 @@ type SimpleGraphProps = {
   className?: string;
   showNames?: GraphNames;
   severityFilter?: Severity;
+  showParents?: boolean;
 };
 
 const SimpleGraph = ({
@@ -42,11 +43,13 @@ const SimpleGraph = ({
   showNames = "none",
   lr,
   severityFilter,
+  showParents = true,
 }: SimpleGraphProps) => {
   const { data } = useGetProjectGraphQuery({
     id: branch.id,
     packageId,
     severityFilter,
+    showParents,
   });
   const [size, setSize] = useState({ w: 0, h: 0 });
 

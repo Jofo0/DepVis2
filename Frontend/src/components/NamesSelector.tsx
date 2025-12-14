@@ -1,12 +1,12 @@
 import type { GraphNames } from "./graph/SimpleGraph";
 
-const SEVERITIES: {
+const NAMES: {
   text: string;
   value: GraphNames;
 }[] = [
+  { text: "Severe Items", value: "severity" },
   { text: "None", value: "none" },
   { text: "All", value: "all" },
-  { text: "Severe Items", value: "severity" },
 ];
 
 type NamesSelectorProps = {
@@ -19,7 +19,7 @@ const NamesSelector = ({ selected, onSelect }: NamesSelectorProps) => {
     <div className="text-gray-700 text-sm">
       Show Names
       <div className="gap-2 flex flex-row pt-1 text-black">
-        {SEVERITIES.map((severity) => (
+        {NAMES.map((severity) => (
           <div
             className="flex flex-row px-2 py-1"
             key={severity.text}
