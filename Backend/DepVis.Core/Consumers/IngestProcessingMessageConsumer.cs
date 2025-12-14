@@ -216,7 +216,15 @@ public class IngestProcessingMessageConsumer(
             }
             catch (DbUpdateException) when (attempt < maxRetries)
             {
-                _db.ChangeTracker.Clear();
+                var addedEntries = _db
+                    .ChangeTracker.Entries<Vulnerability>()
+                    .Where(e => e.State == EntityState.Added)
+                    .ToList();
+
+                foreach (var entry in addedEntries)
+                {
+                    entry.State = EntityState.Detached;
+                }
                 continue;
             }
         }
