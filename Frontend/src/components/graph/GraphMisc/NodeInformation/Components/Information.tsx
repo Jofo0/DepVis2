@@ -69,6 +69,10 @@ const Information = ({ packageId }: { packageId?: string }) => {
           </div>
           <div className="flex flex-col items-start w-full pt-2">
             <p>
+              <strong>Name: </strong>
+              {vulnerability?.id}
+            </p>
+            <p>
               <strong>Severity: </strong>
               {vulnerability?.severity}
             </p>
