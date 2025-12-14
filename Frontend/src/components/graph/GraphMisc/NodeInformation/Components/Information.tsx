@@ -47,36 +47,42 @@ const Information = ({ packageId }: { packageId?: string }) => {
         <strong>Ecosystem: </strong>
         {data.ecosystem}
       </p>
-      <div className="pt-4">
-        <div className="flex flex-col gap-4 items-center">
-          <strong>Vulnerabilities</strong>
-          <div className="flex flex-row gap-2">
-            {data.vulnerabilities.map((vuln) => (
-              <RadioSelect
-                onClick={() => setVulnerablity(vuln)}
-                bgColor={severityToBgColor[vuln.severity as Severity]}
-                borderColor={severityToBorderColor[vuln.severity as Severity]}
-                key={vuln.id}
-                selected={vuln.id === vulnerability?.id}
-              />
-            ))}
+      {data.vulnerabilities.length === 0 ? (
+        <p className="pt-4 self-center w-full text-center">
+          This package has no known vulnerabilities
+        </p>
+      ) : (
+        <div className="pt-4">
+          <div className="flex flex-col gap-4 items-center">
+            <strong>Vulnerabilities</strong>
+            <div className="flex flex-row gap-2">
+              {data.vulnerabilities.map((vuln) => (
+                <RadioSelect
+                  onClick={() => setVulnerablity(vuln)}
+                  bgColor={severityToBgColor[vuln.severity as Severity]}
+                  borderColor={severityToBorderColor[vuln.severity as Severity]}
+                  key={vuln.id}
+                  selected={vuln.id === vulnerability?.id}
+                />
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col items-start w-full pt-2">
+            <p>
+              <strong>Severity: </strong>
+              {vulnerability?.severity}
+            </p>
+            <p>
+              <strong>Recommendation: </strong>
+              {vulnerability?.recommendation}
+            </p>
+            <p className="overflow-auto max-h-50 h-60">
+              <strong>Description: </strong>
+              {vulnerability?.description}
+            </p>
           </div>
         </div>
-        <div className="flex flex-col items-start w-full pt-2">
-          <p>
-            <strong>Severity: </strong>
-            {vulnerability?.severity}
-          </p>
-          <p>
-            <strong>Recommendation: </strong>
-            {vulnerability?.recommendation}
-          </p>
-          <p className="overflow-auto max-h-50 h-60">
-            <strong>Description: </strong>
-            {vulnerability?.description}
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
