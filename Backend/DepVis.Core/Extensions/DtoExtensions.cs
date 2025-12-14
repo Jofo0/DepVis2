@@ -38,18 +38,16 @@ public static class DtoExtensions
 
     public static ProjectBranchDetailedDto MapToBranchesDetailedDto(this ProjectBranches pb)
     {
-        var latestSbom = pb.Sboms.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
-        // TODO: set this in db to be on the Project
         return new()
         {
             Id = pb.Id,
             Name = pb.Name,
             PackageCount = pb.PackageCount,
             VulnerabilityCount = pb.VulnerabilityCount,
-            CommitDate = latestSbom.CommitDate,
-            CommitMessage = latestSbom.CommitMessage,
-            CommitSha = latestSbom.CommitSha,
-            ScanDate = latestSbom.CreatedAt,
+            CommitDate = pb.CommitDate,
+            CommitMessage = pb.CommitMessage,
+            CommitSha = pb.CommitSha,
+            ScanDate = pb.ScanDate,
         };
     }
 }

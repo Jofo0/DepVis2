@@ -25,14 +25,18 @@ export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] =>
         ),
       },
       {
-        header: "Commit Date",
         accessorKey: "commitDate",
+        header: ({ column }: { column: Column<BranchDetailed, unknown> }) => (
+          <SortButton column={column} header="Commit Date" />
+        ),
         cell: ({ row }: { row: Row<BranchDetailed> }) =>
           parseTime(row.original.commitDate),
       },
       {
         accessorKey: "scanDate",
-        header: "Scan Date",
+        header: ({ column }: { column: Column<BranchDetailed, unknown> }) => (
+          <SortButton column={column} header="Scan Date" />
+        ),
         cell: ({ row }: { row: Row<BranchDetailed> }) =>
           parseTime(row.original.scanDate),
       },

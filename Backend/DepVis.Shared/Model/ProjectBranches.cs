@@ -12,6 +12,10 @@ public class ProjectBranches
     public bool IsTag { get; set; } = false;
     public int PackageCount { get; set; } = 0;
     public int VulnerabilityCount { get; set; } = 0;
+    public DateTime CommitDate { get; set; }
+    public DateTime ScanDate { get; set; }
+    public string CommitMessage { get; set; } = string.Empty;
+    public string CommitSha { get; set; } = string.Empty;
     public Project Project { get; set; } = null!;
     public ICollection<Sbom> Sboms { get; set; } = [];
 }

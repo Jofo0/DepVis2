@@ -42,6 +42,11 @@ public class UpdateProcessingMessageConsumer(
                 CommitSha = message.CommitSha,
             };
 
+            projectBranch.ScanDate = sbom.CreatedAt;
+            projectBranch.CommitDate = message.CommitDate;
+            projectBranch.CommitMessage = message.CommitMessage;
+            projectBranch.CommitSha = message.CommitSha;
+
             dbContext.Sboms.Add(sbom);
         }
 
