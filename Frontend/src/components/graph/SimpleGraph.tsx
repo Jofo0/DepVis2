@@ -76,7 +76,11 @@ const SimpleGraph = ({
       deg.set(l.source, (deg.get(l.source) ?? 0) + 1);
       deg.set(l.target, (deg.get(l.target) ?? 0) + 1);
     });
-    nodes.forEach((n) => (n.val = Math.max(1, deg.get(n.id) ?? 1)));
+    nodes.forEach((n) =>
+      n.name === "ProjectRoot"
+        ? (n.val = 14)
+        : (n.val = Math.max(1, deg.get(n.id) ?? 1))
+    );
 
     return { nodes, links };
   }, [data]);
@@ -110,6 +114,9 @@ const SimpleGraph = ({
             dagLevelDistance={lr ? 75 : null}
             nodeColor={(node) => {
               const n = node as GraphNode;
+
+              if (n.name === "ProjectRoot") return colors.deepPurple;
+
               if (n.id === packageId || n.severity === "critical")
                 return colors.darkRed;
 

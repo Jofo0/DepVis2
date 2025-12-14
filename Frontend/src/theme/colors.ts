@@ -4,4 +4,5 @@ export const colors = {
   red: "#fb2c36",
   yellow: "#f0b100",
   orange: "#ff6900",
+  deepPurple: "#bb3cd2",
 } as const;

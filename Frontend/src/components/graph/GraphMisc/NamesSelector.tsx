@@ -1,12 +1,12 @@
-import type { GraphNames } from "./graph/SimpleGraph";
+import type { GraphNames } from "../SimpleGraph";
 
 const NAMES: {
   text: string;
   value: GraphNames;
 }[] = [
   { text: "Severe Items", value: "severity" },
-  { text: "None", value: "none" },
   { text: "All", value: "all" },
+  { text: "None", value: "none" },
 ];
 
 type NamesSelectorProps = {
