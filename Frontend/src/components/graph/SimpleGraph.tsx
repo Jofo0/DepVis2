@@ -34,6 +34,7 @@ type SimpleGraphProps = {
   showNames?: GraphNames;
   severityFilter?: Severity;
   showParents?: boolean;
+  onNodeClick?: (node: GraphNode) => void;
 };
 
 const SimpleGraph = ({
@@ -44,6 +45,7 @@ const SimpleGraph = ({
   lr,
   severityFilter,
   showParents = true,
+  onNodeClick,
 }: SimpleGraphProps) => {
   const { data } = useGetProjectGraphQuery({
     id: branch.id,
@@ -106,6 +108,7 @@ const SimpleGraph = ({
             nodeLabel="name"
             height={contentRect?.bounds?.height}
             width={contentRect?.bounds?.width}
+            onNodeClick={onNodeClick}
             cooldownTicks={lr ? 0 : 60}
             d3AlphaMin={0.05}
             linkDirectionalArrowLength={6}
