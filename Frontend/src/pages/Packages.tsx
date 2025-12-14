@@ -5,17 +5,20 @@ import { useLazyGetPackagesQuery } from "@/store/api/projectsApi";
 import { buildPackagesOdata } from "@/utils/buildPackagesOdata";
 import { useGetPackagesColumns } from "@/utils/columns/useGetPackagesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
+import { toODataOrderBy } from "@/utils/odataHelper";
 import {
   useReactTable,
   getSortedRowModel,
   getCoreRowModel,
   getPaginationRowModel,
+  type SortingState,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 
 const Packages = () => {
   const { branch, isLoading: isLoadingBranch } = useBranch();
   const columns = useGetPackagesColumns();
+  const [sorting, setSorting] = useState<SortingState>([]);
   const [ecosystemFilter, setEcosystemFilter] = useState("");
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
   const [fetchPackages, { data, isFetching: isLoading }] =
@@ -24,7 +27,11 @@ const Packages = () => {
   const table = useReactTable({
     data: data?.packageItems ?? [],
     columns,
+    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
     getPaginationRowModel: getPaginationRowModel(),
     manualSorting: true,
     getCoreRowModel: getCoreRowModel(),
@@ -38,14 +45,17 @@ const Packages = () => {
       vulnerability: vulnerabilityFilter || null,
     });
 
+    const sortOdata = toODataOrderBy(sorting);
+
+    const fullOdata = [odata, sortOdata].filter(Boolean).join("&");
     fetchPackages(
       {
         id: branch.id,
-        odata,
+        odata: fullOdata,
       },
       true
     );
-  }, [branch, ecosystemFilter, vulnerabilityFilter, fetchPackages]);
+  }, [branch, ecosystemFilter, vulnerabilityFilter, fetchPackages, sorting]);
 
   const onEcosystemClick = (name: string) => {
     setEcosystemFilter((prev) => (prev === name ? "" : name));
@@ -73,6 +83,7 @@ const Packages = () => {
                 className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
                 pies={data?.ecoSystems ?? []}
                 isLoading={isLoading}
+                filteredBy={ecosystemFilter}
                 onSliceClick={onEcosystemClick}
               />
 
@@ -81,6 +92,7 @@ const Packages = () => {
                 onSliceClick={onVulnerabilityClick}
                 isLoading={isLoading}
                 className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+                filteredBy={vulnerabilityFilter}
                 pies={data?.vulnerabilities ?? []}
               />
             </div>

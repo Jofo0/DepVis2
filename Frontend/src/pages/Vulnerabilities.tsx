@@ -78,6 +78,7 @@ const Vulnerabilities = () => {
                     color: riskToColor(risk.name as Severity),
                   })) ?? []
                 }
+                filteredBy={riskFilter}
                 isLoading={isLoading}
                 onSliceClick={onRiskClick}
               />

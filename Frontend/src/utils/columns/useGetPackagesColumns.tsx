@@ -1,5 +1,6 @@
+import { SortButton } from "@/components/table/SortButton";
 import type { PackageItemDto } from "@/types/packages";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { Column, ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 export const useGetPackagesColumns = (): ColumnDef<PackageItemDto>[] =>
@@ -7,12 +8,16 @@ export const useGetPackagesColumns = (): ColumnDef<PackageItemDto>[] =>
     () => [
       {
         accessorKey: "name",
-        header: "Package",
+        header: ({ column }: { column: Column<PackageItemDto, unknown> }) => (
+          <SortButton column={column} header="Package" />
+        ),
         size: 250,
       },
       {
         accessorKey: "version",
-        header: "Version",
+        header: ({ column }: { column: Column<PackageItemDto, unknown> }) => (
+          <SortButton column={column} header="Version" />
+        ),
       },
       {
         accessorKey: "ecosystem",

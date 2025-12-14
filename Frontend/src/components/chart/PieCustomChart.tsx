@@ -15,6 +15,7 @@ type PiePackagesChartProps = {
   className?: string;
   onSliceClick?: (name: string) => void;
   isLoading?: boolean;
+  filteredBy?: string;
 };
 
 export const PieCustomChart = ({
@@ -23,6 +24,7 @@ export const PieCustomChart = ({
   className = "",
   onSliceClick,
   isLoading = false,
+  filteredBy,
 }: PiePackagesChartProps) => {
   const chartConfig = pies.reduce((acc, x) => {
     acc[x.name] = {
@@ -40,9 +42,19 @@ export const PieCustomChart = ({
   return (
     <Card className={`w-full ${className} overflow-hidden`}>
       <CardHeader>{title}</CardHeader>
-      <CardDescription className="px-7">
-        Click on any slice to filter by the value
-      </CardDescription>
+      <div className="flex flex-row justify-between">
+        <CardDescription className="px-7">
+          Click on any slice to filter by the value
+        </CardDescription>
+        <CardDescription className="px-7">
+          {filteredBy && (
+            <div className="flex flex-row gap-1">
+              Currently filtered by:
+              <div className="text-black">{filteredBy}</div>
+            </div>
+          )}
+        </CardDescription>
+      </div>
 
       <div className="h-full w-full">
         {isLoading ? (
