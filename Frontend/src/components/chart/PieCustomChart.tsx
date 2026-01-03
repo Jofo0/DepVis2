@@ -92,7 +92,8 @@ export const PieCustomChart = ({
 
 export const ChartLoader = () => {
   return (
-    <div className="h-full place-self-center self-center flex flex-col items-center justify-center">
+    <div className="h-full place-self-center self-center flex flex-col items-center justify-center gap-2">
+      <div className="text-2xl">Loading</div>
       <div className="loader" />
     </div>
   );

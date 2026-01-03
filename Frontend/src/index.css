@@ -139,58 +139,20 @@ body {
 }
 
 .loader {
-  width: 40px;
-  aspect-ratio: 1;
-  color: #f03355;
-  background: conic-gradient(currentColor 0 270deg,#0000 0);
-  border-radius: 50%;
-  animation: l14-0 4s infinite linear;
+  width: 60px;
+  aspect-ratio: 4;
+  --_g: no-repeat radial-gradient(circle closest-side,#000 90%,#0000);
+  background: 
+    var(--_g) 0%   50%,
+    var(--_g) 50%  50%,
+    var(--_g) 100% 50%;
+  background-size: calc(100%/3) 100%;
+  animation: l7 1s infinite linear;
 }
-.loader::before {
-  content: "";
-  display: block;
-  height: 50%;
-  width: 50%;
-  border-top-left-radius: 100px;
-  background: currentColor;
-  animation: l14 0.5s infinite alternate;
-}
-@keyframes l14-0 {
-    0%,24.99%  {transform: rotate(0deg)}
-    25%,49.99% {transform: rotate(90deg)}
-    50%,74.99% {transform: rotate(180deg)}
-    75%,100%   {transform: rotate(270deg)}
-}
-@keyframes l14 {
-    100%  {transform: translate(-10px,-10px)}
-}
-
-
-.loaderBlob {
-  width: 40px;
-  aspect-ratio: 1;
-  display: flex;
-}
-.loaderBlob:before,
-.loaderBlob:after {
-  content: "";
-  flex: 1;
-  background: #f03355;
-  animation: l21 2s infinite;
-  border-radius: 100px 0 0 100px;
-  transform-origin: top right;
-  transform: translateY(calc(var(--s,1)*0%)) rotate(0);
-}
-.loaderBlob:after {
-  transform-origin: bottom left;
-  border-radius: 0 100px 100px 0;
-  --s:-1;
-}
-@keyframes l21 {
-  33%  {transform: translate(0,calc(var(--s,1)*50%)) rotate(0)}
-  66%  {transform: translate(0,calc(var(--s,1)*50%)) rotate(-90deg)}
-  90%,
-  100% {transform: translate(calc(var(--s,1)*-100%),calc(var(--s,1)*50%))  rotate(-90deg)}
+@keyframes l7 {
+    33%{background-size:calc(100%/3) 0%  ,calc(100%/3) 100%,calc(100%/3) 100%}
+    50%{background-size:calc(100%/3) 100%,calc(100%/3) 0%  ,calc(100%/3) 100%}
+    66%{background-size:calc(100%/3) 100%,calc(100%/3) 100%,calc(100%/3) 0%  }
 }
 
 .dark {

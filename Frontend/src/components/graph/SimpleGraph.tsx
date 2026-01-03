@@ -10,6 +10,7 @@ import type { Branch } from "@/types/branches";
 import { cn } from "@/lib/utils";
 import type { Severity } from "@/types/packages";
 import { colors } from "@/theme/colors";
+import { ChartLoader } from "../chart/PieCustomChart";
 
 type GraphNode = {
   id: string;
@@ -101,7 +102,7 @@ const SimpleGraph = ({
     return { nodes, links };
   }, [data]);
 
-  if (isFetching) return <Loader />;
+  if (isFetching) return <ChartLoader />;
 
   return (
     <Measure
@@ -188,14 +189,6 @@ const SimpleGraph = ({
         </div>
       )}
     </Measure>
-  );
-};
-
-export const Loader = () => {
-  return (
-    <div className="h-full place-self-center self-center flex flex-col items-center justify-center">
-      <div className="loaderBlob" />
-    </div>
   );
 };
 
