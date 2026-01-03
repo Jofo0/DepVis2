@@ -5,7 +5,7 @@ import VulnerabilityCard from "@/components/VulnerabilityCard";
 import { useLazyGetVulnerabilitiesQuery } from "@/store/api/projectsApi";
 import type { Severity } from "@/types/packages";
 import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
-import { buildOdata } from "@/utils/buildGeneralOdata";
+import { buildOdata } from "@/utils/buildVulnerabilitiesOdata";
 import { useGetVulnerabilitiesColumns } from "@/utils/columns/useGetVulnerabilitiesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import {

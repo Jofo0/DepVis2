@@ -21,6 +21,6 @@ export const toODataFilter = (filters: ColumnFiltersState) => {
 
 export const joinODataFilters = (filters: string[]): string => {
   const joinedFilers = filters.filter(Boolean).join(" and ");
-  const filter = joinedFilers.length > 0 ? `?$filter=${joinedFilers}` : "";
+  const filter = joinedFilers.length > 0 ? `$filter=${joinedFilers}` : "";
   return filter;
 };

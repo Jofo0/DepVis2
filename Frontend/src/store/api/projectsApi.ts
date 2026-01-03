@@ -96,7 +96,7 @@ export const projectApi = projectsApi.injectEndpoints({
     }),
     getVulnerabilities: builder.query<VulnerabilitiesDto, IdWithOdata>({
       query: ({ id, odata }) =>
-        `/${id}/vulnerabilities${odata ? `${odata}` : ""}`,
+        `/${id}/vulnerabilities${odata ? `?${odata}` : ""}`,
     }),
     getVulnerability: builder.query<VulnerabilityDetailedDto, string>({
       query: (id) => `/vulnerabilities/${id}`,

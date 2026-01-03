@@ -46,13 +46,15 @@ export const SearchFilter = <T,>({
   }, [showFilter]);
 
   return showFilter ? (
-    <Input
-      ref={inputRef}
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      placeholder={placeholder}
-      className={cn("w-24", className)}
-    />
+    <div>
+      <Input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        className={cn("w-24", className)}
+      />
+    </div>
   ) : (
     <Button variant="ghost" onClick={() => setShowFilter(true)}>
       <Search />
