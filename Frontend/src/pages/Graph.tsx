@@ -9,6 +9,10 @@ import { useState } from "react";
 import NamesSelector from "@/components/graph/GraphMisc/NamesSelector";
 import Legend from "@/components/graph/GraphMisc/Legend/Legend";
 import NodeInformation from "@/components/graph/GraphMisc/NodeInformation/NodeInformation";
+import { Button } from "@/components/ui/button";
+import { useLazyGetProjectGraphExportQuery } from "@/store/api/projectsApi";
+import { downloadBlob } from "@/utils/downloadBlob";
+import { getPrettyDate } from "@/utils/dateHelper";
 
 const Graph = () => {
   const { branch } = useBranch();
@@ -19,14 +23,29 @@ const Graph = () => {
   const [showParents, setShowParents] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | undefined>();
 
+  const [triggerExport] = useLazyGetProjectGraphExportQuery();
   const onInformationClose = () => {
     setSelectedNode(undefined);
   };
 
+  const onExportClick = async () => {
+    if (!branch) return;
+
+    const blob = await triggerExport({
+      showParents: showParents,
+      severityFilter: selectedSeverity,
+      id: branch.id,
+    }).unwrap();
+
+    downloadBlob(blob, `graph-${branch.name}-${getPrettyDate()}.dot`);
+  };
   return (
     <div className="h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] w-[calc(100vw-25rem)] max-w-[calc(100vw-25rem)] overflow-hidden">
-      <div className="flex flex-row gap-4 border-2 rounded-2xl  p-4 absolute top-20 z-1000 bg-white">
+      <div className="flex flex-row gap-4 border-2 rounded-2xl  p-4 absolute top-20 z-1000 bg-white ">
         <BranchSelector />
+        <Button variant={"outline"} onClick={onExportClick} className="mt-5">
+          Export Graph
+        </Button>
         <Separator />
         <SeveritySelector
           selected={selectedSeverity}

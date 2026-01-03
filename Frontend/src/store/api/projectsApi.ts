@@ -90,6 +90,26 @@ export const projectApi = projectsApi.injectEndpoints({
             : ""
         }`,
     }),
+    getProjectGraphExport: builder.query<
+      Blob,
+      {
+        id: string;
+        packageId?: string;
+        severityFilter?: Severity;
+        showParents: boolean;
+      }
+    >({
+      query: ({ id, packageId, severityFilter, showParents }) => ({
+        responseHandler: (response) => response.blob(),
+        url: `/${id}/packages/graph/${
+          packageId ? packageId : ""
+        }?$export=true&${
+          severityFilter
+            ? `severity=${severityFilter}&showAllParents=${showParents}`
+            : ""
+        }`,
+      }),
+    }),
     getPackages: builder.query<PackagesDetailedDto, IdWithOdata>({
       query: ({ id, odata }) => `/${id}/packages${odata ? `?${odata}` : ""}`,
     }),
@@ -136,6 +156,7 @@ export const {
   useLazyGetVulnerabilityQuery,
   useLazyGetVulnerabilitiesExportQuery,
   useLazyGetPackagesQuery,
+  useLazyGetProjectGraphExportQuery,
   useLazyGetPackagesExportQuery,
   useLazyGetVulnerabilitiesQuery,
   useLazyGetProjectBranchesDetailedExportQuery,

@@ -1,4 +1,5 @@
-﻿using DepVis.Core.Dtos;
+﻿using System.Text;
+using DepVis.Core.Dtos;
 using DepVis.Core.Services;
 using DepVis.Core.Util;
 using DepVis.Shared.Model;
@@ -46,11 +47,21 @@ public class PackagesController(PackageService packageService, GraphService grap
     public async Task<ActionResult<GraphDataDto>> GetFullGraph(
         Guid branchId,
         [FromQuery] string? severity,
-        [FromQuery] bool showAllParents = true
+        [FromQuery] bool showAllParents = true,
+        [FromQuery(Name = "$export")] bool export = false
     )
     {
         var graph = await graphService.GetProjectGraphData(branchId, showAllParents, severity);
-        return graph is null ? NotFound() : Ok(graph);
+        if (graph is null)
+            return NotFound();
+
+        if (!export)
+            return Ok(graph);
+
+        var dot = DotExport.ToDot(graph, graphName: $"branch_{branchId:N}");
+        var bytes = Encoding.UTF8.GetBytes(dot);
+
+        return File(bytes, "text/vnd.graphviz", $"graph-{branchId}.dot");
     }
 
     [HttpGet("{branchId}/packages/graph/{packageId}")]
