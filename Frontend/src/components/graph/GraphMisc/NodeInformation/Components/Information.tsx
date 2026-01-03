@@ -80,7 +80,7 @@ const Information = ({ packageId }: { packageId?: string }) => {
               <strong>Recommendation: </strong>
               {vulnerability?.recommendation}
             </p>
-            <p className="overflow-auto max-h-50 h-60">
+            <p className="overflow-scroll max-h-70">
               <strong>Description: </strong>
               {vulnerability?.description}
             </p>
