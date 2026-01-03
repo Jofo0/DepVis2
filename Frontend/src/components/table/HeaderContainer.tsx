@@ -6,7 +6,7 @@ const HeaderContainer = ({
   header: string;
 }) => {
   return (
-    <div className="flex flex-row items-center">
+    <div className="flex flex-row items-center gap-1">
       {header}
       {children}
     </div>

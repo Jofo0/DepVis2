@@ -39,6 +39,12 @@ export const projectApi = projectsApi.injectEndpoints({
       query: ({ id, odata }) =>
         `/${id}/branches/detailed${odata ? `?${odata}` : ""}`,
     }),
+    getProjectBranchesDetailedExport: builder.query<Blob, IdWithOdata>({
+      query: ({ id, odata }) => ({
+        responseHandler: (response) => response.blob(),
+        url: `/${id}/branches/detailed?$export=true${odata ? `&${odata}` : ""}`,
+      }),
+    }),
     createProject: builder.mutation<ProjectDto, CreateProjectDto>({
       query: (dto) => ({
         url: "/",
@@ -87,6 +93,12 @@ export const projectApi = projectsApi.injectEndpoints({
     getPackages: builder.query<PackagesDetailedDto, IdWithOdata>({
       query: ({ id, odata }) => `/${id}/packages${odata ? `?${odata}` : ""}`,
     }),
+    getPackagesExport: builder.query<Blob, IdWithOdata>({
+      query: ({ id, odata }) => ({
+        responseHandler: (response) => response.blob(),
+        url: `/${id}/packages?$export=true${odata ? `&${odata}` : ""}`,
+      }),
+    }),
     getPackage: builder.query<PackageDetailedDto, string>({
       query: (id) => `/packages/${id}`,
     }),
@@ -97,6 +109,12 @@ export const projectApi = projectsApi.injectEndpoints({
     getVulnerabilities: builder.query<VulnerabilitiesDto, IdWithOdata>({
       query: ({ id, odata }) =>
         `/${id}/vulnerabilities${odata ? `?${odata}` : ""}`,
+    }),
+    getVulnerabilitiesExport: builder.query<Blob, IdWithOdata>({
+      query: ({ id, odata }) => ({
+        responseHandler: (response) => response.blob(),
+        url: `/${id}/vulnerabilities?$export=true${odata ? `&${odata}` : ""}`,
+      }),
     }),
     getVulnerability: builder.query<VulnerabilityDetailedDto, string>({
       query: (id) => `/vulnerabilities/${id}`,
@@ -116,6 +134,9 @@ export const {
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,
   useLazyGetVulnerabilityQuery,
+  useLazyGetVulnerabilitiesExportQuery,
   useLazyGetPackagesQuery,
+  useLazyGetPackagesExportQuery,
   useLazyGetVulnerabilitiesQuery,
+  useLazyGetProjectBranchesDetailedExportQuery,
 } = projectApi;

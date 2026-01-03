@@ -10,6 +10,7 @@ export const SortButton = <T,>({ column }: SortButtonProps<T>) => {
   return (
     <Button
       variant="ghost"
+      className="w-4"
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
     >
       {!column.getIsSorted() ? (

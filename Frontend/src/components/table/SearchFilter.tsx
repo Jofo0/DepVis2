@@ -56,7 +56,7 @@ export const SearchFilter = <T,>({
       />
     </div>
   ) : (
-    <Button variant="ghost" onClick={() => setShowFilter(true)}>
+    <Button variant="ghost" onClick={() => setShowFilter(true)} className="w-4">
       <Search />
     </Button>
   );

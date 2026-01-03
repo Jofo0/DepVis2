@@ -1,13 +1,18 @@
 import BranchSelector from "@/components/BranchSelector";
 import { PieCustomChart } from "@/components/chart/PieCustomChart";
 import { DataTable } from "@/components/table/DataTable";
-import { useLazyGetPackagesQuery } from "@/store/api/projectsApi";
+import {
+  useLazyGetPackagesExportQuery,
+  useLazyGetPackagesQuery,
+} from "@/store/api/projectsApi";
 import { buildPackagesOdata } from "@/utils/buildPackagesOdata";
 import { useGetPackagesColumns } from "@/utils/columns/useGetPackagesColumns";
+import { getPrettyDate } from "@/utils/dateHelper";
+import { downloadBlob } from "@/utils/downloadBlob";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import {
-  joinODataFilters,
   toODataFilter,
+  joinODataFilters,
   toODataOrderBy,
 } from "@/utils/odataHelper";
 import {
@@ -30,6 +35,7 @@ const Packages = () => {
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
   const [fetchPackages, { data, isFetching: isLoading }] =
     useLazyGetPackagesQuery();
+  const [triggerExport] = useLazyGetPackagesExportQuery();
 
   const table = useReactTable({
     data: data?.packageItems ?? [],
@@ -47,9 +53,7 @@ const Packages = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  useEffect(() => {
-    if (!branch) return;
-
+  const getFullOdata = () => {
     const chartFilterOdata = buildPackagesOdata({
       ecosystem: ecosystemFilter || null,
       vulnerability: vulnerabilityFilter || null,
@@ -59,12 +63,16 @@ const Packages = () => {
 
     const sortOdata = toODataOrderBy(sorting);
 
-    const fullOdata = [filter, sortOdata].filter(Boolean).join("&");
+    return [filter, sortOdata].filter(Boolean).join("&");
+  };
+
+  useEffect(() => {
+    if (!branch) return;
 
     fetchPackages(
       {
         id: branch.id,
-        odata: fullOdata,
+        odata: getFullOdata(),
       },
       true
     );
@@ -84,6 +92,21 @@ const Packages = () => {
   const onVulnerabilityClick = (name: string) => {
     setVulnerabilityFilter((prev) => (prev === name ? "" : name));
   };
+
+  const onExportClick = async () => {
+    if (!branch) return;
+
+    const blob = await triggerExport(
+      {
+        id: branch.id,
+        odata: getFullOdata(),
+      },
+      true
+    ).unwrap();
+
+    downloadBlob(blob, `packages-${branch.name}-${getPrettyDate()}.csv`);
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full justify-evenly gap-2">
@@ -92,6 +115,7 @@ const Packages = () => {
           <div className="flex flex-row gap-10 w-full h-full justify-evenly">
             <div className="h-max-full w-1/2">
               <DataTable
+                onExportClick={onExportClick}
                 isLoading={isLoading}
                 className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
                 table={table}

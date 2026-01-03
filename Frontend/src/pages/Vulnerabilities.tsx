@@ -2,11 +2,16 @@ import BranchSelector from "@/components/BranchSelector";
 import { PieCustomChart } from "@/components/chart/PieCustomChart";
 import { DataTable } from "@/components/table/DataTable";
 import VulnerabilityCard from "@/components/VulnerabilityCard";
-import { useLazyGetVulnerabilitiesQuery } from "@/store/api/projectsApi";
+import {
+  useLazyGetVulnerabilitiesExportQuery,
+  useLazyGetVulnerabilitiesQuery,
+} from "@/store/api/projectsApi";
 import type { Severity } from "@/types/packages";
 import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
 import { buildOdata } from "@/utils/buildVulnerabilitiesOdata";
 import { useGetVulnerabilitiesColumns } from "@/utils/columns/useGetVulnerabilitiesColumns";
+import { getPrettyDate } from "@/utils/dateHelper";
+import { downloadBlob } from "@/utils/downloadBlob";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import {
   joinODataFilters,
@@ -33,6 +38,7 @@ const Vulnerabilities = () => {
 
   const [fetchVulnerabilities, { data, isFetching: isLoading }] =
     useLazyGetVulnerabilitiesQuery();
+  const [triggerExport] = useLazyGetVulnerabilitiesExportQuery();
 
   const [selectedVulnerability, setSelectedVulnerability] =
     useState<VulnerabilitySmallDto | null>(null);
@@ -59,9 +65,7 @@ const Vulnerabilities = () => {
     const chartOdata = buildOdata({ severity: riskFilter || "" });
     const filterOdata = toODataFilter(columnFilters);
     const filter = joinODataFilters([chartOdata, filterOdata]);
-
     const sortOdata = toODataOrderBy(sorting);
-
     const fullOdata = [filter, sortOdata].filter(Boolean).join("&");
 
     fetchVulnerabilities(
@@ -77,6 +81,23 @@ const Vulnerabilities = () => {
     setRiskFilter((prev) => (prev === name ? "" : name));
   };
 
+  const onExportClick = async () => {
+    if (!branch) return;
+
+    const chartOdata = buildOdata({ severity: riskFilter || "" });
+    const filterOdata = toODataFilter(columnFilters);
+    const filter = joinODataFilters([chartOdata, filterOdata]);
+    const sortOdata = toODataOrderBy(sorting);
+    const fullOdata = [filter, sortOdata].filter(Boolean).join("&");
+
+    const blob = await triggerExport({
+      id: branch.id,
+      odata: fullOdata,
+    }).unwrap();
+
+    downloadBlob(blob, `vulnerabilities-${branch.name}-${getPrettyDate()}.csv`);
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full justify-evenly gap-2">
@@ -85,6 +106,7 @@ const Vulnerabilities = () => {
           <div className="flex flex-row gap-10 w-full h-full justify-evenly">
             <div className="h-max-full w-1/2">
               <DataTable
+                onExportClick={onExportClick}
                 isLoading={isLoading}
                 onClick={(row) => setSelectedVulnerability(row)}
                 className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"

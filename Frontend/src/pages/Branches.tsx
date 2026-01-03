@@ -1,7 +1,10 @@
 import { DataTable } from "@/components/table/DataTable";
 import { useGetBranchColumns } from "@/utils/columns/useGetBranchColumns";
 import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
-import { useGetProjectBranchesDetailedQuery } from "@/store/api/projectsApi";
+import {
+  useGetProjectBranchesDetailedQuery,
+  useLazyGetProjectBranchesDetailedExportQuery,
+} from "@/store/api/projectsApi";
 import {
   useReactTable,
   getSortedRowModel,
@@ -11,6 +14,8 @@ import {
 import { useState } from "react";
 import { XYChart } from "@/components/chart/XYChart";
 import { toODataOrderBy } from "@/utils/odataHelper";
+import { downloadBlob } from "@/utils/downloadBlob";
+import { getPrettyDate } from "@/utils/dateHelper";
 
 const Branches = () => {
   const projectId = useGetProjectId();
@@ -21,6 +26,8 @@ const Branches = () => {
     id: projectId,
     odata: toODataOrderBy(sorting),
   });
+
+  const [triggerExport] = useLazyGetProjectBranchesDetailedExportQuery();
 
   const table = useReactTable({
     data,
@@ -34,6 +41,15 @@ const Branches = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const onExportClick = async () => {
+    const blob = await triggerExport({
+      id: projectId,
+      odata: toODataOrderBy(sorting),
+    }).unwrap();
+
+    downloadBlob(blob, `branches-${projectId}-${getPrettyDate()}.csv`);
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-row gap-10 w-full h-full justify-evenly">
@@ -42,6 +58,7 @@ const Branches = () => {
             isLoading={isLoading}
             className="min-h-[calc(87vh)] max-h-[calc(87vh)]"
             table={table}
+            onExportClick={onExportClick}
           />
         </div>
         <div className="flex flex-col gap-6 w-1/2 h-full">

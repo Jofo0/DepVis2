@@ -22,6 +22,7 @@ interface DataTableProps<TData> {
   isLoading?: boolean;
   onClick?: (row: TData) => void;
   loadingRows?: number;
+  onExportClick: () => void;
 }
 
 const WithTooltip = ({
@@ -59,6 +60,7 @@ export function DataTable<TData>({
   isLoading = false,
   loadingRows = 20,
   onClick,
+  onExportClick,
 }: DataTableProps<TData>) {
   const visibleColCount =
     table.getVisibleFlatColumns?.().length ?? table.getAllColumns().length;
@@ -145,7 +147,7 @@ export function DataTable<TData>({
           </TableBody>
         </Table>
       </TooltipProvider>
-      <DataTablePagination table={table} />
+      <DataTablePagination onExportClick={onExportClick} table={table} />
     </div>
   );
 }

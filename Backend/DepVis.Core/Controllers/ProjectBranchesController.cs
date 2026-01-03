@@ -1,5 +1,6 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Services;
+using DepVis.Core.Util;
 using DepVis.Shared.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -23,10 +24,20 @@ public class ProjectBranchesController(
     [HttpGet("{branchId}/branches/detailed")]
     public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesDetailed(
         Guid branchId,
-        ODataQueryOptions<ProjectBranches> odata
+        ODataQueryOptions<ProjectBranches> odata,
+        [FromQuery(Name = "$export")] bool export = false
     )
     {
         var detailed = await branchService.GetProjectBranchesDetailed(branchId, odata);
+
+        if (export)
+        {
+            var rows = detailed;
+            var stream = await CsvExport.WriteToCsvStreamAsync(rows);
+            stream.Position = 0;
+            return File(stream, "text/csv", $"branches-{branchId}-{DateTime.Now}.csv");
+        }
+
         return Ok(detailed);
     }
 

@@ -1,5 +1,6 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Services;
+using DepVis.Core.Util;
 using DepVis.Shared.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -14,10 +15,20 @@ public class PackagesController(PackageService packageService, GraphService grap
     [HttpGet("{branchId}/packages")]
     public async Task<ActionResult<PackagesDto>> GetBranchPackages(
         Guid branchId,
-        ODataQueryOptions<SbomPackage> odata
+        ODataQueryOptions<SbomPackage> odata,
+        [FromQuery(Name = "$export")] bool export = false
     )
     {
         var dto = await packageService.GetPackageData(branchId, odata);
+
+        if (export)
+        {
+            var rows = dto.PackageItems;
+            var stream = await CsvExport.WriteToCsvStreamAsync(rows);
+            stream.Position = 0;
+            return File(stream, "text/csv", $"packages-{branchId}-{DateTime.Now}.csv");
+        }
+
         return Ok(dto);
     }
 
