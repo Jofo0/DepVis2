@@ -128,7 +128,7 @@ const Vulnerabilities = () => {
                 onSliceClick={onRiskClick}
               />
               <div
-                className={`flex items-center justify-center self-center h-1/2 w-full`}
+                className={`flex items-center justify-center self-center max-h-1/2 h-1/2 w-full`}
               >
                 <VulnerabilityCard
                   selectedVulnerability={selectedVulnerability}
