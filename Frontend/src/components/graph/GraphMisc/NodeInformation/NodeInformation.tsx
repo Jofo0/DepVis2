@@ -11,7 +11,7 @@ const NodeInformation = ({ packageId, onClose }: NodeInformationProps) => {
   return (
     <div
       className={`flex ${
-        packageId ? "w-3xl" : "w-80 h-16"
+        packageId ? "w-1/2" : "w-80 h-16"
       } flex-col gap-4 border-2 rounded-2xl bg-white p-4 absolute bottom-10 right-10 z-1000 transition-all duration-500 ease-in-out`}
     >
       {packageId ? (
