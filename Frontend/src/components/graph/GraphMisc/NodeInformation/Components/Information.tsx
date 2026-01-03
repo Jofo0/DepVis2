@@ -4,7 +4,7 @@ import RadioSelect from "../../RadioSelect";
 import { useLazyGetPackageQuery } from "@/store/api/projectsApi";
 import type { VulnerabilityDetailedDto } from "@/types/vulnerabilities";
 import { useState, useEffect } from "react";
-import { Loader } from "@/components/chart/PieCustomChart";
+import { ChartLoader } from "@/components/chart/PieCustomChart";
 
 const Information = ({ packageId }: { packageId?: string }) => {
   const [fetch, { isFetching, data }] = useLazyGetPackageQuery();
@@ -26,7 +26,7 @@ const Information = ({ packageId }: { packageId?: string }) => {
   }, [packageId, fetch]);
 
   if (isFetching) {
-    return <Loader />;
+    return <ChartLoader />;
   }
 
   if (!data) {

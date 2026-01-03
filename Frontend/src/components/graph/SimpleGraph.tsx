@@ -56,7 +56,7 @@ const SimpleGraph = ({
     | undefined
   >(undefined);
 
-  const { data } = useGetProjectGraphQuery({
+  const { data, isFetching } = useGetProjectGraphQuery({
     id: branch.id,
     packageId,
     severityFilter,
@@ -100,6 +100,8 @@ const SimpleGraph = ({
 
     return { nodes, links };
   }, [data]);
+
+  if (isFetching) return <Loader />;
 
   return (
     <Measure
@@ -186,6 +188,14 @@ const SimpleGraph = ({
         </div>
       )}
     </Measure>
+  );
+};
+
+export const Loader = () => {
+  return (
+    <div className="h-full place-self-center self-center flex flex-col items-center justify-center">
+      <div className="loaderBlob" />
+    </div>
   );
 };
 

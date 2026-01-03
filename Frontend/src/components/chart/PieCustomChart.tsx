@@ -58,7 +58,7 @@ export const PieCustomChart = ({
 
       <div className="h-full w-full">
         {isLoading ? (
-          <Loader />
+          <ChartLoader />
         ) : (
           <ChartContainer
             config={chartConfig}
@@ -90,10 +90,9 @@ export const PieCustomChart = ({
   );
 };
 
-export const Loader = () => {
+export const ChartLoader = () => {
   return (
     <div className="h-full place-self-center self-center flex flex-col items-center justify-center">
-      <div>Loading...</div>
       <div className="loader" />
     </div>
   );
