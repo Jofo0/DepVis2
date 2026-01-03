@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D, {
   type ForceGraphMethods,
   type LinkObject,
@@ -94,13 +94,18 @@ const SimpleGraph = ({
         : (n.val = Math.max(1, deg.get(n.id) ?? 1))
     );
 
-    fgRef.current?.centerAt(0, 0, 400);
-    const zoomTo =
-      nodes.length < 500 ? (1 / nodes.length) * 100 : (1 / nodes.length) * 500;
-    fgRef.current?.zoom(zoomTo, 400);
-
     return { nodes, links };
   }, [data]);
+
+  useEffect(() => {
+    fgRef.current?.centerAt(0, 0, 400);
+    const zoomTo =
+      graphData.nodes.length < 500
+        ? (1 / graphData.nodes.length) * 100
+        : (1 / graphData.nodes.length) * 500;
+
+    fgRef.current?.zoom(packageId ? 0.5 : zoomTo, 400);
+  }, [graphData, packageId]);
 
   if (isFetching) return <ChartLoader />;
 
