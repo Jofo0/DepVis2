@@ -37,7 +37,10 @@ const Graph = () => {
       id: branch.id,
     }).unwrap();
 
-    downloadBlob(blob, `graph-${branch.name}-${getPrettyDate()}.dot`);
+    downloadBlob(
+      blob,
+      `graph-${branch.name}-${getPrettyDate()}-${selectedSeverity || "all"}.dot`
+    );
   };
   return (
     <div className="h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] w-[calc(100vw-25rem)] max-w-[calc(100vw-25rem)] overflow-hidden">
