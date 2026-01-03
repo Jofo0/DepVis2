@@ -23,5 +23,5 @@ export const buildPackagesOdata = ({ ecosystem, vulnerability }: Filters) => {
     }
   }
 
-  return preds.length ? `$filter=${joinAnd(preds)}` : "";
+  return preds.length ? `${joinAnd(preds)}` : "";
 };

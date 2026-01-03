@@ -89,9 +89,7 @@ export function DataTable<TData>({
                       style={{ width: header.column.getSize() }}
                       className="p-2"
                     >
-                      <WithTooltip tooltip={headerNode ?? ""}>
-                        {headerNode}
-                      </WithTooltip>
+                      {headerNode}
                     </TableHead>
                   );
                 })}

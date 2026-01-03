@@ -5,13 +5,18 @@ import { useLazyGetPackagesQuery } from "@/store/api/projectsApi";
 import { buildPackagesOdata } from "@/utils/buildPackagesOdata";
 import { useGetPackagesColumns } from "@/utils/columns/useGetPackagesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
-import { toODataOrderBy } from "@/utils/odataHelper";
+import {
+  joinODataFilters,
+  toODataFilter,
+  toODataOrderBy,
+} from "@/utils/odataHelper";
 import {
   useReactTable,
   getSortedRowModel,
   getCoreRowModel,
   getPaginationRowModel,
   type SortingState,
+  type ColumnFiltersState,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 
@@ -19,6 +24,8 @@ const Packages = () => {
   const { branch, isLoading: isLoadingBranch } = useBranch();
   const columns = useGetPackagesColumns();
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const [ecosystemFilter, setEcosystemFilter] = useState("");
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
   const [fetchPackages, { data, isFetching: isLoading }] =
@@ -28,26 +35,32 @@ const Packages = () => {
     data: data?.packageItems ?? [],
     columns,
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
+      columnFilters,
     },
     getPaginationRowModel: getPaginationRowModel(),
     manualSorting: true,
+    manualFiltering: true,
     getCoreRowModel: getCoreRowModel(),
   });
 
   useEffect(() => {
     if (!branch) return;
 
-    const odata = buildPackagesOdata({
+    const chartFilterOdata = buildPackagesOdata({
       ecosystem: ecosystemFilter || null,
       vulnerability: vulnerabilityFilter || null,
     });
+    const filterOdata = toODataFilter(columnFilters);
+    const filter = joinODataFilters([chartFilterOdata, filterOdata]);
 
     const sortOdata = toODataOrderBy(sorting);
 
-    const fullOdata = [odata, sortOdata].filter(Boolean).join("&");
+    const fullOdata = [filter, sortOdata].filter(Boolean).join("&");
+
     fetchPackages(
       {
         id: branch.id,
@@ -55,7 +68,14 @@ const Packages = () => {
       },
       true
     );
-  }, [branch, ecosystemFilter, vulnerabilityFilter, fetchPackages, sorting]);
+  }, [
+    branch,
+    ecosystemFilter,
+    vulnerabilityFilter,
+    columnFilters,
+    fetchPackages,
+    sorting,
+  ]);
 
   const onEcosystemClick = (name: string) => {
     setEcosystemFilter((prev) => (prev === name ? "" : name));

@@ -1,3 +1,5 @@
+import { SearchFilter } from "@/components/table/SearchFilter";
+import HeaderContainer from "@/components/table/HeaderContainer";
 import { SortButton } from "@/components/table/SortButton";
 import type { PackageItemDto } from "@/types/packages";
 import type { Column, ColumnDef } from "@tanstack/react-table";
@@ -9,14 +11,19 @@ export const useGetPackagesColumns = (): ColumnDef<PackageItemDto>[] =>
       {
         accessorKey: "name",
         header: ({ column }: { column: Column<PackageItemDto, unknown> }) => (
-          <SortButton column={column} header="Package" />
+          <HeaderContainer header="Package">
+            <SortButton column={column} />
+            <SearchFilter column={column} className="max-w-sm" />
+          </HeaderContainer>
         ),
         size: 250,
       },
       {
         accessorKey: "version",
         header: ({ column }: { column: Column<PackageItemDto, unknown> }) => (
-          <SortButton column={column} header="Version" />
+          <HeaderContainer header="Version">
+            <SortButton column={column} />
+          </HeaderContainer>
         ),
       },
       {

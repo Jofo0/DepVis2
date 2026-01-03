@@ -8,7 +8,11 @@ import type { VulnerabilitySmallDto } from "@/types/vulnerabilities";
 import { buildOdata } from "@/utils/buildGeneralOdata";
 import { useGetVulnerabilitiesColumns } from "@/utils/columns/useGetVulnerabilitiesColumns";
 import { useBranch } from "@/utils/hooks/BranchProvider";
-import { toODataOrderBy } from "@/utils/odataHelper";
+import {
+  joinODataFilters,
+  toODataFilter,
+  toODataOrderBy,
+} from "@/utils/odataHelper";
 import { riskToColor } from "@/utils/riskToColor";
 import {
   useReactTable,
@@ -16,6 +20,7 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   type SortingState,
+  type ColumnFiltersState,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
 
@@ -23,6 +28,7 @@ const Vulnerabilities = () => {
   const { branch, isLoading: isLoadingBranch } = useBranch();
   const columns = useGetVulnerabilitiesColumns();
   const [riskFilter, setRiskFilter] = useState("");
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const [fetchVulnerabilities, { data, isFetching: isLoading }] =
@@ -35,24 +41,28 @@ const Vulnerabilities = () => {
     data: data?.vulnerabilities || [],
     columns,
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
+      columnFilters,
     },
     getPaginationRowModel: getPaginationRowModel(),
     manualSorting: true,
+    manualFiltering: true,
     getCoreRowModel: getCoreRowModel(),
   });
 
   useEffect(() => {
     if (!branch) return;
 
-    const filterData = buildOdata({
-      severity: riskFilter || "",
-    });
+    const chartOdata = buildOdata({ severity: riskFilter || "" });
+    const filterOdata = toODataFilter(columnFilters);
+    const filter = joinODataFilters([chartOdata, filterOdata]);
+
     const sortOdata = toODataOrderBy(sorting);
 
-    const fullOdata = [filterData, sortOdata].filter(Boolean).join("&");
+    const fullOdata = [filter, sortOdata].filter(Boolean).join("&");
 
     fetchVulnerabilities(
       {
@@ -61,7 +71,7 @@ const Vulnerabilities = () => {
       },
       true
     );
-  }, [branch, riskFilter, sorting]);
+  }, [branch, riskFilter, sorting, columnFilters, fetchVulnerabilities]);
 
   const onRiskClick = (name: string) => {
     setRiskFilter((prev) => (prev === name ? "" : name));
