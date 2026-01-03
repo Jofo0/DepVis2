@@ -1,5 +1,9 @@
-import { useMemo, useState } from "react";
-import ForceGraph2D from "react-force-graph-2d";
+import { useMemo, useRef, useState } from "react";
+import ForceGraph2D, {
+  type ForceGraphMethods,
+  type LinkObject,
+  type NodeObject,
+} from "react-force-graph-2d";
 import { useGetProjectGraphQuery } from "../../store/api/projectsApi";
 import Measure from "react-measure";
 import type { Branch } from "@/types/branches";
@@ -47,6 +51,11 @@ const SimpleGraph = ({
   showParents = true,
   onNodeClick,
 }: SimpleGraphProps) => {
+  const fgRef = useRef<
+    | ForceGraphMethods<NodeObject<GraphNode>, LinkObject<GraphNode, GraphLink>>
+    | undefined
+  >(undefined);
+
   const { data } = useGetProjectGraphQuery({
     id: branch.id,
     packageId,
@@ -84,6 +93,11 @@ const SimpleGraph = ({
         : (n.val = Math.max(1, deg.get(n.id) ?? 1))
     );
 
+    fgRef.current?.centerAt(0, 0, 400);
+    const zoomTo =
+      nodes.length < 500 ? (1 / nodes.length) * 100 : (1 / nodes.length) * 500;
+    fgRef.current?.zoom(zoomTo, 400);
+
     return { nodes, links };
   }, [data]);
 
@@ -104,6 +118,7 @@ const SimpleGraph = ({
           className={cn("max-h-full max-w-full w-full h-full", className)}
         >
           <ForceGraph2D
+            ref={fgRef}
             graphData={graphData}
             nodeLabel="name"
             height={contentRect?.bounds?.height}
