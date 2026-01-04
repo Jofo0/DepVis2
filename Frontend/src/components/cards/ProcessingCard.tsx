@@ -14,6 +14,8 @@ const ProcessingCard = ({
   description,
   isLoading,
 }: ProcessingCardProps) => {
+  if (branches.length === 0) return;
+
   return (
     <Card
       className={`w-1/5 max-h-[calc(30rem)] min-h-[calc(10rem)] ${
@@ -23,7 +25,7 @@ const ProcessingCard = ({
       <CardHeader>{header}</CardHeader>
       <CardDescription className="h-10">{description}</CardDescription>
       {!isLoading && (
-        <CardContent className="mt-2 flex flex-col items-center py-4">
+        <CardContent className="mt-2 grid grid-cols-2 grid- py-4">
           {branches.length === 0 ? (
             <p className="text-xl text-green-800 flex flex-row gap-3 self-end items-center">
               Finished!
