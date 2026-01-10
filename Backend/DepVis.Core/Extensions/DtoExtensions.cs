@@ -14,10 +14,10 @@ public static class DtoExtensions
             ProjectLink = project.ProjectLink,
         };
 
-    public static ProjectStatsDto MapToDto(this ProjectBranches stats) =>
+    public static ProjectStatsDto MapToDto(this ProjectBranch stats) =>
         new() { PackageCount = stats.PackageCount, VulnerabilityCount = stats.VulnerabilityCount };
 
-    public static ProjectBranchDto MapToBranchesDto(this ProjectBranches pb) =>
+    public static ProjectBranchDto MapToBranchesDto(this ProjectBranch pb) =>
         new()
         {
             Id = pb.Id,
@@ -36,7 +36,7 @@ public static class DtoExtensions
             Vulnerable = pb.Vulnerabilities.Count > 0,
         };
 
-    public static ProjectBranchDetailedDto MapToBranchesDetailedDto(this ProjectBranches pb)
+    public static ProjectBranchDetailedDto MapToBranchesDetailedDto(this ProjectBranch pb)
     {
         return new()
         {

@@ -10,11 +10,11 @@ public interface IProjectRepository
     Task<Sbom?> GetPackagesAndChildrenByIdAndBranch(Guid id);
     Task AddAsync(Project project);
     Task<Vulnerability?> GetVulnerability(string id);
-    Task<ProjectBranches?> GetProjectStats(Guid id);
-    Task<List<ProjectBranches>> GetProjectBranches(Guid id);
+    Task<ProjectBranch?> GetProjectStats(Guid id);
+    Task<List<ProjectBranch>> GetProjectBranches(Guid id);
     Task<Sbom?> GetPackagesAndParentsByIdAndBranch(Guid id);
     IQueryable<SbomPackage> GetPackagesForBranch(Guid branchId);
-    IQueryable<ProjectBranches> GetProjectBranchesAsQueryable(Guid id);
+    IQueryable<ProjectBranch> GetProjectBranchesAsQueryable(Guid id);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);
 }

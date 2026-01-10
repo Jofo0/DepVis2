@@ -6,4 +6,5 @@ public enum ProcessStep
     SbomCreation,
     SbomIngest,
     Processed,
+    NotStarted,
 }

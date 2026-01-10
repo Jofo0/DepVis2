@@ -2,7 +2,7 @@
 
 namespace DepVis.Shared.Model;
 
-public class ProjectBranches
+public class ProjectBranch
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ProjectId { get; set; }
@@ -12,6 +12,8 @@ public class ProjectBranches
     public bool IsTag { get; set; } = false;
     public int PackageCount { get; set; } = 0;
     public int VulnerabilityCount { get; set; } = 0;
+    public ProcessStep HistoryProcessingStep { get; set; } = ProcessStep.NotStarted;
+    public ProcessStatus HistoryProcessinStatus { get; set; } = ProcessStatus.Success;
     public DateTime CommitDate { get; set; }
     public DateTime ScanDate { get; set; }
     public string CommitMessage { get; set; } = string.Empty;

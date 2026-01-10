@@ -11,12 +11,13 @@ public class DepVisDbContext : DbContext
     public DbSet<Project> Projects { get; set; }
     public DbSet<Sbom> Sboms { get; set; }
     public DbSet<ProjectStatistics> ProjectStatistics { get; set; }
+    public DbSet<BranchHistory> BranchHistories { get; set; }
     public DbSet<SbomPackage> SbomPackages { get; set; }
     public DbSet<PackageDependency> PackageDependencies => Set<PackageDependency>();
     public DbSet<Vulnerability> Vulnerabilities { get; set; }
     public DbSet<SbomPackageVulnerability> SbomPackageVulnerabilities =>
         Set<SbomPackageVulnerability>();
-    public DbSet<ProjectBranches> ProjectBranches { get; set; }
+    public DbSet<ProjectBranch> ProjectBranches { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

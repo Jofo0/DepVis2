@@ -6,18 +6,27 @@ namespace DepVis.Core.Repositories;
 
 public class ProjectBranchRepository(DepVisDbContext context)
 {
-    public async Task<ProjectBranches?> GetByIdAsync(Guid id) =>
-        await context.ProjectBranches.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+    public async Task<ProjectBranch?> GetByIdAsync(Guid id) =>
+        await context
+            .ProjectBranches.Include(x => x.Project)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
 
-    public async Task<List<ProjectBranches>> GetByProjectAsync(Guid projectId) =>
+    public async Task<List<ProjectBranch>> GetByProjectAsync(Guid projectId) =>
         await context
             .ProjectBranches.AsNoTracking()
             .Where(x => x.ProjectId == projectId)
             .ToListAsync();
 
-    public IQueryable<ProjectBranches> QueryByProject(Guid projectId) =>
+    public IQueryable<ProjectBranch> QueryByProject(Guid projectId) =>
         context
             .ProjectBranches.Include(x => x.Sboms)
             .AsNoTracking()
             .Where(x => x.ProjectId == projectId);
+
+    public Task Update(ProjectBranch projectBranch, CancellationToken cancellationToken = default)
+    {
+        context.ProjectBranches.Update(projectBranch);
+        return context.SaveChangesAsync(cancellationToken);
+    }
 }

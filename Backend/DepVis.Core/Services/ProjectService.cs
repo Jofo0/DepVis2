@@ -26,13 +26,13 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
             ProjectLink = dto.ProjectLink,
             ProjectBranches =
             [
-                .. dto.Branches.Select(b => new ProjectBranches
+                .. dto.Branches.Select(b => new ProjectBranch
                 {
                     IsTag = false,
                     Name = b,
                     ProjectId = projectId,
                 }),
-                .. dto.Tags.Select(t => new ProjectBranches
+                .. dto.Tags.Select(t => new ProjectBranch
                 {
                     IsTag = true,
                     Name = t,
@@ -43,7 +43,7 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
 
         if (project.ProjectBranches.Count == 0)
             project.ProjectBranches.Add(
-                new ProjectBranches
+                new ProjectBranch
                 {
                     IsTag = false,
                     Name = "master",

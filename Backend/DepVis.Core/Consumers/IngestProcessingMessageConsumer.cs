@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CommunityToolkit.HighPerformance;
 using DepVis.Core.Context;
 using DepVis.Core.Util;
 using DepVis.Shared.Messages;
@@ -30,132 +31,187 @@ public class IngestProcessingMessageConsumer(
 
         _logger.LogDebug("Starting ingestion.");
 
+        if (context.Message.IsHistory)
+        {
+            await ProcessForHistory(context.Message.SbomId, context.CancellationToken);
+        }
+        else
+        {
+            await ProcessForBranch(context.Message.SbomId, context.CancellationToken);
+        }
+        _logger.LogDebug("Ingestion completed.");
+    }
+
+    public async Task ProcessForBranch(Guid sbomId, CancellationToken cancellationToken = default)
+    {
         var sbom = await _db
-            .Sboms.Include(x => x.ProjectBranch)
-            .FirstAsync(x => x.Id == context.Message.SbomId, context.CancellationToken);
+            .Sboms.Include(x => x.ProjectBranchId)
+            .FirstAsync(x => x.Id == sbomId, cancellationToken);
 
         var projectBranch = sbom.ProjectBranch;
 
-        projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.SbomIngest;
-        projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
-        await _db.SaveChangesAsync(context.CancellationToken);
+        if (projectBranch == null)
+            return;
 
         try
         {
-            await using var cycloneDxStream = await _minio.RetrieveAsync(
-                sbom.FileName,
-                context.CancellationToken
-            );
+            projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.SbomIngest;
+            projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
+            await _db.SaveChangesAsync(cancellationToken);
 
-            CycloneDxBom bom =
-                JsonSerializer.Deserialize<CycloneDxBom>(cycloneDxStream, _jsonOptions)
-                ?? new CycloneDxBom { Components = [] };
+            var result = await ProcessSbom(sbom.FileName, sbom.Id, cancellationToken);
+            projectBranch.PackageCount = result.Packages.Count;
+            projectBranch.VulnerabilityCount = result
+                .PackageVulnerabilities.DistinctBy(x => x.SbomPackageId)
+                .Count();
 
-            try
-            {
-                await IngestVulnerablities(bom);
-
-                var packages = BuildPackages(sbom.Id, bom);
-
-                var edges = BuildEdges(bom);
-                var bomRefToId = packages.ToDictionary(
-                    p => p.BomRef,
-                    p => p.Id,
-                    StringComparer.Ordinal
-                );
-
-                var maxRankByBomRef = new Dictionary<string, int>(StringComparer.Ordinal);
-
-                if (bom.Vulnerabilities is not null)
-                {
-                    foreach (var v in bom.Vulnerabilities)
-                    {
-                        var rank = SeveritySort.SeverityRank.GetValueOrDefault(
-                            (v.Ratings ?? [])
-                                .GroupBy(r => r.Severity)
-                                .OrderByDescending(gr => gr.Count())
-                                .Select(gr => gr.Key)
-                                .FirstOrDefault() ?? "Unknown",
-                            0
-                        );
-
-                        foreach (var a in v.Affects ?? [])
-                        {
-                            if (string.IsNullOrWhiteSpace(a.Ref))
-                                continue;
-
-                            if (
-                                !maxRankByBomRef.TryGetValue(a.Ref, out var existing)
-                                || rank > existing
-                            )
-                                maxRankByBomRef[a.Ref] = rank;
-                        }
-                    }
-                }
-
-                foreach (var p in packages)
-                {
-                    if (p.BomRef is null)
-                    {
-                        p.Severity = "None";
-                        continue;
-                    }
-
-                    var rank = maxRankByBomRef.GetValueOrDefault(p.BomRef, 0);
-
-                    p.Severity = rank switch
-                    {
-                        4 => "critical",
-                        3 => "high",
-                        2 => "medium",
-                        1 => "low",
-                        _ => "None",
-                    };
-                }
-
-                var packageVulnerabilities =
-                    bom.Vulnerabilities?.SelectMany(v =>
-                            v.Affects.Select(a => new SbomPackageVulnerability()
-                            {
-                                VulnerabilityId = v.Id,
-                                SbomPackageId = bomRefToId[a.Ref],
-                            })
-                        )
-                        .ToList() ?? [];
-
-                var createdDeps = BuildDependencies(edges, bomRefToId);
-
-                _db.SbomPackages.AddRange(packages);
-                _db.PackageDependencies.AddRange(createdDeps);
-                _db.SbomPackageVulnerabilities.AddRange(packageVulnerabilities);
-
-                projectBranch.PackageCount = packages.Count;
-                projectBranch.VulnerabilityCount = packageVulnerabilities
-                    .DistinctBy(x => x.SbomPackageId)
-                    .Count();
-                projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
-                projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
-
-                await _db.SaveChangesAsync(context.CancellationToken);
-
-                _logger.LogDebug(
-                    "Ingestion finished successfully. Packages: {pkgCount}, Deps: {depCount}",
-                    packages.Count,
-                    createdDeps.Count
-                );
-            }
-            catch
-            {
-                throw;
-            }
+            projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+            projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ingestion failed.");
             projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
-            await _db.SaveChangesAsync(context.CancellationToken);
+            await _db.SaveChangesAsync(cancellationToken);
             throw;
         }
+    }
+
+    public async Task ProcessForHistory(Guid sbomId, CancellationToken cancellationToken = default)
+    {
+        var sbom = await _db
+            .Sboms.Include(x => x.BranchHistory)
+            .Include(x => x.ProjectBranchId)
+            .FirstAsync(x => x.Id == sbomId, cancellationToken);
+
+        var branchHistory = sbom.BranchHistory;
+        var projectBranch = sbom.ProjectBranch;
+
+        if (projectBranch == null || branchHistory == null)
+            return;
+        try
+        {
+            projectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.SbomIngest;
+            projectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Pending;
+            branchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
+
+            await _db.SaveChangesAsync(cancellationToken);
+
+            var result = await ProcessSbom(sbom.FileName, sbom.Id, cancellationToken);
+
+            branchHistory.PackageCount = result.Packages.Count;
+            branchHistory.VulnerabilityCount = result
+                .PackageVulnerabilities.DistinctBy(x => x.SbomPackageId)
+                .Count();
+            projectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Success;
+            projectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.Processed;
+            branchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ingestion failed.");
+            projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
+            branchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
+            await _db.SaveChangesAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public class ProcessingResult
+    {
+        public List<SbomPackage> Packages { get; set; } = [];
+        public HashSet<PackageDependency> Dependencies { get; set; } = [];
+        public List<SbomPackageVulnerability> PackageVulnerabilities { get; set; } = [];
+    }
+
+    private async Task<ProcessingResult> ProcessSbom(
+        string sbomFile,
+        Guid sbomId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        await using var cycloneDxStream = await _minio.RetrieveAsync(sbomFile, cancellationToken);
+
+        CycloneDxBom bom =
+            JsonSerializer.Deserialize<CycloneDxBom>(cycloneDxStream, _jsonOptions)
+            ?? new CycloneDxBom { Components = [] };
+
+        await IngestVulnerablities(bom);
+
+        var packages = BuildPackages(sbomId, bom);
+
+        var edges = BuildEdges(bom);
+        var bomRefToId = packages.ToDictionary(p => p.BomRef, p => p.Id, StringComparer.Ordinal);
+
+        var maxRankByBomRef = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        if (bom.Vulnerabilities is not null)
+        {
+            foreach (var v in bom.Vulnerabilities)
+            {
+                var rank = SeveritySort.SeverityRank.GetValueOrDefault(
+                    (v.Ratings ?? [])
+                        .GroupBy(r => r.Severity)
+                        .OrderByDescending(gr => gr.Count())
+                        .Select(gr => gr.Key)
+                        .FirstOrDefault() ?? "Unknown",
+                    0
+                );
+
+                foreach (var a in v.Affects ?? [])
+                {
+                    if (string.IsNullOrWhiteSpace(a.Ref))
+                        continue;
+
+                    if (!maxRankByBomRef.TryGetValue(a.Ref, out var existing) || rank > existing)
+                        maxRankByBomRef[a.Ref] = rank;
+                }
+            }
+        }
+
+        foreach (var p in packages)
+        {
+            if (p.BomRef is null)
+            {
+                p.Severity = "None";
+                continue;
+            }
+
+            var rank = maxRankByBomRef.GetValueOrDefault(p.BomRef, 0);
+
+            p.Severity = rank switch
+            {
+                4 => "critical",
+                3 => "high",
+                2 => "medium",
+                1 => "low",
+                _ => "None",
+            };
+        }
+
+        var packageVulnerabilities =
+            bom.Vulnerabilities?.SelectMany(v =>
+                    v.Affects.Select(a => new SbomPackageVulnerability()
+                    {
+                        VulnerabilityId = v.Id,
+                        SbomPackageId = bomRefToId[a.Ref],
+                    })
+                )
+                .ToList() ?? [];
+
+        var createdDeps = BuildDependencies(edges, bomRefToId);
+
+        _db.SbomPackages.AddRange(packages);
+        _db.PackageDependencies.AddRange(createdDeps);
+        _db.SbomPackageVulnerabilities.AddRange(packageVulnerabilities);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return new()
+        {
+            Packages = packages,
+            Dependencies = createdDeps,
+            PackageVulnerabilities = packageVulnerabilities,
+        };
     }
 
     private async Task IngestVulnerablities(

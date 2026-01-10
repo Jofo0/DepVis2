@@ -62,6 +62,6 @@ public class ProjectRepository(DepVisDbContext context)
         await context.Projects.Where(p => p.Id == projectId).ExecuteDeleteAsync();
     }
 
-    public async Task<ProjectBranches?> GetProjectStatsAsync(Guid branchId) =>
+    public async Task<ProjectBranch?> GetProjectStatsAsync(Guid branchId) =>
         await context.ProjectBranches.AsNoTracking().FirstOrDefaultAsync(x => x.Id == branchId);
 }

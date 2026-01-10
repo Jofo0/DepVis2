@@ -24,7 +24,7 @@ public class ProjectBranchesController(
     [HttpGet("{branchId}/branches/detailed")]
     public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesDetailed(
         Guid branchId,
-        ODataQueryOptions<ProjectBranches> odata,
+        ODataQueryOptions<ProjectBranch> odata,
         [FromQuery(Name = "$export")] bool export = false
     )
     {
@@ -46,5 +46,15 @@ public class ProjectBranchesController(
     {
         var stats = await projectService.GetProjectStats(branchId);
         return stats is null ? NotFound() : Ok(stats);
+    }
+
+    [HttpPost("{branchId}/history")]
+    public async Task<ActionResult<ProjectStatsDto>> ProcessBranchHistory(
+        Guid branchId,
+        CancellationToken cancellationToken
+    )
+    {
+        await branchService.ProcessHistory(branchId, cancellationToken);
+        return Ok();
     }
 }
