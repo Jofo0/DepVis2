@@ -35,8 +35,10 @@ public class BranchHistoryProcessingMessageConsumer(
         {
             foreach (var commitInfo in message.Commits)
             {
+                var historyId = Guid.NewGuid();
                 Sbom sbom = new()
                 {
+                    BranchHistoryId = historyId,
                     FileName = commitInfo.FileName,
                     ProjectBranchId = projectBranch.Id,
                     CommitDate = commitInfo.CommitDate,
@@ -46,6 +48,7 @@ public class BranchHistoryProcessingMessageConsumer(
 
                 BranchHistory branchHistory = new()
                 {
+                    Id = historyId,
                     ProjectBranchId = projectBranch.Id,
                     CommitDate = commitInfo.CommitDate,
                     CommitMessage = commitInfo.CommitMessage,

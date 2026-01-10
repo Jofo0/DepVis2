@@ -62,7 +62,7 @@ public class BranchSpecificProcessingConsumer(
                     new CommitFilter
                     {
                         IncludeReachableFrom = branch,
-                        SortBy = CommitSortStrategies.Time,
+                        SortBy = CommitSortStrategies.Reverse | CommitSortStrategies.Time,
                     }
                 );
 
