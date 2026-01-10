@@ -45,7 +45,7 @@ public class IngestProcessingMessageConsumer(
     public async Task ProcessForBranch(Guid sbomId, CancellationToken cancellationToken = default)
     {
         var sbom = await _db
-            .Sboms.Include(x => x.ProjectBranchId)
+            .Sboms.Include(x => x.ProjectBranch)
             .FirstAsync(x => x.Id == sbomId, cancellationToken);
 
         var projectBranch = sbom.ProjectBranch;
@@ -60,6 +60,7 @@ public class IngestProcessingMessageConsumer(
             await _db.SaveChangesAsync(cancellationToken);
 
             var result = await ProcessSbom(sbom.FileName, sbom.Id, cancellationToken);
+
             projectBranch.PackageCount = result.Packages.Count;
             projectBranch.VulnerabilityCount = result
                 .PackageVulnerabilities.DistinctBy(x => x.SbomPackageId)
@@ -67,6 +68,7 @@ public class IngestProcessingMessageConsumer(
 
             projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
             projectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
+            await _db.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -81,7 +83,7 @@ public class IngestProcessingMessageConsumer(
     {
         var sbom = await _db
             .Sboms.Include(x => x.BranchHistory)
-            .Include(x => x.ProjectBranchId)
+            .Include(x => x.ProjectBranch)
             .FirstAsync(x => x.Id == sbomId, cancellationToken);
 
         var branchHistory = sbom.BranchHistory;
@@ -94,7 +96,6 @@ public class IngestProcessingMessageConsumer(
             projectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.SbomIngest;
             projectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Pending;
             branchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
-
             await _db.SaveChangesAsync(cancellationToken);
 
             var result = await ProcessSbom(sbom.FileName, sbom.Id, cancellationToken);
@@ -103,9 +104,12 @@ public class IngestProcessingMessageConsumer(
             branchHistory.VulnerabilityCount = result
                 .PackageVulnerabilities.DistinctBy(x => x.SbomPackageId)
                 .Count();
+
             projectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Success;
             projectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.Processed;
             branchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
+
+            await _db.SaveChangesAsync(cancellationToken);
         }
         catch (Exception ex)
         {

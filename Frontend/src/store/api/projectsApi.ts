@@ -35,6 +35,9 @@ export const projectApi = projectsApi.injectEndpoints({
     getProjectBranches: builder.query<Branch[], string>({
       query: (id) => `/${id}/branches`,
     }),
+    processBranchHistory: builder.mutation<Branch[], string>({
+      query: (id) => ({ url: `/${id}/branches/history`, method: "POST" }),
+    }),
     getProjectBranchesDetailed: builder.query<BranchDetailed[], IdWithOdata>({
       query: ({ id, odata }) =>
         `/${id}/branches/detailed${odata ? `?${odata}` : ""}`,
@@ -146,6 +149,7 @@ export const {
   useGetProjectsQuery,
   useLazyGetPackageQuery,
   useGetProjectQuery,
+  useProcessBranchHistoryMutation,
   useCreateProjectMutation,
   useUpdateProjectMutation,
   useGetProjectBranchesDetailedQuery,

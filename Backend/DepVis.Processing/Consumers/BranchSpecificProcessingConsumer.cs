@@ -62,7 +62,7 @@ public class BranchSpecificProcessingConsumer(
                     new CommitFilter
                     {
                         IncludeReachableFrom = branch,
-                        SortBy = CommitSortStrategies.Topological,
+                        SortBy = CommitSortStrategies.Time,
                     }
                 );
 
@@ -72,8 +72,6 @@ public class BranchSpecificProcessingConsumer(
                     var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
                     var outputFile = Path.Combine(tempDir, filename);
                     count++;
-                    if (count >= 10)
-                        break;
 
                     _logger.LogInformation(
                         "Checking out commit {sha} - {message} ({date})",
@@ -93,12 +91,7 @@ public class BranchSpecificProcessingConsumer(
                     commitDate = commit.Author.When.LocalDateTime;
                     commitSha = commit.Sha;
 
-                    _logger.LogInformation(
-                        "Processing commit: {sha} - {message} ({date})",
-                        commitSha,
-                        commitMessage,
-                        commitDate
-                    );
+                    _logger.LogInformation("Processing commit");
 
                     await _trivyLock.WaitAsync(context.CancellationToken);
                     try

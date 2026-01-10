@@ -48,7 +48,7 @@ public class ProjectBranchesController(
         return stats is null ? NotFound() : Ok(stats);
     }
 
-    [HttpPost("{branchId}/history")]
+    [HttpPost("{branchId}/branches/history")]
     public async Task<ActionResult<ProjectStatsDto>> ProcessBranchHistory(
         Guid branchId,
         CancellationToken cancellationToken

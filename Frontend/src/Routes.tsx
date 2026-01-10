@@ -7,6 +7,7 @@ import Branches from "./pages/Branches";
 import Graph from "./pages/Graph";
 import Packages from "./pages/Packages";
 import Vulnerabilities from "./pages/Vulnerabilities";
+import BranchHistory from "./pages/BranchHistory";
 
 const Routes = () => {
   return (
@@ -27,6 +28,7 @@ const Routes = () => {
         <Route path="/:id/packages" element={<Packages />} />
         <Route path="/:id/vulnerabilities" element={<Vulnerabilities />} />
         <Route path="/:id/graph" element={<Graph />} />
+        <Route path="/:id/branch-history" element={<BranchHistory />} />
       </Route>
     </RoutesReactRouter>
   );
