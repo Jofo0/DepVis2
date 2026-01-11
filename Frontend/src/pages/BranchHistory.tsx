@@ -7,6 +7,7 @@ import {
 } from "@/store/api/branchesApi";
 import { ProcessStep } from "@/types/branches";
 import { useBranch } from "@/utils/hooks/BranchProvider";
+import { RefreshCcw } from "lucide-react";
 
 const BranchHistory = () => {
   return (
@@ -23,10 +24,11 @@ const BranchHistory = () => {
 
 const History = () => {
   const { branch } = useBranch();
-  const { isFetching: isLoading, data } = useGetBranchHistoryQuery(
-    branch ? branch.id : "",
-    { skip: !branch }
-  );
+  const {
+    isFetching: isLoading,
+    data,
+    refetch,
+  } = useGetBranchHistoryQuery(branch ? branch.id : "", { skip: !branch });
   const [mutate] = useProcessBranchHistoryMutation();
 
   const onProcessHistoryClick = async () => {
@@ -35,7 +37,8 @@ const History = () => {
     }
   };
 
-  if (isLoading || !data) return <div>Loading branch history...</div>;
+  if (!branch || isLoading || !data)
+    return <div>Loading branch history...</div>;
 
   if (data?.processingStep === ProcessStep.NotStarted)
     return (
@@ -51,6 +54,9 @@ const History = () => {
     return (
       <Card className="flex flex-col justify-center items-center w-1/3 self-center ">
         <div className="p-4">Branch History is being processed</div>
+        <Button variant={"ghost"} onClick={refetch}>
+          <RefreshCcw />
+        </Button>
       </Card>
     );
 

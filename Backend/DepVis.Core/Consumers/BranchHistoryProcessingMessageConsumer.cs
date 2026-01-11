@@ -49,6 +49,7 @@ public class BranchHistoryProcessingMessageConsumer(
                 BranchHistory branchHistory = new()
                 {
                     Id = historyId,
+                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
                     ProjectBranchId = projectBranch.Id,
                     CommitDate = commitInfo.CommitDate,
                     CommitMessage = commitInfo.CommitMessage,
