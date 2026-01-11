@@ -38,23 +38,57 @@ public class ProjectRepository(DepVisDbContext context)
 
         await context
             .PackageDependencies.Where(pd =>
-                pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
-                || pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+                pd.Parent.Sbom.ProjectBranch != null
+                    && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
+                || pd.Child.Sbom.ProjectBranch != null
+                    && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+            )
+            .ExecuteDeleteAsync();
+
+        await context
+            .PackageDependencies.Where(pd =>
+                pd.Parent.Sbom.BranchHistory != null
+                    && pd.Parent.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
+                || pd.Child.Sbom.BranchHistory != null
+                    && pd.Child.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
             )
             .ExecuteDeleteAsync();
 
         await context
             .SbomPackageVulnerabilities.Where(pv =>
-                pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
+                pv.SbomPackage.Sbom.ProjectBranch != null
+                && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
             )
             .ExecuteDeleteAsync();
 
         await context
-            .SbomPackages.Where(sp => sp.Sbom.ProjectBranch.Project.Id == projectId)
+            .SbomPackageVulnerabilities.Where(pv =>
+                pv.SbomPackage.Sbom.BranchHistory != null
+                && pv.SbomPackage.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
+            )
             .ExecuteDeleteAsync();
 
         await context
-            .Sboms.Where(s => s.ProjectBranch.Project.Id == projectId)
+            .SbomPackages.Where(sp =>
+                sp.Sbom.ProjectBranch != null && sp.Sbom.ProjectBranch.Project.Id == projectId
+            )
+            .ExecuteDeleteAsync();
+
+        await context
+            .SbomPackages.Where(sp =>
+                sp.Sbom.BranchHistory != null
+                && sp.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
+            )
+            .ExecuteDeleteAsync();
+
+        await context
+            .Sboms.Where(s => s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId)
+            .ExecuteDeleteAsync();
+
+        await context
+            .Sboms.Where(s =>
+                s.BranchHistory != null && s.BranchHistory.ProjectBranch.ProjectId == projectId
+            )
             .ExecuteDeleteAsync();
 
         await context.ProjectBranches.Where(b => b.Project.Id == projectId).ExecuteDeleteAsync();
