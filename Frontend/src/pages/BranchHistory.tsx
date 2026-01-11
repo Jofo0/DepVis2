@@ -1,4 +1,5 @@
 import BranchSelector from "@/components/BranchSelector";
+import { XYChart } from "@/components/chart/XYChart";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -61,13 +62,24 @@ const History = () => {
     );
 
   return (
-    <Card>
-      {data.histories.map((item) => (
-        <div key={item.id} className="border-b p-4 last:border-0">
-          <div className="font-bold">{item.commitMessage}</div>
-        </div>
-      ))}
-    </Card>
+    <div className="h-full">
+      <XYChart
+        className="h-5/6"
+        data={data.histories}
+        isLoading={isLoading}
+        xKey="commitMessage"
+        yKey="vulnerabilityCount"
+        yLabel="Vulnerabilities"
+        color="#d12c2c"
+      />
+      {/* <Card>
+        {data.histories.map((item) => (
+          <div key={item.id} className="border-b p-4 last:border-0">
+            <div className="font-bold">{item.commitMessage}</div>
+          </div>
+        ))}
+      </Card> */}
+    </div>
   );
 };
 

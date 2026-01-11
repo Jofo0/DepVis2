@@ -9,8 +9,12 @@ import {
 import { Card, CardHeader } from "../ui/card";
 import { ChartLoader } from "./PieCustomChart";
 
+type DataItem = {
+  [key: string]: string | number;
+};
+
 type BranchPackageChartProps = {
-  data: unknown[];
+  data: DataItem[]; // Use the DataItem type for the data array
   xKey: string;
   yKey: string;
   yLabel: string;
@@ -35,10 +39,15 @@ export const XYChart = ({
     },
   } satisfies ChartConfig;
 
+  const maxLabelLength = Math.max(
+    ...data.map((item) => item[xKey].toString().length)
+  );
+  const calculatedHeight = Math.min(120, maxLabelLength * 10); // Adjust multiplier based on your label length
+
   return (
     <Card className={`p-4 w-full ${className}`}>
       <CardHeader>{yLabel}</CardHeader>
-      <ChartContainer config={chartConfig} className="h-full">
+      <ChartContainer config={chartConfig} className="h-full overflow-auto">
         {isLoading ? (
           <ChartLoader />
         ) : (
@@ -47,9 +56,10 @@ export const XYChart = ({
             <XAxis
               dataKey={xKey}
               tickLine={false}
-              tickMargin={10}
+              angle={45}
+              textAnchor="start"
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 4)}
+              height={calculatedHeight}
             />
             <YAxis dataKey={yKey} tickMargin={10} axisLine={false} />
             <ChartTooltip content={<ChartTooltipContent />} />
