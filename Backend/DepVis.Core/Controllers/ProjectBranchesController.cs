@@ -14,42 +14,52 @@ public class ProjectBranchesController(
     ProjectService projectService
 ) : ControllerBase
 {
-    [HttpGet("{branchId}/branches")]
-    public async Task<ActionResult<List<ProjectBranchDto>>> GetProjectBranches(Guid branchId)
+    [HttpGet("{projectId}/branches")]
+    public async Task<ActionResult<List<ProjectBranchDto>>> GetProjectBranches(Guid projectId)
     {
-        var branches = await branchService.GetProjectBranches(branchId);
+        var branches = await branchService.GetProjectBranches(projectId);
         return Ok(branches);
     }
 
-    [HttpGet("{branchId}/branches/detailed")]
+    [HttpGet("{projectId}/branches/detailed")]
     public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesDetailed(
-        Guid branchId,
+        Guid projectId,
         ODataQueryOptions<ProjectBranch> odata,
         [FromQuery(Name = "$export")] bool export = false
     )
     {
-        var detailed = await branchService.GetProjectBranchesDetailed(branchId, odata);
+        var detailed = await branchService.GetProjectBranchesDetailed(projectId, odata);
 
         if (export)
         {
             var rows = detailed;
             var stream = await CsvExport.WriteToCsvStreamAsync(rows);
             stream.Position = 0;
-            return File(stream, "text/csv", $"branches-{branchId}-{DateTime.Now}.csv");
+            return File(stream, "text/csv", $"branches-{projectId}-{DateTime.Now}.csv");
         }
 
         return Ok(detailed);
     }
 
-    [HttpGet("{branchId}/stats")]
-    public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid branchId)
+    [HttpGet("{projectId}/stats")]
+    public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid projectId)
     {
-        var stats = await projectService.GetProjectStats(branchId);
+        var stats = await projectService.GetProjectStats(projectId);
         return stats is null ? NotFound() : Ok(stats);
     }
 
+    [HttpGet("{branchId}/branches/history")]
+    public async Task<ActionResult<BranchHistoryDto>> GetBranchHistory(
+        Guid branchId,
+        CancellationToken cancellationToken
+    )
+    {
+        var data = await branchService.GetBranchHistory(branchId, cancellationToken);
+        return data is null ? NotFound() : Ok(data);
+    }
+
     [HttpPost("{branchId}/branches/history")]
-    public async Task<ActionResult<ProjectStatsDto>> ProcessBranchHistory(
+    public async Task<ActionResult> ProcessBranchHistory(
         Guid branchId,
         CancellationToken cancellationToken
     )

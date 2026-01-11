@@ -1,4 +1,3 @@
-import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
 
@@ -13,38 +12,64 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ProcessStep } from "@/types/branches";
+import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
 
-const BranchSelector = () => {
+type BranchSelectorProps = {
+  onlyBranches?: boolean;
+};
+
+const BranchSelector = ({ onlyBranches = false }: BranchSelectorProps) => {
   const id = useGetProjectId();
   const { data: branches, isLoading: branchesLoading } =
     useGetProjectBranchesQuery(id!);
 
   const { branch, setBranch } = useBranch();
 
+  const filteredBranches = branches?.filter((x) =>
+    onlyBranches ? !x.isTag : true
+  );
+
   useEffect(() => {
-    if (!branches?.length) {
+    if (!filteredBranches?.length) {
       return;
     }
-    if ((branch && !branches.find((x) => x.id === branch.id)) || !branch) {
-      setBranch(branches[0]);
+    if (
+      (branch && !filteredBranches.find((x) => x.id === branch.id)) ||
+      !branch
+    ) {
+      setBranch(filteredBranches[0]);
     }
-  }, [branches, branch, setBranch]);
+  }, [filteredBranches, branch, setBranch, onlyBranches]);
 
-  const items = useMemo(
+  const branchesOnly = useMemo(
     () =>
-      branches
-        ?.filter((b) => b.processStep === ProcessStep.Processed)
+      filteredBranches
+        ?.filter((b) => b.processStep === ProcessStep.Processed && !b.isTag)
         .map((x) => (
           <SelectItem value={x.id} key={x.id}>
             {x.name}
           </SelectItem>
         )) ?? null,
-    [branches]
+    [filteredBranches]
+  );
+
+  const tagsOnly = useMemo(
+    () =>
+      filteredBranches
+        ?.filter((b) => b.processStep === ProcessStep.Processed && b.isTag)
+        .map((x) => (
+          <SelectItem value={x.id} key={x.id}>
+            {x.name}
+          </SelectItem>
+        )) ?? null,
+    [filteredBranches]
   );
 
   return (
     <div className="flex flex-col">
-      <div className="text-gray-700 text-sm">Select a branch/tag</div>
+      <div className="text-gray-700 text-sm">
+        Select a branch{!onlyBranches && "/tag"}
+      </div>
       <Select
         value={branch?.id || ""}
         onValueChange={(value) => {
@@ -59,11 +84,13 @@ const BranchSelector = () => {
         <SelectContent avoidCollisions={false} className="max-h-64">
           <SelectGroup>
             <SelectLabel>
-              {items?.length === 0
-                ? "No Branches/Tags processed yet"
-                : "Branches/Tags"}
+              {branchesOnly?.length !== 0 && "Branches"}
             </SelectLabel>
-            {items}
+            {branchesOnly}
+          </SelectGroup>
+          <SelectGroup>
+            <SelectLabel>{tagsOnly?.length !== 0 && "Tags"}</SelectLabel>
+            {tagsOnly}
           </SelectGroup>
         </SelectContent>
       </Select>

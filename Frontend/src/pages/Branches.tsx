@@ -1,10 +1,7 @@
 import { DataTable } from "@/components/table/DataTable";
 import { useGetBranchColumns } from "@/utils/columns/useGetBranchColumns";
 import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
-import {
-  useGetProjectBranchesDetailedQuery,
-  useLazyGetProjectBranchesDetailedExportQuery,
-} from "@/store/api/projectsApi";
+
 import {
   useReactTable,
   getSortedRowModel,
@@ -16,6 +13,10 @@ import { XYChart } from "@/components/chart/XYChart";
 import { toODataOrderBy } from "@/utils/odataHelper";
 import { downloadBlob } from "@/utils/downloadBlob";
 import { getPrettyDate } from "@/utils/dateHelper";
+import {
+  useGetProjectBranchesDetailedQuery,
+  useLazyGetProjectBranchesDetailedExportQuery,
+} from "@/store/api/branchesApi";
 
 const Branches = () => {
   const projectId = useGetProjectId();

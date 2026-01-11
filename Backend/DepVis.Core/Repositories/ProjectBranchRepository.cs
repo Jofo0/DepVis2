@@ -18,6 +18,16 @@ public class ProjectBranchRepository(DepVisDbContext context)
             .Where(x => x.ProjectId == projectId)
             .ToListAsync();
 
+    public async Task<ProjectBranch?> GetProjectBranchHistory(
+        Guid projectBranchId,
+        CancellationToken cancellationToken = default
+    ) =>
+        await context
+            .ProjectBranches.AsNoTracking()
+            .Where(x => x.Id == projectBranchId)
+            .Include(x => x.BranchHistories)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public IQueryable<ProjectBranch> QueryByProject(Guid projectId) =>
         context
             .ProjectBranches.Include(x => x.Sboms)

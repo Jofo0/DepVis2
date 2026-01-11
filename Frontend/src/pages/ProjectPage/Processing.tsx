@@ -1,7 +1,7 @@
 import ProcessingCard from "@/components/cards/ProcessingCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
+import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
 import { ProcessStep } from "@/types/branches";
 import { ArrowBigRightDash, Check, RefreshCcw } from "lucide-react";
 import { useParams } from "react-router-dom";

@@ -22,6 +22,15 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
         return [.. data.Select(x => x.MapToBranchesDetailedDto())];
     }
 
+    public async Task<BranchHistoryDto?> GetBranchHistory(
+        Guid projectBranchId,
+        CancellationToken cancellationToken
+    )
+    {
+        var data = await repo.GetProjectBranchHistory(projectBranchId, cancellationToken);
+        return data?.MapToBranchHistoryDto();
+    }
+
     public async Task ProcessHistory(Guid projectBranchId, CancellationToken cancellationToken)
     {
         var branch = await repo.GetByIdAsync(projectBranchId);

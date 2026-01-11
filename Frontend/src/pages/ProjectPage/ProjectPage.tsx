@@ -1,6 +1,5 @@
 import {
   useDeleteProjectMutation,
-  useGetProjectBranchesQuery,
   useGetProjectQuery,
 } from "../../store/api/projectsApi";
 import { useEffect, useMemo, useState } from "react";
@@ -10,6 +9,7 @@ import Processing from "./Processing";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
+import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();

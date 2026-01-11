@@ -12,6 +12,20 @@ export type Branch = {
   id: string;
   processStep: ProcessStep;
   processType: string;
+  isTag: boolean;
+};
+
+export type BranchHistoryDto = {
+  histories: BranchHistoryItem[];
+  processingStep: ProcessStep;
+};
+
+export type BranchHistoryItem = {
+  id: string;
+  commitMessage: string;
+  packageCount: number;
+  vulnerablityCount: number;
+  commitDate: string;
 };
 
 export enum ProcessStep {
@@ -19,6 +33,7 @@ export enum ProcessStep {
   SbomCreation = "SbomCreation",
   SbomIngest = "SbomIngest",
   Processed = "Processed",
+  NotStarted = "NotStarted",
 }
 
 export enum ProcessStatus {

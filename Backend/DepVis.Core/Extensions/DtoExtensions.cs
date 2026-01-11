@@ -24,6 +24,7 @@ public static class DtoExtensions
             Name = pb.Name,
             ProcessStatus = pb.ProcessStatus.ToString(),
             ProcessStep = pb.ProcessStep.ToString(),
+            IsTag = pb.IsTag,
         };
 
     public static PackageItemDto MapToPackageItemDto(this SbomPackage pb) =>
@@ -48,6 +49,27 @@ public static class DtoExtensions
             CommitMessage = pb.CommitMessage,
             CommitSha = pb.CommitSha,
             ScanDate = pb.ScanDate,
+        };
+    }
+
+    public static BranchHistoryDto MapToBranchHistoryDto(this ProjectBranch bh)
+    {
+        return new()
+        {
+            Histories =
+            [
+                .. bh
+                    .BranchHistories.OrderBy(x => x.CommitDate)
+                    .Select(x => new BranchHistoryEntryDto()
+                    {
+                        CommitDate = x.CommitDate,
+                        CommitMessage = x.CommitMessage,
+                        CommitSha = x.CommitSha,
+                        PackageCount = x.PackageCount,
+                        VulnerabilityCount = x.PackageCount,
+                    }),
+            ],
+            ProcessingStep = bh.HistoryProcessingStep,
         };
     }
 }

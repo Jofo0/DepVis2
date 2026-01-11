@@ -1,7 +1,7 @@
-import { useGetProjectBranchesQuery } from "@/store/api/projectsApi";
 import type { Branch } from "@/types/branches";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useGetProjectId } from "./useGetProjectId";
+import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
 
 type BranchContextType = {
   branch: Branch | null;

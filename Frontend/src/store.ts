@@ -8,7 +8,7 @@ export const projectsApi = createApi({
     baseUrl: API_BASE_URL + "/api/projects",
   }),
   endpoints: () => ({}),
-  tagTypes: ["Projects"],
+  tagTypes: ["Projects", "BranchHistory", "Branches"],
 });
 
 export const gitApi = createApi({

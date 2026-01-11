@@ -11,7 +11,6 @@ import type {
   PackagesDetailedDto,
   Severity,
 } from "../../types/packages";
-import type { BranchDetailed, Branch } from "@/types/branches";
 import type {
   VulnerabilitiesDto,
   VulnerabilityDetailedDto,
@@ -31,22 +30,6 @@ export const projectApi = projectsApi.injectEndpoints({
     getProject: builder.query<ProjectDto, string>({
       query: (id) => `/${id}`,
       providesTags: (_res, _err, id) => [{ type: "Projects", id }],
-    }),
-    getProjectBranches: builder.query<Branch[], string>({
-      query: (id) => `/${id}/branches`,
-    }),
-    processBranchHistory: builder.mutation<Branch[], string>({
-      query: (id) => ({ url: `/${id}/branches/history`, method: "POST" }),
-    }),
-    getProjectBranchesDetailed: builder.query<BranchDetailed[], IdWithOdata>({
-      query: ({ id, odata }) =>
-        `/${id}/branches/detailed${odata ? `?${odata}` : ""}`,
-    }),
-    getProjectBranchesDetailedExport: builder.query<Blob, IdWithOdata>({
-      query: ({ id, odata }) => ({
-        responseHandler: (response) => response.blob(),
-        url: `/${id}/branches/detailed?$export=true${odata ? `&${odata}` : ""}`,
-      }),
     }),
     createProject: builder.mutation<ProjectDto, CreateProjectDto>({
       query: (dto) => ({
@@ -149,12 +132,9 @@ export const {
   useGetProjectsQuery,
   useLazyGetPackageQuery,
   useGetProjectQuery,
-  useProcessBranchHistoryMutation,
   useCreateProjectMutation,
   useUpdateProjectMutation,
-  useGetProjectBranchesDetailedQuery,
   useDeleteProjectMutation,
-  useGetProjectBranchesQuery,
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,
   useLazyGetVulnerabilityQuery,
@@ -163,5 +143,4 @@ export const {
   useLazyGetProjectGraphExportQuery,
   useLazyGetPackagesExportQuery,
   useLazyGetVulnerabilitiesQuery,
-  useLazyGetProjectBranchesDetailedExportQuery,
 } = projectApi;
