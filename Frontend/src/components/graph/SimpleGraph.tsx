@@ -99,10 +99,15 @@ const SimpleGraph = ({
 
   useEffect(() => {
     fgRef.current?.centerAt(0, 0, 400);
-    const zoomTo =
-      graphData.nodes.length < 500
-        ? (1 / graphData.nodes.length) * 100
-        : (1 / graphData.nodes.length) * 500;
+    let zoomTo = 1;
+
+    if (graphData.nodes.length < 20) {
+      zoomTo = 1;
+    } else if (graphData.nodes.length < 500) {
+      zoomTo = (1 / graphData.nodes.length) * 100;
+    } else {
+      zoomTo = (1 / graphData.nodes.length) * 500;
+    }
 
     fgRef.current?.zoom(packageId ? 0.5 : zoomTo, 400);
   }, [graphData, packageId]);
