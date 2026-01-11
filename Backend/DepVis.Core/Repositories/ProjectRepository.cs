@@ -36,64 +36,50 @@ public class ProjectRepository(DepVisDbContext context)
     {
         var projectId = project.Id;
 
-        await context
-            .PackageDependencies.Where(pd =>
-                pd.Parent.Sbom.ProjectBranch != null
+        using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            var packageDependencies = context.PackageDependencies.Where(pd =>
+                (
+                    pd.Parent.Sbom.ProjectBranch != null
                     && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
-                || pd.Child.Sbom.ProjectBranch != null
+                )
+                || (
+                    pd.Child.Sbom.ProjectBranch != null
                     && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
-            )
-            .ExecuteDeleteAsync();
+                )
+            );
+            await packageDependencies.ExecuteDeleteAsync();
 
-        await context
-            .PackageDependencies.Where(pd =>
-                pd.Parent.Sbom.BranchHistory != null
-                    && pd.Parent.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
-                || pd.Child.Sbom.BranchHistory != null
-                    && pd.Child.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
-            )
-            .ExecuteDeleteAsync();
-
-        await context
-            .SbomPackageVulnerabilities.Where(pv =>
+            var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
                 pv.SbomPackage.Sbom.ProjectBranch != null
                 && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
-            )
-            .ExecuteDeleteAsync();
+            );
+            await sbomPackageVulnerabilities.ExecuteDeleteAsync();
 
-        await context
-            .SbomPackageVulnerabilities.Where(pv =>
-                pv.SbomPackage.Sbom.BranchHistory != null
-                && pv.SbomPackage.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
-            )
-            .ExecuteDeleteAsync();
-
-        await context
-            .SbomPackages.Where(sp =>
+            var sbomPackages = context.SbomPackages.Where(sp =>
                 sp.Sbom.ProjectBranch != null && sp.Sbom.ProjectBranch.Project.Id == projectId
-            )
-            .ExecuteDeleteAsync();
+            );
+            await sbomPackages.ExecuteDeleteAsync();
 
-        await context
-            .SbomPackages.Where(sp =>
-                sp.Sbom.BranchHistory != null
-                && sp.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
-            )
-            .ExecuteDeleteAsync();
+            var sboms = context.Sboms.Where(s =>
+                s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId
+            );
+            await sboms.ExecuteDeleteAsync();
 
-        await context
-            .Sboms.Where(s => s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId)
-            .ExecuteDeleteAsync();
+            var projectBranches = context.ProjectBranches.Where(b => b.Project.Id == projectId);
+            await projectBranches.ExecuteDeleteAsync();
 
-        await context
-            .Sboms.Where(s =>
-                s.BranchHistory != null && s.BranchHistory.ProjectBranch.ProjectId == projectId
-            )
-            .ExecuteDeleteAsync();
+            var projectEntity = context.Projects.Where(p => p.Id == projectId);
+            await projectEntity.ExecuteDeleteAsync();
 
-        await context.ProjectBranches.Where(b => b.Project.Id == projectId).ExecuteDeleteAsync();
-
-        await context.Projects.Where(p => p.Id == projectId).ExecuteDeleteAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException("Error deleting project and associated data.", ex);
+        }
     }
 
     public async Task<ProjectBranch?> GetProjectStatsAsync(Guid branchId) =>

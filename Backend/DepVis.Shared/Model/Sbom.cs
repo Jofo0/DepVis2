@@ -10,7 +10,7 @@ public class Sbom
     public string CommitSha { get; set; } = string.Empty;
     public Guid? ProjectBranchId { get; set; }
     public Guid? BranchHistoryId { get; set; }
-    public ProjectBranch? ProjectBranch { get; set; } = null;
+    public ProjectBranch ProjectBranch { get; set; } = null!;
     public BranchHistory? BranchHistory { get; set; } = null;
     public ICollection<SbomPackage> SbomPackages { get; set; } = [];
 }
