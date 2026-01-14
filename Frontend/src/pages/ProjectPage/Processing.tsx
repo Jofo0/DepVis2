@@ -1,34 +1,26 @@
-import ProcessingCard from "@/components/cards/ProcessingCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
-import { ProcessStep } from "@/types/branches";
-import { ArrowBigRightDash, Check, RefreshCcw } from "lucide-react";
+import { ProcessStep, ProcessStepOrder } from "@/types/branches";
+import { ArrowBigRightDash, RefreshCcw } from "lucide-react";
 import { useParams } from "react-router-dom";
+import ProcessingTab from "./Processing/ProcessingTab";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import BranchProcessingCard from "./Processing/BranchProcessingCard";
 
 const Processing = () => {
   const { id } = useParams<{ id: string }>();
   const {
-    data: branches,
+    data,
     isFetching: isLoading,
     refetch,
   } = useGetProjectBranchesQuery(id!);
-
-  const firstStep = branches?.filter(
-    (b) => b.processStep === ProcessStep.Created
-  );
-
-  const secondStep = branches?.filter(
-    (b) => b.processStep === ProcessStep.SbomCreation
-  );
-
-  const thirdStep = branches?.filter(
-    (b) => b.processStep === ProcessStep.SbomIngest
-  );
-
-  const fourthStep = branches?.filter(
-    (b) => b.processStep === ProcessStep.Processed
-  );
+  const [filter, setFilter] = useState<ProcessStep>(ProcessStep.SbomIngest);
+  const branches = data?.items;
+  if (isLoading || !data) {
+    return <Skeleton />;
+  }
 
   return (
     <Card className="pb-10">
@@ -41,17 +33,45 @@ const Processing = () => {
         </div>
       </CardHeader>
       <div className="flex flex-row gap-2 items-center justify-center">
-        <p className="border-2 rounded-2xl p-2 flex flex-row gap-2">
-          Initiating {firstStep?.length === 0 && <Check />}
-        </p>
+        <ProcessingTab
+          filtered={data?.initiated}
+          totalCount={data?.totalCount}
+          text="Initiating"
+          onClick={() => setFilter(ProcessStep.NotStarted)}
+        />
+
         <ArrowBigRightDash />
-        <p className="border-2 rounded-2xl p-2">SBOM Generation</p>
+        <ProcessingTab
+          filtered={data?.sbomGenerated}
+          totalCount={data?.totalCount}
+          onClick={() => setFilter(ProcessStep.SbomCreation)}
+          text="SBOM Generation"
+        />
         <ArrowBigRightDash />
-        <p className="border-2 rounded-2xl p-2">SBOM Ingestion</p>
+        <ProcessingTab
+          filtered={data?.sbomIngested}
+          totalCount={data?.totalCount}
+          onClick={() => setFilter(ProcessStep.SbomIngest)}
+          text="SBOM Ingestion"
+        />
         <ArrowBigRightDash />
-        <p className="border-2 rounded-2xl p-2">Analysis Complete</p>
+        <ProcessingTab
+          filtered={data?.complete}
+          totalCount={data?.totalCount}
+          onClick={() => setFilter(ProcessStep.SbomIngest)}
+          text="Analysis Complete"
+        />
       </div>
-      <CardContent className="flex flex-row justify-around w-full gap-4 items-center">
+      <div className="grid-cols-6 grid">
+        {branches
+          ?.filter(
+            (x) => ProcessStepOrder[x.processStep] >= ProcessStepOrder[filter]
+          )
+          .map((x) => (
+            <BranchProcessingCard branch={x} filter={filter} />
+          ))}
+      </div>
+      {/* <CardContent className="flex flex-row justify-around w-full gap-4 items-center">
         <ProcessingCard
           isLoading={isLoading}
           branches={firstStep ?? []}
@@ -78,7 +98,7 @@ const Processing = () => {
           header="Finished Processing"
           description="Branch/Tag/Commit has finished processing and reports are ready"
         />
-      </CardContent>
+      </CardContent> */}
     </Card>
   );
 };

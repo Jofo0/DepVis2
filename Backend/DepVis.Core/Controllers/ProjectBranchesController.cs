@@ -15,7 +15,7 @@ public class ProjectBranchesController(
 ) : ControllerBase
 {
     [HttpGet("{projectId}/branches")]
-    public async Task<ActionResult<List<ProjectBranchDto>>> GetProjectBranches(Guid projectId)
+    public async Task<ActionResult<ProjectBranchDto>> GetProjectBranches(Guid projectId)
     {
         var branches = await branchService.GetProjectBranches(projectId);
         return Ok(branches);

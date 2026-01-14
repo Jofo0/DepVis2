@@ -3,6 +3,7 @@ import type {
   BranchDetailed,
   Branch,
   BranchHistoryDto,
+  GetBranchesDto,
 } from "@/types/branches";
 
 type IdWithOdata = {
@@ -12,7 +13,7 @@ type IdWithOdata = {
 
 export const projectApi = projectsApi.injectEndpoints({
   endpoints: (builder) => ({
-    getProjectBranches: builder.query<Branch[], string>({
+    getProjectBranches: builder.query<GetBranchesDto, string>({
       query: (id) => `/${id}/branches`,
       providesTags: ["Branches"],
     }),

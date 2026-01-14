@@ -10,8 +10,10 @@ namespace DepVis.Core.Services;
 
 public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint publishEndpoint)
 {
-    public async Task<List<ProjectBranchDto>> GetProjectBranches(Guid id) =>
-        [.. (await repo.GetByProjectAsync(id)).Select(x => x.MapToBranchesDto())];
+    public async Task<ProjectBranchDto> GetProjectBranches(Guid id)
+    {
+        return (await repo.GetByProjectAsync(id)).MapToBranchesDto();
+    }
 
     public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(
         Guid id,

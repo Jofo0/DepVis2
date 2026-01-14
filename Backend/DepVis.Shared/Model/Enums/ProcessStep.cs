@@ -2,9 +2,9 @@
 
 public enum ProcessStep
 {
+    NotStarted,
     Created,
     SbomCreation,
     SbomIngest,
     Processed,
-    NotStarted,
 }

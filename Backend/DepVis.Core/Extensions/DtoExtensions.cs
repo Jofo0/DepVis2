@@ -17,15 +17,47 @@ public static class DtoExtensions
     public static ProjectStatsDto MapToDto(this ProjectBranch stats) =>
         new() { PackageCount = stats.PackageCount, VulnerabilityCount = stats.VulnerabilityCount };
 
-    public static ProjectBranchDto MapToBranchesDto(this ProjectBranch pb) =>
-        new()
+    public static ProjectBranchDto MapToBranchesDto(this List<ProjectBranch> pb)
+    {
+        var initiatedCount = pb.Where(x =>
+                x.HistoryProcessingStep >= Shared.Model.Enums.ProcessStep.SbomCreation
+            )
+            .Count();
+
+        var generatedCount = pb.Where(x =>
+                x.HistoryProcessingStep > Shared.Model.Enums.ProcessStep.SbomCreation
+                || x.HistoryProcessingStep == Shared.Model.Enums.ProcessStep.SbomCreation
+                    && x.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success
+            )
+            .Count();
+
+        var ingestedCount = pb.Where(x =>
+                x.HistoryProcessingStep > Shared.Model.Enums.ProcessStep.SbomIngest
+                || x.HistoryProcessingStep == Shared.Model.Enums.ProcessStep.SbomIngest
+                    && x.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success
+            )
+            .Count();
+
+        return new ProjectBranchDto()
         {
-            Id = pb.Id,
-            Name = pb.Name,
-            ProcessStatus = pb.ProcessStatus.ToString(),
-            ProcessStep = pb.ProcessStep.ToString(),
-            IsTag = pb.IsTag,
+            Items =
+            [
+                .. pb.Select(x => new BranchItemDto()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    ProcessStatus = x.ProcessStatus.ToString(),
+                    ProcessStep = x.ProcessStep.ToString(),
+                    IsTag = x.IsTag,
+                }),
+            ],
+            TotalCount = pb.Count,
+            Complete = ingestedCount,
+            SbomIngested = ingestedCount,
+            Initiated = initiatedCount,
+            SbomGenerated = generatedCount,
         };
+    }
 
     public static PackageItemDto MapToPackageItemDto(this SbomPackage pb) =>
         new()

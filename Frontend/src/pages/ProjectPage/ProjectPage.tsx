@@ -15,8 +15,9 @@ const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading } = useGetProjectQuery(id!);
   const [removeProject, { isLoading: isRemoving }] = useDeleteProjectMutation();
-  const { data: branches } = useGetProjectBranchesQuery(id!);
+  const { data } = useGetProjectBranchesQuery(id!);
 
+  const branches = data?.items;
   const preferredDefault = useMemo(() => {
     if (!branches || branches.length === 0) return undefined;
     return branches[0];

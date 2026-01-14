@@ -20,11 +20,11 @@ type BranchSelectorProps = {
 
 const BranchSelector = ({ onlyBranches = false }: BranchSelectorProps) => {
   const id = useGetProjectId();
-  const { data: branches, isLoading: branchesLoading } =
-    useGetProjectBranchesQuery(id!);
+  const { data, isLoading: branchesLoading } = useGetProjectBranchesQuery(id!);
 
   const { branch, setBranch } = useBranch();
 
+  const branches = data?.items;
   const filteredBranches = branches?.filter((x) =>
     onlyBranches ? !x.isTag : true
   );

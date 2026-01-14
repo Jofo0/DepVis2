@@ -11,10 +11,18 @@ export type Branch = {
   name: string;
   id: string;
   processStep: ProcessStep;
-  processType: string;
+  processType: ProcessStatus;
   isTag: boolean;
 };
 
+export type GetBranchesDto = {
+  items: Branch[];
+  totalCount: number;
+  complete: number;
+  sbomIngested: number;
+  sbomGenerated: number;
+  initiated: number;
+};
 export type BranchHistoryDto = {
   histories: BranchHistoryItem[];
   processingStep: ProcessStep;
@@ -29,12 +37,20 @@ export type BranchHistoryItem = {
 };
 
 export enum ProcessStep {
+  NotStarted = "NotStarted",
   Created = "Created",
   SbomCreation = "SbomCreation",
   SbomIngest = "SbomIngest",
   Processed = "Processed",
-  NotStarted = "NotStarted",
 }
+
+export const ProcessStepOrder: Record<ProcessStep, number> = {
+  [ProcessStep.NotStarted]: 0,
+  [ProcessStep.Created]: 1,
+  [ProcessStep.SbomCreation]: 2,
+  [ProcessStep.SbomIngest]: 3,
+  [ProcessStep.Processed]: 4,
+};
 
 export enum ProcessStatus {
   Pending = "Pending",
