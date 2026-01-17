@@ -99,7 +99,7 @@ const ProjectDetailPage = () => {
           </div>
 
           <div className="h-px w-full bg-border" />
-          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
             <InfoTab
               title="Branches"
               info={branches?.filter((b) => !b.isTag)?.length ?? 0}

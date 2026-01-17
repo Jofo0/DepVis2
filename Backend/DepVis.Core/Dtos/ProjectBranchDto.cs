@@ -3,11 +3,11 @@
 public class ProjectBranchDto
 {
     public List<BranchItemDto> Items { get; set; } = [];
-    public int Initiated = 0;
-    public int SbomGenerated = 0;
-    public int SbomIngested = 0;
-    public int Complete = 0;
-    public int TotalCount = 0;
+    public int Initiated { get; set; }  = 0;
+    public int SbomGenerated { get; set; } = 0;
+    public int SbomIngested { get; set; } = 0;
+    public int Complete { get; set; } = 0;
+    public int TotalCount { get; set; } = 0;
 }
 
 public class BranchItemDto
@@ -17,6 +17,6 @@ public class BranchItemDto
     public string ProcessStep { get; set; } = string.Empty;
     public string ProcessStatus { get; set; } = string.Empty;
     public bool IsTag { get; set; } = false;
-    public int PackageCount = 0;
-    public int VulnerabilityCount = 0;
+    public int PackageCount { get; set; } = 0;
+    public int VulnerabilityCount { get; set; } = 0;
 }

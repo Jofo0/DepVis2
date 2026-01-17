@@ -5,7 +5,6 @@ import { ProcessStep, ProcessStepOrder } from "@/types/branches";
 import { ArrowBigRightDash, RefreshCcw } from "lucide-react";
 import { useParams } from "react-router-dom";
 import ProcessingTab from "./Processing/ProcessingTab";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import BranchProcessingCard from "./Processing/BranchProcessingCard";
 import InitialProcessStepUtil from "@/utils/InitialProcessStepUtil";
@@ -20,24 +19,26 @@ const Processing = () => {
   const [filter, setFilter] = useState<ProcessStep>(
     InitialProcessStepUtil(data)
   );
-  const branches = data?.items;
+  const branches = data?.items ?? [];
 
   useEffect(() => {
     const initialStep = InitialProcessStepUtil(data);
     setFilter(initialStep);
   }, [data]);
 
-  if (isLoading || !data) {
-    return <Skeleton />;
-  }
-
   return (
     <Card className="pb-10">
       <CardHeader>
         <div className="flex flex-row gap-2 items-center">
           Processing Statistics
-          <Button variant={"ghost"} onClick={() => refetch()}>
-            <RefreshCcw className="text-gray-400" />
+          <Button
+            variant={"ghost"}
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCcw
+              className={`text-gray-400 ${isLoading ? "animate-spin" : ""}`}
+            />
           </Button>
         </div>
       </CardHeader>
@@ -45,14 +46,14 @@ const Processing = () => {
         <ProcessingTab
           active={filter === ProcessStep.NotStarted}
           processStep={ProcessStep.NotStarted}
-          data={data.items}
+          data={branches}
           text="Initiating"
           onClick={() => setFilter(ProcessStep.NotStarted)}
         />
 
         <ArrowBigRightDash />
         <ProcessingTab
-          data={data.items}
+          data={branches}
           processStep={ProcessStep.SbomCreation}
           active={filter === ProcessStep.SbomCreation}
           onClick={() => setFilter(ProcessStep.SbomCreation)}
@@ -60,7 +61,7 @@ const Processing = () => {
         />
         <ArrowBigRightDash />
         <ProcessingTab
-          data={data.items}
+          data={branches}
           processStep={ProcessStep.SbomIngest}
           active={filter === ProcessStep.SbomIngest}
           onClick={() => setFilter(ProcessStep.SbomIngest)}
@@ -68,7 +69,7 @@ const Processing = () => {
         />
         <ArrowBigRightDash />
         <ProcessingTab
-          data={data.items}
+          data={branches}
           processStep={ProcessStep.Processed}
           active={filter === ProcessStep.Processed}
           onClick={() => setFilter(ProcessStep.Processed)}
