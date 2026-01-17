@@ -133,4 +133,22 @@ public class MinioStorageService
 
         return $"http://localhost:9000/{_bucketName}/{key}";
     }
+
+    public async Task DeleteAsync(string filename, CancellationToken ct = default)
+    {
+        _logger.LogInformation(
+            "Deleting file {filename} from bucket {bucketName}...",
+            filename,
+            _bucketName
+        );
+        await _minio.RemoveObjectAsync(
+            new RemoveObjectArgs().WithBucket(_bucketName).WithObject(filename),
+            cancellationToken: ct
+        );
+        _logger.LogInformation(
+            "File {filename} deleted successfully from bucket {bucketName}",
+            filename,
+            _bucketName
+        );
+    }
 }

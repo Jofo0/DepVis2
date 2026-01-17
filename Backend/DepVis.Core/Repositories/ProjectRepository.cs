@@ -1,8 +1,9 @@
 ﻿using DepVis.Core.Context;
 using DepVis.Shared.Model;
+using DepVis.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
-public class ProjectRepository(DepVisDbContext context)
+public class ProjectRepository(DepVisDbContext context, MinioStorageService minio)
 {
     public async Task<List<Project>> GetAllAsync() =>
         await context.Projects.AsNoTracking().ToListAsync();
@@ -60,11 +61,18 @@ public class ProjectRepository(DepVisDbContext context)
             var sbomPackages = context.SbomPackages.Where(sp =>
                 sp.Sbom.ProjectBranch != null && sp.Sbom.ProjectBranch.Project.Id == projectId
             );
+
             await sbomPackages.ExecuteDeleteAsync();
 
             var sboms = context.Sboms.Where(s =>
                 s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId
             );
+
+            foreach (var sbom in await sboms.ToListAsync())
+            {
+                await minio.DeleteAsync(sbom.FileName);
+            }
+
             await sboms.ExecuteDeleteAsync();
 
             var projectBranches = context.ProjectBranches.Where(b => b.Project.Id == projectId);

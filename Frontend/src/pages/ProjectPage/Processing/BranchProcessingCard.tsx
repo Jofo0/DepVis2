@@ -59,7 +59,7 @@ const BranchProcessingCard = ({
   return (
     <div
       className={clsx(
-        "flex items-center gap-3 max-w-40 p-3 rounded-2xl border-2",
+        "flex items-center gap-3 p-3 rounded-2xl border-2",
         "transition-all duration-200 hover:shadow-md",
         container
       )}

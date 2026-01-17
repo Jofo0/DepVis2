@@ -158,7 +158,13 @@ const ProjectCreateForm = () => {
           <Button variant={"outline"} onClick={() => handleReset()}>
             Reset
           </Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            type="submit"
+            disabled={
+              isLoading ||
+              (selectedBranches?.length === 0 && selectedTags?.length === 0)
+            }
+          >
             {isLoading ? "Creating..." : "Create Project"}
           </Button>
         </div>

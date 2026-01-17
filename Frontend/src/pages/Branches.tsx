@@ -65,7 +65,7 @@ const Branches = () => {
         <div className="flex flex-col gap-6 w-1/2 h-full">
           <XYChart
             isLoading={isLoading}
-            className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+            className="min-h-[calc(42vh)] max-h-[calc(42vh)] w-full"
             data={data}
             xKey="name"
             yKey="packageCount"
