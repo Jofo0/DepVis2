@@ -22,6 +22,8 @@ const Layout = () => {
     pageName = "Graph";
   } else if (pageName.includes("packages")) {
     pageName = "Packages";
+  } else if (pageName.includes("branch-history")) {
+    pageName = "Branch History";
   } else {
     pageName = "Home";
   }

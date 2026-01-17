@@ -4,24 +4,18 @@ import {
 } from "../../store/api/projectsApi";
 import { useNavigate, useParams } from "react-router-dom";
 import Processing from "./Processing";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash, ExternalLink } from "lucide-react";
 import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
 import InfoTab from "./ProjectInformation/InfoTab";
-
-const InfoRow = ({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <div className="grid grid-cols-[140px,1fr] items-start gap-3">
-    <div className="text-sm text-muted-foreground">{label}</div>
-    <div className="text-sm font-medium break-all">{children}</div>
-  </div>
-);
+import InfoRow from "./ProjectInformation/InfoRow";
+import { ChartLoader } from "@/components/chart/PieCustomChart";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,9 +33,17 @@ const ProjectDetailPage = () => {
     }
   };
 
-  if (isLoading) return <p className="p-4 text-muted-foreground">Loading...</p>;
-  if (!project)
-    return <p className="p-4 text-muted-foreground">Project not found</p>;
+  if (isLoading)
+    return (
+      <div className="w-full h-full">
+        <ChartLoader />
+      </div>
+    );
+
+  if (!project) {
+    navigate("/");
+    return;
+  }
 
   const mostVulnerable = branches?.reduce((max, b) => {
     return b.vulnerabilityCount > max.vulnerabilityCount ? b : max;
@@ -60,9 +62,7 @@ const ProjectDetailPage = () => {
               <div className="text-lg font-semibold leading-tight">
                 {project.name}
               </div>
-              <div className="text-sm text-muted-foreground">
-                Project Information
-              </div>
+              <CardDescription>Project Information</CardDescription>
             </div>
 
             <div className="flex items-center gap-2">

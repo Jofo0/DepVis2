@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
 import { ProcessStep, ProcessStepOrder } from "@/types/branches";
 import { ArrowBigRightDash, RefreshCcw } from "lucide-react";
@@ -29,17 +29,22 @@ const Processing = () => {
   return (
     <Card className="pb-10">
       <CardHeader>
-        <div className="flex flex-row gap-2 items-center">
-          Processing Statistics
-          <Button
-            variant={"ghost"}
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
-            <RefreshCcw
-              className={`text-gray-400 ${isLoading ? "animate-spin" : ""}`}
-            />
-          </Button>
+        <div className="flex flex-col">
+          <div className="flex flex-row gap-2 items-center">
+            Processing Statistics
+            <Button
+              variant={"ghost"}
+              onClick={() => refetch()}
+              disabled={isLoading}
+            >
+              <RefreshCcw
+                className={`text-gray-400 ${isLoading ? "animate-spin" : ""}`}
+              />
+            </Button>
+          </div>
+          <CardDescription>
+            Click on a step to filter branches/tags by their processing status
+          </CardDescription>
         </div>
       </CardHeader>
       <div className="flex flex-row gap-2 items-center justify-center">

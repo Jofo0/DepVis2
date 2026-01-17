@@ -45,7 +45,7 @@ export const XYChart = ({
   const calculatedHeight = Math.min(120, maxLabelLength * 10); // Adjust multiplier based on your label length
 
   return (
-    <Card className={`p-4 w-full ${className}`}>
+    <Card className={`p-4  ${className}`}>
       <CardHeader>{yLabel}</CardHeader>
       <ChartContainer config={chartConfig} className="h-full overflow-auto">
         {isLoading ? (

@@ -7,7 +7,7 @@ import Branches from "./pages/Branches";
 import Graph from "./pages/Graph";
 import Packages from "./pages/Packages";
 import Vulnerabilities from "./pages/Vulnerabilities";
-import BranchHistory from "./pages/BranchHistory";
+import BranchHistory from "./pages/BranchHistory/BranchHistory";
 
 const Routes = () => {
   return (
