@@ -17,4 +17,6 @@ public class BranchItemDto
     public string ProcessStep { get; set; } = string.Empty;
     public string ProcessStatus { get; set; } = string.Empty;
     public bool IsTag { get; set; } = false;
+    public int PackageCount = 0;
+    public int VulnerabilityCount = 0;
 }

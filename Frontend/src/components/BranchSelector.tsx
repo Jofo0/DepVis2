@@ -84,7 +84,9 @@ const BranchSelector = ({ onlyBranches = false }: BranchSelectorProps) => {
         <SelectContent avoidCollisions={false} className="max-h-64">
           <SelectGroup>
             <SelectLabel>
-              {branchesOnly?.length !== 0 && "Branches"}
+              {branchesOnly?.length !== 0
+                ? "Branches"
+                : onlyBranches && "No processed branches"}
             </SelectLabel>
             {branchesOnly}
           </SelectGroup>

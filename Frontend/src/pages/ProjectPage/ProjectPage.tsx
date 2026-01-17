@@ -2,14 +2,26 @@ import {
   useDeleteProjectMutation,
   useGetProjectQuery,
 } from "../../store/api/projectsApi";
-import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { type Branch } from "@/types/branches";
 import Processing from "./Processing";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash } from "lucide-react";
+import { Trash, ExternalLink } from "lucide-react";
 import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
+import InfoTab from "./ProjectInformation/InfoTab";
+
+const InfoRow = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="grid grid-cols-[140px,1fr] items-start gap-3">
+    <div className="text-sm text-muted-foreground">{label}</div>
+    <div className="text-sm font-medium break-all">{children}</div>
+  </div>
+);
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -18,19 +30,6 @@ const ProjectDetailPage = () => {
   const { data } = useGetProjectBranchesQuery(id!);
 
   const branches = data?.items;
-  const preferredDefault = useMemo(() => {
-    if (!branches || branches.length === 0) return undefined;
-    return branches[0];
-  }, [branches]);
-
-  const [selectedBranch, setSelectedBranch] = useState<Branch>();
-
-  useEffect(() => {
-    if (!branches || branches.length === 0) return;
-    if (!selectedBranch || !branches.includes(selectedBranch)) {
-      setSelectedBranch(preferredDefault ?? branches[0]);
-    }
-  }, [branches, preferredDefault, selectedBranch]);
 
   const navigate = useNavigate();
   const handleRemoveProject = async () => {
@@ -40,40 +39,95 @@ const ProjectDetailPage = () => {
     }
   };
 
-  if (isLoading) return <p className="p-4 text-subtle">Loading...</p>;
-  if (!project) return <p className="p-4 text-subtle">Project not found</p>;
+  if (isLoading) return <p className="p-4 text-muted-foreground">Loading...</p>;
+  if (!project)
+    return <p className="p-4 text-muted-foreground">Project not found</p>;
+
+  const mostVulnerable = branches?.reduce((max, b) => {
+    return b.vulnerabilityCount > max.vulnerabilityCount ? b : max;
+  });
+
+  const mostPackages = branches?.reduce((max, b) => {
+    return b.packageCount > max.packageCount ? b : max;
+  });
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>Project Information</CardHeader>
-        <CardContent className="flex flex-col">
-          <p className="flex flex-row gap-1">
-            <p className="font-bold">Project:</p>
-            <p>{project.name}</p>
-          </p>
-          <p className="flex flex-row gap-1">
-            <p className="font-bold"> GitHubLink:</p>
-            <a className="text-gray-700" href={project.projectLink}>
-              {project.projectLink}
-            </a>
-          </p>
-          <Button
-            onClick={handleRemoveProject}
-            variant={"destructive"}
-            className="w-24"
-          >
-            {isRemoving ? (
-              "Removing..."
-            ) : (
-              <>
-                Remove
-                <Trash />
-              </>
-            )}
-          </Button>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-lg font-semibold leading-tight">
+                {project.name}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Project Information
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleRemoveProject}
+                variant="destructive"
+                size="sm"
+                disabled={isRemoving}
+              >
+                {isRemoving ? "Removing..." : "Remove"}
+                <Trash className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <InfoRow label="Project name">
+              <span>{project.name}</span>
+            </InfoRow>
+
+            <InfoRow label="GitHub link">
+              <a
+                href={project.projectLink}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+              >
+                {project.projectLink}
+                <ExternalLink className="h-4 w-4 opacity-70" />
+              </a>
+            </InfoRow>
+          </div>
+
+          <div className="h-px w-full bg-border" />
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 w-full">
+            <InfoTab
+              title="Branches"
+              info={branches?.filter((b) => !b.isTag)?.length ?? 0}
+            />
+            <InfoTab
+              title="Tags"
+              info={branches?.filter((b) => b.isTag)?.length ?? 0}
+            />
+            <InfoTab
+              title="Branch/Tag with Most Packages"
+              info={
+                mostPackages
+                  ? `${mostPackages.name} with ${mostPackages.packageCount} packages`
+                  : "None"
+              }
+            />
+            <InfoTab
+              title="Most Vulnerable Branch/Tag"
+              info={
+                mostVulnerable
+                  ? `${mostVulnerable.name} with ${mostVulnerable.vulnerabilityCount} vulnerabilities`
+                  : "None"
+              }
+            />
+          </div>
         </CardContent>
       </Card>
+
       <Processing />
     </div>
   );

@@ -20,20 +20,27 @@ public static class DtoExtensions
     public static ProjectBranchDto MapToBranchesDto(this List<ProjectBranch> pb)
     {
         var initiatedCount = pb.Where(x =>
-                x.HistoryProcessingStep >= Shared.Model.Enums.ProcessStep.SbomCreation
+                x.ProcessStep >= Shared.Model.Enums.ProcessStep.SbomCreation
             )
             .Count();
 
         var generatedCount = pb.Where(x =>
-                x.HistoryProcessingStep > Shared.Model.Enums.ProcessStep.SbomCreation
-                || x.HistoryProcessingStep == Shared.Model.Enums.ProcessStep.SbomCreation
+                x.ProcessStep > Shared.Model.Enums.ProcessStep.SbomCreation
+                || x.ProcessStep == Shared.Model.Enums.ProcessStep.SbomCreation
                     && x.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success
             )
             .Count();
 
         var ingestedCount = pb.Where(x =>
-                x.HistoryProcessingStep > Shared.Model.Enums.ProcessStep.SbomIngest
-                || x.HistoryProcessingStep == Shared.Model.Enums.ProcessStep.SbomIngest
+                x.ProcessStep > Shared.Model.Enums.ProcessStep.SbomIngest
+                || x.ProcessStep == Shared.Model.Enums.ProcessStep.SbomIngest
+                    && x.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success
+            )
+            .Count();
+
+        var completeCount = pb.Where(x =>
+                x.ProcessStep > Shared.Model.Enums.ProcessStep.Processed
+                || x.ProcessStep == Shared.Model.Enums.ProcessStep.Processed
                     && x.ProcessStatus == Shared.Model.Enums.ProcessStatus.Success
             )
             .Count();
@@ -49,10 +56,12 @@ public static class DtoExtensions
                     ProcessStatus = x.ProcessStatus.ToString(),
                     ProcessStep = x.ProcessStep.ToString(),
                     IsTag = x.IsTag,
+                    PackageCount = x.PackageCount,
+                    VulnerabilityCount = x.VulnerabilityCount,
                 }),
             ],
             TotalCount = pb.Count,
-            Complete = ingestedCount,
+            Complete = completeCount,
             SbomIngested = ingestedCount,
             Initiated = initiatedCount,
             SbomGenerated = generatedCount,

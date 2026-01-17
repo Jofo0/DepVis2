@@ -11,7 +11,9 @@ export type Branch = {
   name: string;
   id: string;
   processStep: ProcessStep;
-  processType: ProcessStatus;
+  processStatus: ProcessStatus;
+  vulnerabilityCount: number;
+  packageCount: number;
   isTag: boolean;
 };
 
