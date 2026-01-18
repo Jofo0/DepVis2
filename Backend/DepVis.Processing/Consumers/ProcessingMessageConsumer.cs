@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using DepVis.SbomProcessing;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Services;
 using LibGit2Sharp;
@@ -9,7 +10,8 @@ namespace DepVis.Processing.Consumers;
 public class ProcessingMessageConsumer(
     ILogger<ProcessingMessageConsumer> _logger,
     MinioStorageService _minioStorageService,
-    IPublishEndpoint _publishEndpoint
+    IPublishEndpoint _publishEndpoint,
+    ProcessingService _processingService
 ) : IConsumer<ProcessingMessage>
 {
     private static readonly SemaphoreSlim _trivyLock = new(1, 1);
@@ -82,7 +84,7 @@ public class ProcessingMessageConsumer(
             await _trivyLock.WaitAsync(context.CancellationToken);
             try
             {
-                await RunTrivy(tempDir, outputFile);
+                await _processingService.RunTrivy(tempDir, outputFile, context.CancellationToken);
             }
             finally
             {
@@ -137,47 +139,5 @@ public class ProcessingMessageConsumer(
         }
     }
 
-    private async Task RunTrivy(string directory, string output)
-    {
-        var trivy = new ProcessStartInfo
-        {
-            FileName = "trivy",
-            Arguments =
-                $"fs --format cyclonedx --output {output} --include-dev-deps --scanners vuln .",
-            WorkingDirectory = directory,
-            UseShellExecute = false,
-        };
 
-        _logger.LogDebug("Running Trivy on the cloned repository");
-        await RunProcessAsync(trivy);
-        _logger.LogDebug("Trivy ran succesfully and the SBOM has been created");
-    }
-
-    private async Task RunSyft(string directory, string output)
-    {
-        var trivy = new ProcessStartInfo
-        {
-            FileName = "syft",
-            Arguments = $". -o cyclonedx-json={output}",
-            WorkingDirectory = directory,
-            UseShellExecute = false,
-        };
-
-        _logger.LogDebug("Running syft on the cloned repository");
-        await RunProcessAsync(trivy);
-        _logger.LogDebug("syft ran succesfully and the SBOM has been created");
-    }
-
-    private async Task RunProcessAsync(ProcessStartInfo psi)
-    {
-        using var process = new Process { StartInfo = psi };
-        process.Start();
-
-        await process.WaitForExitAsync();
-
-        if (process.ExitCode != 0)
-            throw new Exception(
-                $"Process '{psi.FileName}' failed with exit code {process.ExitCode}"
-            );
-    }
 }
