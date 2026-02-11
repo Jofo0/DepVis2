@@ -5,7 +5,7 @@ import Layout from "./pages/Layout";
 import SelectProjectPage from "./pages/SelectProjectPage";
 import Branches from "./pages/Branches";
 import Graph from "./pages/Graph";
-import Packages from "./pages/Packages";
+import Packages from "./pages/Packages/Packages";
 import Vulnerabilities from "./pages/Vulnerabilities";
 import BranchHistory from "./pages/BranchHistory/BranchHistory";
 

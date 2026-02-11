@@ -1,6 +1,4 @@
 import BranchSelector from "@/components/BranchSelector";
-import { PieCustomChart } from "@/components/chart/PieCustomChart";
-import { DataTable } from "@/components/table/DataTable";
 import {
   useLazyGetPackagesExportQuery,
   useLazyGetPackagesQuery,
@@ -24,6 +22,7 @@ import {
   type ColumnFiltersState,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
+import PackagesInfo from "./Components/PackagesInfo";
 
 const Packages = () => {
   const { branch, isLoading: isLoadingBranch } = useBranch();
@@ -74,7 +73,7 @@ const Packages = () => {
         id: branch.id,
         odata: getFullOdata(),
       },
-      true
+      true,
     );
   }, [
     branch,
@@ -101,7 +100,7 @@ const Packages = () => {
         id: branch.id,
         odata: getFullOdata(),
       },
-      true
+      true,
     ).unwrap();
 
     downloadBlob(blob, `packages-${branch.name}-${getPrettyDate()}.csv`);
@@ -111,36 +110,17 @@ const Packages = () => {
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full justify-evenly gap-2">
         <BranchSelector />
-        {!isLoadingBranch && branch && (
-          <div className="flex flex-row gap-10 w-full h-full justify-evenly">
-            <div className="h-max-full w-1/2">
-              <DataTable
-                onExportClick={onExportClick}
-                isLoading={isLoading}
-                className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
-                table={table}
-              />
-            </div>
-            <div className="flex flex-col gap-6 w-1/2 h-full">
-              <PieCustomChart
-                title="Ecosystems"
-                className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-                pies={data?.ecoSystems ?? []}
-                isLoading={isLoading}
-                filteredBy={ecosystemFilter}
-                onSliceClick={onEcosystemClick}
-              />
-
-              <PieCustomChart
-                title="Vulnerabilities"
-                onSliceClick={onVulnerabilityClick}
-                isLoading={isLoading}
-                className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-                filteredBy={vulnerabilityFilter}
-                pies={data?.vulnerabilities ?? []}
-              />
-            </div>
-          </div>
+        {!isLoadingBranch && branch && !isLoading && (
+          <PackagesInfo
+            data={data}
+            isLoading={isLoading}
+            onEcosystemClick={onEcosystemClick}
+            onVulnerabilityClick={onVulnerabilityClick}
+            onExportClick={onExportClick}
+            table={table}
+            ecosystemFilter={ecosystemFilter}
+            vulnerabilityFilter={vulnerabilityFilter}
+          />
         )}
       </div>
     </div>
