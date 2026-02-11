@@ -240,10 +240,17 @@ public class IngestProcessingMessageConsumer(
                     Recommendation = x.Recommendation,
                     Severity =
                         (x.Ratings ?? [])
-                            .GroupBy(r => r.Severity)
-                            .OrderByDescending(gr => gr.Count())
-                            .Select(gr => gr.Key)
+                            .Where(r => r.Source.Name == "ghsa")
+                            .Select(gr => gr.Severity)
                             .FirstOrDefault() ?? "Unknown",
+                    References = [..(x.Advisories ?? []).Select(r => new Reference
+                    {
+                        Url = r.Url,
+                    })],
+                    CWES = [..(x.CWEs ?? []).Select(c => new CWE
+                    {
+                        Id = c,
+                    })],
                 };
             })
             .ToList();

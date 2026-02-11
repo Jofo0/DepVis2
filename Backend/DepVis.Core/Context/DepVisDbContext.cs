@@ -10,9 +10,11 @@ public class DepVisDbContext : DbContext
 
     public DbSet<Project> Projects { get; set; }
     public DbSet<Sbom> Sboms { get; set; }
+    public DbSet<CWE> CWEs { get; set; }
     public DbSet<ProjectStatistics> ProjectStatistics { get; set; }
     public DbSet<BranchHistory> BranchHistories { get; set; }
     public DbSet<SbomPackage> SbomPackages { get; set; }
+    public DbSet<Reference> References { get; set; }
     public DbSet<PackageDependency> PackageDependencies => Set<PackageDependency>();
     public DbSet<Vulnerability> Vulnerabilities { get; set; }
     public DbSet<SbomPackageVulnerability> SbomPackageVulnerabilities =>
@@ -58,5 +60,10 @@ public class DepVisDbContext : DbContext
             .WithMany(p => p.Parents)
             .HasForeignKey(pd => pd.ChildId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<Vulnerability>()
+        .HasMany(v => v.CWES)
+        .WithMany(c => c.Vulnerabilities)
+        .UsingEntity(j => j.ToTable("VulnerabilityCWEs"));
     }
 }

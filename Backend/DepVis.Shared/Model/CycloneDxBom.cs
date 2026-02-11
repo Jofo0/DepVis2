@@ -39,6 +39,7 @@ public record CycloneDxVulnerability(
     [property: JsonPropertyName("description")] string Description,
     [property: JsonPropertyName("recommendation")] string Recommendation,
     [property: JsonPropertyName("advisories")] List<Advisory> Advisories,
+    [property: JsonPropertyName("cwes")] List<long> CWEs,
     [property: JsonPropertyName("published")] DateTime Published,
     [property: JsonPropertyName("updated")] DateTime Updated,
     [property: JsonPropertyName("affects")] List<Affected> Affects
