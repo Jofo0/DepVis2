@@ -15,8 +15,8 @@ namespace DepVis.Core.Migrations
                 name: "CWEs",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1")
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CweId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -45,7 +45,7 @@ namespace DepVis.Core.Migrations
                 name: "VulnerabilityCWEs",
                 columns: table => new
                 {
-                    CWESId = table.Column<long>(type: "bigint", nullable: false),
+                    CWESId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     VulnerabilitiesId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>

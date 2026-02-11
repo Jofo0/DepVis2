@@ -24,8 +24,8 @@ namespace DepVis.Core.Migrations
 
             modelBuilder.Entity("CWEVulnerability", b =>
                 {
-                    b.Property<long>("CWESId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("CWESId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("VulnerabilitiesId")
                         .HasColumnType("nvarchar(450)");
@@ -75,11 +75,12 @@ namespace DepVis.Core.Migrations
 
             modelBuilder.Entity("DepVis.Shared.Model.CWE", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                    b.Property<long>("CweId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 

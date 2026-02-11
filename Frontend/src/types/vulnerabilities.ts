@@ -1,20 +1,22 @@
 import type { NameCount } from "./packages";
 
-export interface VulnerabilitiesDto {
+export type VulnerabilitiesDto = {
   vulnerabilities: VulnerabilitySmallDto[];
   risks: NameCount[];
-}
+};
 
-export interface VulnerabilitySmallDto {
+export type VulnerabilitySmallDto = {
   vulnerabilityId: string;
   severity: string;
   packageName: number;
   packageId: string;
-}
+};
 
-export interface VulnerabilityDetailedDto {
+export type VulnerabilityDetailedDto = {
   id: string;
   description: string;
   recommendation: string;
   severity: string;
-}
+  cwes: number[];
+  references: string[];
+};

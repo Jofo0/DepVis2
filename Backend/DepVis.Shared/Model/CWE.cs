@@ -2,8 +2,9 @@
 {
     public class CWE
     {
-        public long Id { get; set; }
+        public Guid Id { get; set; }
+        public long CweId { get; set; }
 
-        public ICollection<Vulnerability> Vulnerabilities{ get; set; } = [];
+        public ICollection<Vulnerability> Vulnerabilities { get; set; } = [];
     }
 }

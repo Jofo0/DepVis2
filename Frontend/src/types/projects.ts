@@ -22,7 +22,7 @@ export type UpdateProjectDto = {
   projectLink: string;
 };
 
-export interface ProjectStatsDto {
+export type ProjectStatsDto = {
   packageCount: number;
   vulnerabilityCount: number;
-}
+};

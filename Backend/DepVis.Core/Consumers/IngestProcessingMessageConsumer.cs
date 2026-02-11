@@ -249,7 +249,8 @@ public class IngestProcessingMessageConsumer(
                     })],
                     CWES = [..(x.CWEs ?? []).Select(c => new CWE
                     {
-                        Id = c,
+                        Id = Guid.NewGuid(),
+                        CweId = c,
                     })],
                 };
             })
