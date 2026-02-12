@@ -1,8 +1,8 @@
 import type {
   ProjectDto,
   CreateProjectDto,
-  UpdateProjectDto,
   ProjectStatsDto,
+  ProjectInfoDto,
 } from "../../types/projects";
 import { projectsApi } from "../../store";
 import type {
@@ -31,6 +31,10 @@ export const projectApi = projectsApi.injectEndpoints({
       query: (id) => `/${id}`,
       providesTags: (_res, _err, id) => [{ type: "Projects", id }],
     }),
+    getProjectInfo: builder.query<ProjectInfoDto, string>({
+      query: (id) => `/${id}/info`,
+      providesTags: (_res, _err, id) => [{ type: "Projects", id }],
+    }),
     createProject: builder.mutation<ProjectDto, CreateProjectDto>({
       query: (dto) => ({
         url: "/",
@@ -39,19 +43,16 @@ export const projectApi = projectsApi.injectEndpoints({
       }),
       invalidatesTags: ["Projects"],
     }),
-    updateProject: builder.mutation<
-      void,
-      { id: string; dto: UpdateProjectDto }
+    editProject: builder.mutation<
+      ProjectDto,
+      CreateProjectDto & { id: string }
     >({
-      query: ({ id, dto }) => ({
-        url: `/${id}`,
+      query: (dto) => ({
+        url: "/" + dto.id,
         method: "PUT",
         body: dto,
       }),
-      invalidatesTags: (_res, _err, { id }) => [
-        "Projects",
-        { type: "Projects", id },
-      ],
+      invalidatesTags: ["Projects"],
     }),
     deleteProject: builder.mutation<void, string>({
       query: (id) => ({
@@ -131,9 +132,10 @@ export const projectApi = projectsApi.injectEndpoints({
 export const {
   useGetProjectsQuery,
   useLazyGetPackageQuery,
+  useGetProjectInfoQuery,
   useGetProjectQuery,
   useCreateProjectMutation,
-  useUpdateProjectMutation,
+  useEditProjectMutation,
   useDeleteProjectMutation,
   useGetProjectStatsQuery,
   useGetProjectGraphQuery,

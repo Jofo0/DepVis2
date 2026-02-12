@@ -9,6 +9,20 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
     public async Task<IEnumerable<ProjectDto>> GetProjects() =>
         (await repo.GetAllAsync()).Select(x => x.MapToDto());
 
+    public async Task<EditProjectDto?> GetEditProject(Guid id)
+    {
+        var project = await repo.GetByIdAsync(id);
+        return project is null ? null :
+            new EditProjectDto()
+            {
+                Branches = project.ProjectBranches.Where(x => !x.IsTag).Select(x => x.Name).ToList(),
+                Tags = project.ProjectBranches.Where(x => x.IsTag).Select(x => x.Name).ToList(),
+                Name = project.Name,
+                ProjectLink = project.ProjectLink,
+                Id = project.Id,
+            };
+    }
+
     public async Task<ProjectDto?> GetProject(Guid id)
     {
         var project = await repo.GetByIdAsync(id);
@@ -79,10 +93,37 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
             return false;
 
         project.Name = dto.Name;
-        project.ProjectType = dto.ProjectType;
         project.ProjectLink = dto.ProjectLink;
 
         await repo.UpdateAsync(project);
+
+        var newBranches = dto.Branches.Select(b => new ProjectBranch
+        {
+            IsTag = false,
+            Name = b,
+            ProjectId = id,
+        }).ToList();
+
+        var newTags = dto.Tags.Select(t => new ProjectBranch
+        {
+            IsTag = true,
+            Name = t,
+            ProjectId = id,
+        }).ToList();
+
+        var combinedBranches = newBranches.Concat(newTags).ToList();
+
+        var branchesToRemove = project.ProjectBranches
+            .Where(existingBranch => !combinedBranches.Any(newBranch => newBranch.Name == existingBranch.Name && newBranch.IsTag == existingBranch.IsTag))
+            .ToList();
+
+        await repo.RemoveBranchesAsync(project.Id, branchesToRemove.Select(x => x.Name).ToList());
+
+        var branchesToAdd = combinedBranches
+            .Where(newBranch => !project.ProjectBranches.Any(existingBranch => existingBranch.Name == newBranch.Name && existingBranch.IsTag == newBranch.IsTag))
+            .ToList();
+
+        await repo.AddBranchesAsync(branchesToAdd);
         return true;
     }
 

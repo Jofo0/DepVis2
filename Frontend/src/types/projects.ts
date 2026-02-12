@@ -15,11 +15,22 @@ export type CreateProjectDto = {
   projectLink: string;
 };
 
+export type ProjectInfoDto = {
+  name: string;
+  projectType: string;
+  branches: string[];
+  tags: string[];
+  projectLink: string;
+  id: string;
+};
+
 export type UpdateProjectDto = {
   name: string;
   projectType: string;
-  processStatus: string;
+  branches: string[];
+  tags: string[];
   projectLink: string;
+  id: string;
 };
 
 export type ProjectStatsDto = {

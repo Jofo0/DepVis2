@@ -9,7 +9,7 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
         await context.Projects.AsNoTracking().ToListAsync();
 
     public async Task<Project?> GetByIdAsync(Guid id) =>
-        await context.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+        await context.Projects.Include(x => x.ProjectBranches).AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<Project?> GetByIdDetailedAsync(Guid id) =>
         await context
@@ -31,6 +31,71 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
     {
         context.Projects.Update(project);
         await context.SaveChangesAsync();
+    }
+
+    public async Task RemoveBranchesAsync(Guid projectId, List<string> branches)
+    {
+        using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            var packageDependencies = context.PackageDependencies.Where(pd =>
+                (
+                    pd.Parent.Sbom.ProjectBranch != null
+                    && branches.Contains(pd.Parent.Sbom.ProjectBranch.Name)
+                    && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
+                )
+                || (
+                    pd.Child.Sbom.ProjectBranch != null
+                    && branches.Contains(pd.Child.Sbom.ProjectBranch.Name)
+                    && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+                )
+            );
+            await packageDependencies.ExecuteDeleteAsync();
+
+            var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
+                pv.SbomPackage.Sbom.ProjectBranch != null
+                && branches.Contains(pv.SbomPackage.Sbom.ProjectBranch.Name)
+                && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
+            );
+            await sbomPackageVulnerabilities.ExecuteDeleteAsync();
+
+            var sbomPackages = context.SbomPackages.Where(sp =>
+                sp.Sbom.ProjectBranch != null
+                && branches.Contains(sp.Sbom.ProjectBranch.Name)
+                && sp.Sbom.ProjectBranch.Project.Id == projectId
+            );
+            await sbomPackages.ExecuteDeleteAsync();
+
+            var sboms = context.Sboms.Where(s =>
+                s.ProjectBranch != null
+                && branches.Contains(s.ProjectBranch.Name)
+                && s.ProjectBranch.Project.Id == projectId
+            );
+
+            foreach (var sbom in await sboms.ToListAsync())
+            {
+                await minio.DeleteAsync(sbom.FileName);
+            }
+
+            await sboms.ExecuteDeleteAsync();
+
+            var projectBranches = context.ProjectBranches.Where(b =>
+                b.Project.Id == projectId && branches.Contains(b.Name)
+            );
+            await projectBranches.ExecuteDeleteAsync();
+
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException("Error deleting branches and associated data.", ex);
+        }
+    }
+
+    public async Task AddBranchesAsync(List<ProjectBranch> branches)
+    {
+        await context.ProjectBranches.AddRangeAsync(branches);
     }
 
     public async Task DeleteAsync(Project project)

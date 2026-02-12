@@ -18,6 +18,14 @@ public class ProjectsController(ProjectService service) : ControllerBase
         return project is null ? NotFound() : Ok(project);
     }
 
+
+    [HttpGet("{id}/info")]
+    public async Task<ActionResult<EditProjectDto>> GetProjectInfo(Guid id)
+    {
+        var project = await service.GetEditProject(id);
+        return project is null ? NotFound() : Ok(project);
+    }
+
     [HttpPost]
     public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectDto dto)
     {

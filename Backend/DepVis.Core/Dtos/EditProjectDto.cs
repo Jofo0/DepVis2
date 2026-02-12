@@ -2,7 +2,7 @@
 
 namespace DepVis.Core.Dtos;
 
-public class UpdateProjectDto
+public class EditProjectDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;

@@ -8,6 +8,7 @@ import Graph from "./pages/Graph";
 import Packages from "./pages/Packages/Packages";
 import Vulnerabilities from "./pages/Vulnerabilities";
 import BranchHistory from "./pages/BranchHistory/BranchHistory";
+import ProjectEditPage from "./pages/ProjectEditPage";
 
 const Routes = () => {
   return (
@@ -24,6 +25,7 @@ const Routes = () => {
       </Route>
       <Route element={<Layout />}>
         <Route path="/:id" element={<ProjectDetailPage />} />
+        <Route path="/:id/edit" element={<ProjectEditPage />} />
         <Route path="/:id/branches" element={<Branches />} />
         <Route path="/:id/packages" element={<Packages />} />
         <Route path="/:id/vulnerabilities" element={<Vulnerabilities />} />
