@@ -37,6 +37,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div>
           <SidebarSeparator />
           <NavMain items={sidebarData.navBottom} />
+          <div className="p-2 text-xs text-center">DepVis v2</div>
         </div>
       </SidebarContent>
       <SidebarRail />
