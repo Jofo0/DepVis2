@@ -52,7 +52,7 @@ export const projectApi = projectsApi.injectEndpoints({
         method: "PUT",
         body: dto,
       }),
-      invalidatesTags: ["Projects"],
+      invalidatesTags: ["Projects", "Branches"],
     }),
     deleteProject: builder.mutation<void, string>({
       query: (id) => ({

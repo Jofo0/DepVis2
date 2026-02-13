@@ -92,11 +92,6 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
         if (project is null)
             return false;
 
-        project.Name = dto.Name;
-        project.ProjectLink = dto.ProjectLink;
-
-        await repo.UpdateAsync(project);
-
         var newBranches = dto.Branches.Select(b => new ProjectBranch
         {
             IsTag = false,
@@ -124,6 +119,20 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
             .ToList();
 
         await repo.AddBranchesAsync(branchesToAdd);
+
+        foreach (var branch in branchesToAdd)
+        {
+            await publishEndpoint.Publish<ProcessingMessage>(
+                new()
+                {
+                    GitHubLink = project.ProjectLink,
+                    ProjectBranchId = branch.Id,
+                    Location = branch.Name,
+                    IsTag = branch.IsTag,
+                }
+            );
+        }
+
         return true;
     }
 

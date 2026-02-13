@@ -26,7 +26,8 @@ const ProjectSchema = z
   })
   .refine(
     (data) =>
-      data.selectedBranches?.length != 0 || data.selectedTags?.length != 0,
+      (data.selectedBranches?.length ?? 0) > 0 ||
+      (data.selectedTags?.length ?? 0) > 0,
     {
       path: ["selectedBranches", "selectedTags"],
       message: "At least one branch or tag must be selected",

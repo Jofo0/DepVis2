@@ -96,6 +96,7 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
     public async Task AddBranchesAsync(List<ProjectBranch> branches)
     {
         await context.ProjectBranches.AddRangeAsync(branches);
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(Project project)
