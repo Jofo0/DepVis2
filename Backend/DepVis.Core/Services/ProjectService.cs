@@ -67,18 +67,7 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
 
         await repo.AddAsync(project);
 
-        foreach (var branch in project.ProjectBranches)
-        {
-            await publishEndpoint.Publish<ProcessingMessage>(
-                new()
-                {
-                    GitHubLink = project.ProjectLink,
-                    ProjectBranchId = branch.Id,
-                    Location = branch.Name,
-                    IsTag = branch.IsTag,
-                }
-            );
-        }
+        await PublishBranchesForProcessing([..project.ProjectBranches], project.ProjectLink);
 
         return project.MapToDto();
     }
@@ -120,18 +109,7 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
 
         await repo.AddBranchesAsync(branchesToAdd);
 
-        foreach (var branch in branchesToAdd)
-        {
-            await publishEndpoint.Publish<ProcessingMessage>(
-                new()
-                {
-                    GitHubLink = project.ProjectLink,
-                    ProjectBranchId = branch.Id,
-                    Location = branch.Name,
-                    IsTag = branch.IsTag,
-                }
-            );
-        }
+        await PublishBranchesForProcessing(branchesToAdd, project.ProjectLink);
 
         return true;
     }
@@ -144,5 +122,21 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
 
         await repo.DeleteAsync(project);
         return true;
+    }
+
+    private async Task PublishBranchesForProcessing(List<ProjectBranch> branches, string projectLink)
+    {
+        foreach (var branch in branches)
+        {
+            await publishEndpoint.Publish<ProcessingMessage>(
+                new()
+                {
+                    GitHubLink = projectLink,
+                    ProjectBranchId = branch.Id,
+                    Location = branch.Name,
+                    IsTag = branch.IsTag,
+                }
+            );
+        }
     }
 }
