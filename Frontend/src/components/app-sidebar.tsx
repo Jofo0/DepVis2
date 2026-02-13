@@ -10,6 +10,7 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarRail,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { useGetProjectsQuery } from "@/store/api/projectsApi";
 import useSidebar from "@/utils/useSidebar";
@@ -31,8 +32,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           }
         />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="flex flex-col justify-between">
         <NavMain items={sidebarData.navMain} />
+        <div>
+          <SidebarSeparator />
+          <NavMain items={sidebarData.navBottom} />
+        </div>
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

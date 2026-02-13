@@ -3,6 +3,7 @@ using DepVis.Core.Extensions;
 using DepVis.Core.Repositories;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
+using LibGit2Sharp;
 using MassTransit;
 using Microsoft.AspNetCore.OData.Query;
 
@@ -13,6 +14,25 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
     public async Task<ProjectBranchDto> GetProjectBranches(Guid id)
     {
         return (await repo.GetByProjectAsync(id)).MapToBranchesDto();
+    }
+
+    public async Task ProcessBranch(Guid id)
+    {
+        var branch = await repo.GetByIdAsync(id);
+
+        if (branch == null)
+            return;
+
+        await repo.DeleteBranchDependencies(id);
+        await publishEndpoint.Publish<ProcessingMessage>(
+                new()
+                {
+                    GitHubLink = branch.Project.ProjectLink,
+                    ProjectBranchId = branch.Id,
+                    Location = branch.Name,
+                    IsTag = branch.IsTag,
+                }
+            );
     }
 
     public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(

@@ -40,7 +40,7 @@ const WithTooltip = ({
         <span
           className={cn(
             "block whitespace-nowrap overflow-hidden text-ellipsis",
-            className
+            className,
           )}
           title={typeof tooltip === "string" ? tooltip : undefined}
         >
@@ -69,7 +69,7 @@ export function DataTable<TData>({
     <div
       className={cn(
         "rounded-md border overflow-x-auto flex flex-col justify-between",
-        className
+        className,
       )}
     >
       <TooltipProvider delayDuration={150}>
@@ -82,7 +82,7 @@ export function DataTable<TData>({
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       );
 
                   return (
@@ -120,7 +120,7 @@ export function DataTable<TData>({
                   {row.getVisibleCells().map((cell) => {
                     const cellNode = flexRender(
                       cell.column.columnDef.cell,
-                      cell.getContext()
+                      cell.getContext(),
                     );
                     return (
                       <TableCell

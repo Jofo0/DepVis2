@@ -17,6 +17,13 @@ export const projectApi = projectsApi.injectEndpoints({
       query: (id) => `/${id}/branches`,
       providesTags: ["Branches"],
     }),
+    reprocessBranch: builder.mutation<void, { projectId: string; id: string }>({
+      query: (dto) => ({
+        url: `/${dto.projectId}/branches/${dto.id}/process`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Projects", "Branches"],
+    }),
     processBranchHistory: builder.mutation<Branch[], string>({
       query: (id) => ({ url: `/${id}/branches/history`, method: "POST" }),
       invalidatesTags: ["BranchHistory"],
@@ -40,6 +47,7 @@ export const projectApi = projectsApi.injectEndpoints({
 });
 
 export const {
+  useReprocessBranchMutation,
   useGetBranchHistoryQuery,
   useProcessBranchHistoryMutation,
   useGetProjectBranchesDetailedQuery,

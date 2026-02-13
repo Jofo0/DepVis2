@@ -4,9 +4,16 @@ import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import { parseTime } from "../parseTime";
 import { useMemo } from "react";
 import HeaderContainer from "@/components/table/HeaderContainer";
+import { Loader, Play } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useReprocessBranchMutation } from "@/store/api/branchesApi";
+import { useGetProjectId } from "../hooks/useGetProjectId";
 
-export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] =>
-  useMemo(
+export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] => {
+  const [reprocess, { isLoading }] = useReprocessBranchMutation();
+  const projectId = useGetProjectId();
+
+  return useMemo(
     () => [
       {
         accessorKey: "name",
@@ -49,6 +56,23 @@ export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] =>
         cell: ({ row }: { row: Row<BranchDetailed> }) =>
           parseTime(row.original.scanDate),
       },
+      {
+        accessorKey: "scanDate",
+        header: () => "Rerun Scan",
+        cell: ({ row }: { row: Row<BranchDetailed> }) => {
+          return (
+            <Button
+              variant={"outline"}
+              onClick={() =>
+                reprocess({ id: row.original.id, projectId: projectId })
+              }
+            >
+              {isLoading ? <Loader className="animate-spin" /> : <Play />}
+            </Button>
+          );
+        },
+      },
     ],
-    []
+    [],
   );
+};
