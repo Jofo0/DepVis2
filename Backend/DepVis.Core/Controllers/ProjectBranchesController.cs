@@ -24,8 +24,8 @@ public class ProjectBranchesController(
     [HttpPost("{projectId}/branches/{projectBranchId}/process")]
     public async Task<ActionResult<ProjectBranchDto>> ProcessBranch(Guid projectBranchId)
     {
-        var branches = await branchService.ProcessBranch(projectBranchId);
-        return Ok(branches);
+        await branchService.ProcessBranch(projectBranchId);
+        return Ok();
     }
 
     [HttpGet("{projectId}/branches/detailed")]

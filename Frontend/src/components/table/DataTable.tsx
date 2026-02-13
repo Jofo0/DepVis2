@@ -128,7 +128,13 @@ export function DataTable<TData>({
                         style={{ width: cell.column.getSize() }}
                         className="p-2"
                       >
-                        <WithTooltip tooltip={cellNode}>{cellNode}</WithTooltip>
+                        {cell.column.columnDef.meta?.disableTooltip ? (
+                          cellNode
+                        ) : (
+                          <WithTooltip tooltip={cellNode}>
+                            {cellNode}
+                          </WithTooltip>
+                        )}
                       </TableCell>
                     );
                   })}
