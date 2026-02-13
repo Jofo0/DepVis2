@@ -7,6 +7,7 @@ import {
   PieChart,
   CircleDashed,
   History,
+  Settings,
 } from "lucide-react";
 import { useParams, useLocation } from "react-router-dom";
 
@@ -48,6 +49,11 @@ const useSidebar = () => {
       title: "Branch History",
       url: `/${id}/branch-history`,
       icon: History,
+    },
+    {
+      title: "Project Configuration",
+      url: `/${id}/edit`,
+      icon: Settings,
     },
   ];
 

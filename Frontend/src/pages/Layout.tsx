@@ -24,6 +24,8 @@ const Layout = () => {
     pageName = "Packages";
   } else if (pageName.includes("branch-history")) {
     pageName = "Branch History";
+  } else if (pageName.includes("edit")) {
+    pageName = "Edit Project";
   } else {
     pageName = "Home";
   }

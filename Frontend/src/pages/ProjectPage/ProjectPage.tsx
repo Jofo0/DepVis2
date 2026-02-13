@@ -1,7 +1,4 @@
-import {
-  useDeleteProjectMutation,
-  useGetProjectQuery,
-} from "../../store/api/projectsApi";
+import { useGetProjectQuery } from "../../store/api/projectsApi";
 import { useNavigate, useParams } from "react-router-dom";
 import Processing from "./Processing";
 import {
@@ -10,38 +7,20 @@ import {
   CardDescription,
   CardHeader,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Trash, ExternalLink, Cog } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
 import InfoTab from "./ProjectInformation/InfoTab";
 import InfoRow from "./ProjectInformation/InfoRow";
 import { ChartLoader } from "@/components/chart/PieCustomChart";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-} from "@/components/ui/dialog";
-import { useState } from "react";
-import { DialogDescription } from "@radix-ui/react-dialog";
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: project, isLoading } = useGetProjectQuery(id!);
-  const [removeProject, { isLoading: isRemoving }] = useDeleteProjectMutation();
   const { data } = useGetProjectBranchesQuery(id!);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const branches = data?.items;
 
   const navigate = useNavigate();
-
-  const handleRemoveProject = async () => {
-    if (project) {
-      await removeProject(project.id);
-      navigate("/");
-    }
-  };
 
   if (isLoading)
     return (
@@ -73,26 +52,6 @@ const ProjectDetailPage = () => {
                 {project.name}
               </div>
               <CardDescription>Project Information</CardDescription>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => navigate(`edit`)}
-                variant="secondary"
-                size="sm"
-              >
-                {"Edit"}
-                <Cog className="ml-2 h-4 w-4" />
-              </Button>
-              <Button
-                onClick={() => setIsDialogOpen(true)}
-                variant="destructive"
-                size="sm"
-                disabled={isRemoving}
-              >
-                {isRemoving ? "Removing..." : "Remove"}
-                <Trash className="ml-2 h-4 w-4" />
-              </Button>
             </div>
           </div>
         </CardHeader>
@@ -147,24 +106,6 @@ const ProjectDetailPage = () => {
       </Card>
 
       <Processing />
-      <Dialog open={isDialogOpen}>
-        <DialogContent>
-          <DialogHeader>Confirm Deletion</DialogHeader>
-          <DialogDescription>
-            Are you sure you want to delete this project? This action cannot be
-            undone.
-          </DialogDescription>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={() => handleRemoveProject()}>
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

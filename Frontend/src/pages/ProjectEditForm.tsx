@@ -11,9 +11,8 @@ import { useLazyGetGitInformationQuery } from "../store/api/gitApi";
 import { DevInput, InputButton } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MultiSelection from "@/components/MultiSelection";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { useState, useEffect } from "react";
-import { ArrowLeft } from "lucide-react";
 import { ChartLoader } from "@/components/chart/PieCustomChart";
 
 const ProjectSchema = z
@@ -38,9 +37,9 @@ type FormValues = z.infer<typeof ProjectSchema>;
 
 type ProjectEditFormProps = {
   projectId: string;
-};
+} & React.HTMLAttributes<HTMLDivElement>;
 
-const ProjectEditForm = ({ projectId }: ProjectEditFormProps) => {
+const ProjectEditForm = ({ projectId, ...props }: ProjectEditFormProps) => {
   const { data, isLoading: isLoadingProjectData } =
     useGetProjectInfoQuery(projectId);
   const [editProject, { isLoading }] = useEditProjectMutation();
@@ -53,7 +52,6 @@ const ProjectEditForm = ({ projectId }: ProjectEditFormProps) => {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     watch,
     setValue,
   } = useForm<FormValues>({
@@ -114,23 +112,15 @@ const ProjectEditForm = ({ projectId }: ProjectEditFormProps) => {
     setHasGitData(true);
   };
 
-  const handleReset = () => {
-    reset();
-    setHasGitData(false);
-  };
-
   return (
-    <Card>
+    <Card {...props}>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col gap-5 p-3"
       >
-        <div className="flex flex-row justify-between w-full">
-          <h3 className="text-xl font-medium tracking-tight">Edit Project</h3>
-          <Button variant={"ghost"} onClick={() => navigate(-1)}>
-            <ArrowLeft />
-          </Button>
-        </div>
+        <CardHeader className="flex flex-row justify-between w-full">
+          <h3>Edit Project</h3>
+        </CardHeader>
         {isLoadingProjectData ? (
           <ChartLoader />
         ) : (
@@ -192,9 +182,6 @@ const ProjectEditForm = ({ projectId }: ProjectEditFormProps) => {
             )}
 
             <div className="flex items-center justify-end pt-4 space-x-3">
-              <Button variant={"outline"} onClick={() => handleReset()}>
-                Reset
-              </Button>
               <Button
                 type="submit"
                 disabled={
