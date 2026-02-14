@@ -71,6 +71,7 @@ const Graph = () => {
           onNodeClick={(node) => {
             setSelectedNode(node.id);
           }}
+          commitId={commit?.commitId}
           branch={branch}
           severityFilter={selectedSeverity}
           showNames={showNames}
