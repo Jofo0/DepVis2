@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { ProcessStep } from "@/types/branches";
 import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
+import { ProcessStep } from "@/types/branches";
 
 type BranchSelectorProps = {
   onlyBranches?: boolean;
@@ -53,10 +53,10 @@ const BranchSelector = ({
   const branchesOnly = useMemo(
     () =>
       filteredBranches
-        ?.filter((b) => b.processStep === ProcessStep.Processed && !b.isTag)
+        ?.filter((b) => !b.isTag)
         .map((x) => (
           <SelectItem value={x.id} key={x.id}>
-            {x.name}
+            {`${x.name} ${x.processStep !== ProcessStep.Processed ? "(Not Processed Yet)" : ""}`}
           </SelectItem>
         )) ?? null,
     [filteredBranches],
@@ -65,10 +65,10 @@ const BranchSelector = ({
   const tagsOnly = useMemo(
     () =>
       filteredBranches
-        ?.filter((b) => b.processStep === ProcessStep.Processed && b.isTag)
+        ?.filter((b) => b.isTag)
         .map((x) => (
           <SelectItem value={x.id} key={x.id}>
-            {x.name}
+            {`${x.name} ${x.processStep !== ProcessStep.Processed ? "(Not Processed Yet)" : ""}`}
           </SelectItem>
         )) ?? null,
     [filteredBranches],
@@ -91,29 +91,35 @@ const BranchSelector = ({
           Select a branch{!onlyBranches && "/tag"}
         </div>
         <Select
-          value={branch?.id || ""}
+          value={filteredBranches?.length === 0 ? "" : branch?.id || ""}
           onValueChange={(value) => {
             const selected = branches?.find((b) => b.id === value);
             if (selected) setBranch(selected);
           }}
-          disabled={branchesLoading}
+          disabled={branchesLoading || filteredBranches?.length === 0}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a branch" />
+            <SelectValue
+              placeholder={
+                filteredBranches?.length === 0
+                  ? "No branches available"
+                  : "Select a branch"
+              }
+            />
           </SelectTrigger>
           <SelectContent avoidCollisions={false} className="max-h-64">
-            <SelectGroup>
-              <SelectLabel>
-                {branchesOnly?.length !== 0
-                  ? "Branches"
-                  : onlyBranches && "No processed branches"}
-              </SelectLabel>
-              {branchesOnly}
-            </SelectGroup>
-            <SelectGroup>
-              <SelectLabel>{tagsOnly?.length !== 0 && "Tags"}</SelectLabel>
-              {tagsOnly}
-            </SelectGroup>
+            {branchesOnly?.length !== 0 && (
+              <SelectGroup>
+                <SelectLabel>Branches</SelectLabel>
+                {branchesOnly}
+              </SelectGroup>
+            )}
+            {tagsOnly?.length !== 0 && (
+              <SelectGroup>
+                <SelectLabel>Tags</SelectLabel>
+                {tagsOnly}
+              </SelectGroup>
+            )}
           </SelectContent>
         </Select>
       </div>

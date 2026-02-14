@@ -53,9 +53,7 @@ export const BranchProvider = ({ children }: { children: React.ReactNode }) => {
   }, [branch]);
 
   useEffect(() => {
-    if (commit) {
-      localStorage.setItem("commit", JSON.stringify(commit));
-    }
+    localStorage.setItem("commit", JSON.stringify(commit));
   }, [commit]);
 
   return (

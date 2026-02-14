@@ -37,7 +37,7 @@ const ProjectEditPage = () => {
           size="sm"
           disabled={isRemoving}
         >
-          {isRemoving ? "Removing..." : "Remove"}
+          Remove
           <Trash className="ml-2 h-4 w-4" />
         </Button>
       </Card>
@@ -50,11 +50,19 @@ const ProjectEditPage = () => {
           </DialogDescription>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              variant="outline"
+              disabled={isRemoving}
+              onClick={() => setIsDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={() => handleRemoveProject()}>
-              Confirm
+            <Button
+              variant="destructive"
+              disabled={isRemoving}
+              onClick={() => handleRemoveProject()}
+            >
+              {isRemoving ? "Removing..." : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>
