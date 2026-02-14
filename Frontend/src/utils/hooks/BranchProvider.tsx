@@ -42,6 +42,9 @@ export const BranchProvider = ({ children }: { children: React.ReactNode }) => {
         const retrievedBranch: Branch = JSON.parse(stored);
         if (branch.id !== retrievedBranch.id) {
           setCommit(null);
+          if (branch.commits.length > 0) {
+            setCommit(branch.commits[0]);
+          }
         }
       }
 

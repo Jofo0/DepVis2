@@ -16,6 +16,7 @@ export type PackageDto = {
 export type PackagesDetailedDto = {
   packageItems: PackageItemDto[];
   vulnerabilities: NameCount[];
+  totalCount: number;
   ecoSystems: NameCount[];
 };
 

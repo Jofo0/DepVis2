@@ -36,7 +36,7 @@ const Vulnerabilities = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const [fetchVulnerabilities, { data, isFetching: isLoading }] =
+  const [fetchVulnerabilities, { data, isFetching: isLoading, isSuccess }] =
     useLazyGetVulnerabilitiesQuery();
   const [triggerExport] = useLazyGetVulnerabilitiesExportQuery();
 
@@ -119,7 +119,7 @@ const Vulnerabilities = () => {
             <div className="h-max-full w-1/2">
               <DataTable
                 onExportClick={onExportClick}
-                isLoading={isLoading}
+                isLoading={isLoading || !isSuccess}
                 onClick={(row) => setSelectedVulnerability(row)}
                 className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
                 table={table}
@@ -136,7 +136,7 @@ const Vulnerabilities = () => {
                   })) ?? []
                 }
                 filteredBy={riskFilter}
-                isLoading={isLoading}
+                isLoading={isLoading || !isSuccess}
                 onSliceClick={onRiskClick}
               />
               <div

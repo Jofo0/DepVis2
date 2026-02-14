@@ -2,30 +2,15 @@ import { SortButton } from "@/components/table/SortButton";
 import type { BranchDetailed } from "@/types/branches";
 import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import { parseTime } from "../parseTime";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import HeaderContainer from "@/components/table/HeaderContainer";
 import { Loader, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useReprocessBranchMutation } from "@/store/api/branchesApi";
-import { useGetProjectId } from "../hooks/useGetProjectId";
 
-export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] => {
-  const [reprocess] = useReprocessBranchMutation();
-  const projectId = useGetProjectId();
-  const [loadingId, setLoadingId] = useState<string | null>(null);
-
-  const handleReprocess = useCallback(
-    async (id: string) => {
-      try {
-        setLoadingId(id);
-        await reprocess({ id, projectId }).unwrap();
-      } finally {
-        setLoadingId(null);
-      }
-    },
-    [reprocess, projectId],
-  );
-
+export const useGetBranchColumns = (
+  handleReprocessCallback: (id: string) => void,
+  loadingId: string | null,
+): ColumnDef<BranchDetailed>[] => {
   return useMemo(
     () => [
       {
@@ -80,7 +65,7 @@ export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] => {
           return (
             <Button
               variant="outline"
-              onClick={() => handleReprocess(rowId)}
+              onClick={() => handleReprocessCallback(rowId)}
               disabled={isRowLoading}
             >
               {isRowLoading ? <Loader className="animate-spin" /> : <Play />}
@@ -89,6 +74,6 @@ export const useGetBranchColumns = (): ColumnDef<BranchDetailed>[] => {
         },
       },
     ],
-    [loadingId, handleReprocess],
+    [loadingId, handleReprocessCallback],
   );
 };

@@ -32,7 +32,7 @@ const Packages = () => {
 
   const [ecosystemFilter, setEcosystemFilter] = useState("");
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
-  const [fetchPackages, { data, isFetching: isLoading }] =
+  const [fetchPackages, { data, isFetching: isLoading, isSuccess }] =
     useLazyGetPackagesQuery();
   const [triggerExport] = useLazyGetPackagesExportQuery();
 
@@ -67,7 +67,6 @@ const Packages = () => {
 
   useEffect(() => {
     if (!branch) return;
-    console.log(commit);
 
     fetchPackages(
       {
@@ -98,7 +97,6 @@ const Packages = () => {
 
   const onExportClick = async () => {
     if (!branch) return;
-    console.log(commit);
     const blob = await triggerExport(
       {
         id: branch.id,
@@ -118,18 +116,16 @@ const Packages = () => {
     <div className="flex flex-col gap-3 w-full h-full">
       <div className="flex flex-col w-full h-full items-startjustify-evenly gap-2">
         <BranchSelector />
-        {!isLoadingBranch && branch && !isLoading && (
-          <PackagesInfo
-            data={data}
-            isLoading={isLoading}
-            onEcosystemClick={onEcosystemClick}
-            onVulnerabilityClick={onVulnerabilityClick}
-            onExportClick={onExportClick}
-            table={table}
-            ecosystemFilter={ecosystemFilter}
-            vulnerabilityFilter={vulnerabilityFilter}
-          />
-        )}
+        <PackagesInfo
+          data={data}
+          isLoading={isLoading || !isSuccess || isLoadingBranch}
+          onEcosystemClick={onEcosystemClick}
+          onVulnerabilityClick={onVulnerabilityClick}
+          onExportClick={onExportClick}
+          table={table}
+          ecosystemFilter={ecosystemFilter}
+          vulnerabilityFilter={vulnerabilityFilter}
+        />
       </div>
     </div>
   );

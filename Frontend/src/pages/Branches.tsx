@@ -8,7 +8,7 @@ import {
   getCoreRowModel,
   type SortingState,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { XYChart } from "@/components/chart/XYChart";
 import { toODataOrderBy } from "@/utils/odataHelper";
 import { downloadBlob } from "@/utils/downloadBlob";
@@ -16,19 +16,36 @@ import { getPrettyDate } from "@/utils/dateHelper";
 import {
   useGetProjectBranchesDetailedQuery,
   useLazyGetProjectBranchesDetailedExportQuery,
+  useReprocessBranchMutation,
 } from "@/store/api/branchesApi";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const Branches = () => {
   const projectId = useGetProjectId();
   const [sorting, setSorting] = useState<SortingState>([]);
-  const columns = useGetBranchColumns();
-
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [reprocess] = useReprocessBranchMutation();
   const { data = [], isLoading } = useGetProjectBranchesDetailedQuery({
     id: projectId,
     odata: toODataOrderBy(sorting),
   });
 
   const [triggerExport] = useLazyGetProjectBranchesDetailedExportQuery();
+
+  const openReprocessDialog = useCallback(async (id: string) => {
+    setProcessingId(id);
+    setIsDialogOpen(true);
+  }, []);
+
+  const columns = useGetBranchColumns(openReprocessDialog, processingId);
 
   const table = useReactTable({
     data,
@@ -49,6 +66,22 @@ const Branches = () => {
     }).unwrap();
 
     downloadBlob(blob, `branches-${projectId}-${getPrettyDate()}.csv`);
+  };
+
+  const handleReprocess = async () => {
+    if (!processingId) return;
+
+    try {
+      setIsDialogOpen(false);
+      await reprocess({ id: processingId, projectId }).unwrap();
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleCancelReprocess = () => {
+    setProcessingId(null);
+    setIsDialogOpen(false);
   };
 
   return (
@@ -83,6 +116,25 @@ const Branches = () => {
           />
         </div>
       </div>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>Confirm Reprocessing</DialogHeader>
+          <DialogDescription>
+            Are you sure you want to reprocess this branch? This action cannot
+            be undone and will remove all current branch data including branch
+            history.
+          </DialogDescription>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => handleCancelReprocess()}>
+              Cancel
+            </Button>
+            <Button variant="secondary" onClick={() => handleReprocess()}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
