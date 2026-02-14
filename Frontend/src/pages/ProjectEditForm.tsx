@@ -11,7 +11,7 @@ import { useLazyGetGitInformationQuery } from "../store/api/gitApi";
 import { DevInput, InputButton } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MultiSelection from "@/components/MultiSelection";
-import { Card, CardHeader } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { ChartLoader } from "@/components/chart/PieCustomChart";
 
@@ -67,7 +67,6 @@ const ProjectEditForm = ({ projectId, ...props }: ProjectEditFormProps) => {
   const navigate = useNavigate();
   const [hasGitData, setHasGitData] = useState(false);
 
-  // UseEffect to set the form values when project data is loaded
   useEffect(() => {
     if (data) {
       setValue("name", data.name);
@@ -112,6 +111,11 @@ const ProjectEditForm = ({ projectId, ...props }: ProjectEditFormProps) => {
     setHasGitData(true);
   };
 
+  const removedBranches =
+    data?.branches?.filter((b) => !(selectedBranches ?? []).includes(b)) ?? [];
+  const removedTags =
+    data?.tags?.filter((t) => !(selectedTags ?? []).includes(t)) ?? [];
+
   return (
     <Card {...props}>
       <form
@@ -119,8 +123,12 @@ const ProjectEditForm = ({ projectId, ...props }: ProjectEditFormProps) => {
         className="flex flex-col gap-5 p-3"
       >
         <CardHeader className="flex flex-row justify-between w-full">
-          <h3>Edit Project</h3>
+          <h1>Edit Project</h1>
         </CardHeader>
+        <CardDescription className="pl-6">
+          Removing branches or tags will remove them from the project and all
+          associated data will be lost.
+        </CardDescription>
         {isLoadingProjectData ? (
           <ChartLoader />
         ) : (
@@ -195,6 +203,52 @@ const ProjectEditForm = ({ projectId, ...props }: ProjectEditFormProps) => {
           </>
         )}
       </form>
+      {(removedBranches.length > 0 || removedTags.length > 0) && (
+        <div className="pt-2 border-t">
+          <h3 className="text-sm font-medium">Will be removed</h3>
+          <p className="text-xs text-muted-foreground">
+            These items will be removed when you click “Update Project”.
+          </p>
+
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div className="text-xs font-medium mb-2">Branches</div>
+              {removedBranches.length === 0 ? (
+                <div className="text-xs text-muted-foreground">None</div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {removedBranches.map((b) => (
+                    <span
+                      key={b}
+                      className="text-xs px-2 py-1 rounded-full border bg-muted"
+                    >
+                      {b}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div className="text-xs font-medium mb-2">Tags</div>
+              {removedTags.length === 0 ? (
+                <div className="text-xs text-muted-foreground">None</div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {removedTags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-xs px-2 py-1 rounded-full border bg-muted"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 };
