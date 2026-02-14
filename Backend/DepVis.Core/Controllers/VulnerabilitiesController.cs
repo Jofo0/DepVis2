@@ -14,10 +14,11 @@ public class VulnerabilitiesController(VulnerabilityService vulnerabilityService
     public async Task<ActionResult<VulnerabilitiesDto>> GetVulnerabilities(
         Guid branchId,
         ODataQueryOptions<VulnerabilitySmallDto> odata,
+        [FromQuery] Guid? commitId,
         [FromQuery(Name = "$export")] bool export = false
     )
     {
-        var dto = await vulnerabilityService.GetVulnerabilities(branchId, odata);
+        var dto = await vulnerabilityService.GetVulnerabilities(branchId, odata, commitId);
 
         if (export)
         {

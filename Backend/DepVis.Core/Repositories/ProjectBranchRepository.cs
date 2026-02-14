@@ -1,4 +1,5 @@
 ﻿using DepVis.Core.Context;
+using DepVis.Core.Dtos;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
     public async Task<List<ProjectBranch>> GetByProjectAsync(Guid projectId) =>
         await context
             .ProjectBranches.AsNoTracking()
+            .Include(x => x.BranchHistories)
             .Where(x => x.ProjectId == projectId)
             .ToListAsync();
 
@@ -41,12 +43,8 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
         try
         {
             var packageDependencies = context.PackageDependencies.Where(pd =>
-                (
-                    pd.Parent.Sbom.ProjectBranchId == projectBranchId
-                )
-                || (
-                    pd.Child.Sbom.ProjectBranchId == projectBranchId
-                )
+                (pd.Parent.Sbom.ProjectBranchId == projectBranchId)
+                || (pd.Child.Sbom.ProjectBranchId == projectBranchId)
             );
             await packageDependencies.ExecuteDeleteAsync();
 
@@ -60,9 +58,7 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
             );
             await sbomPackages.ExecuteDeleteAsync();
 
-            var sboms = context.Sboms.Where(s =>
-                s.ProjectBranchId == projectBranchId
-            );
+            var sboms = context.Sboms.Where(s => s.ProjectBranchId == projectBranchId);
 
             foreach (var sbom in await sboms.ToListAsync())
             {

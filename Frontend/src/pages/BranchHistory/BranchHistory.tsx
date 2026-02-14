@@ -15,7 +15,7 @@ import { useState } from "react";
 const BranchHistory = () => {
   return (
     <div className="flex flex-col gap-3 w-full h-full  max-h-full">
-      <BranchSelector onlyBranches />
+      <BranchSelector onlyBranches hideCommits />
       <History />
     </div>
   );

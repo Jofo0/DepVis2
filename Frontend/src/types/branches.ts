@@ -15,6 +15,7 @@ export type Branch = {
   vulnerabilityCount: number;
   packageCount: number;
   isTag: boolean;
+  commits: BranchCommitsDto[];
 };
 
 export type GetBranchesDto = {
@@ -28,6 +29,11 @@ export type GetBranchesDto = {
 export type BranchHistoryDto = {
   histories: BranchHistoryItem[];
   processingStep: ProcessStep;
+};
+
+export type BranchCommitsDto = {
+  commitId: string;
+  commitName: string;
 };
 
 export type BranchHistoryItem = {

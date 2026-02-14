@@ -15,7 +15,7 @@ import { downloadBlob } from "@/utils/downloadBlob";
 import { getPrettyDate } from "@/utils/dateHelper";
 
 const Graph = () => {
-  const { branch } = useBranch();
+  const { branch, commit } = useBranch();
   const [selectedSeverity, setSelectedSeverity] = useState<
     Severity | undefined
   >();
@@ -33,13 +33,14 @@ const Graph = () => {
 
     const blob = await triggerExport({
       showParents: showParents,
+      commitId: commit?.commitId,
       severityFilter: selectedSeverity,
       id: branch.id,
     }).unwrap();
 
     downloadBlob(
       blob,
-      `graph-${branch.name}-${getPrettyDate()}-${selectedSeverity || "all"}.dot`
+      `graph-${branch.name}-${getPrettyDate()}-${selectedSeverity || "all"}.dot`,
     );
   };
   return (

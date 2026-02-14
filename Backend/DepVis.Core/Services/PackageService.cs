@@ -9,9 +9,15 @@ namespace DepVis.Core.Services;
 
 public class PackageService(PackageRepository repo)
 {
-    public async Task<PackagesDto> GetPackageData(Guid id, ODataQueryOptions<SbomPackage> odata)
+    public async Task<PackagesDto> GetPackageData(
+        Guid id,
+        ODataQueryOptions<SbomPackage> odata,
+        Guid? commitId = null
+    )
     {
-        var packages = odata.ApplyOdataIEnumerable(repo.GetLatestPackagesForBranch(id));
+        IQueryable<SbomPackage> packages = odata.ApplyOdataIEnumerable(
+            repo.GetLatestPackagesForBranchOrCommit(commitId ?? id)
+        );
 
         var ecosystemGroups = await packages
             .GroupBy(x => x.Ecosystem)

@@ -58,6 +58,16 @@ public static class DtoExtensions
                     IsTag = x.IsTag,
                     PackageCount = x.PackageCount,
                     VulnerabilityCount = x.VulnerabilityCount,
+                    Commits =
+                    [
+                        .. x
+                            .BranchHistories.OrderByDescending(x => x.CommitDate)
+                            .Select(x => new BranchCommitDto()
+                            {
+                                CommitId = x.Id,
+                                CommitName = x.CommitMessage,
+                            }),
+                    ],
                 }),
             ],
             TotalCount = pb.Count,

@@ -25,14 +25,14 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
 
         await repo.DeleteBranchDependencies(id);
         await publishEndpoint.Publish<ProcessingMessage>(
-                new()
-                {
-                    GitHubLink = branch.Project.ProjectLink,
-                    ProjectBranchId = branch.Id,
-                    Location = branch.Name,
-                    IsTag = branch.IsTag,
-                }
-            );
+            new()
+            {
+                GitHubLink = branch.Project.ProjectLink,
+                ProjectBranchId = branch.Id,
+                Location = branch.Name,
+                IsTag = branch.IsTag,
+            }
+        );
     }
 
     public async Task<List<ProjectBranchDetailedDto>> GetProjectBranchesDetailed(

@@ -30,7 +30,7 @@ import {
 import { useEffect, useState } from "react";
 
 const Vulnerabilities = () => {
-  const { branch, isLoading: isLoadingBranch } = useBranch();
+  const { branch, commit, isLoading: isLoadingBranch } = useBranch();
   const columns = useGetVulnerabilitiesColumns();
   const [riskFilter, setRiskFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -71,11 +71,19 @@ const Vulnerabilities = () => {
     fetchVulnerabilities(
       {
         id: branch.id,
+        commitId: commit?.commitId,
         odata: fullOdata,
       },
-      true
+      true,
     );
-  }, [branch, riskFilter, sorting, columnFilters, fetchVulnerabilities]);
+  }, [
+    branch,
+    riskFilter,
+    sorting,
+    columnFilters,
+    fetchVulnerabilities,
+    commit,
+  ]);
 
   const onRiskClick = (name: string) => {
     setRiskFilter((prev) => (prev === name ? "" : name));
@@ -92,10 +100,14 @@ const Vulnerabilities = () => {
 
     const blob = await triggerExport({
       id: branch.id,
+      commitId: commit?.commitId,
       odata: fullOdata,
     }).unwrap();
 
-    downloadBlob(blob, `vulnerabilities-${branch.name}-${getPrettyDate()}.csv`);
+    downloadBlob(
+      blob,
+      `vulnerabilities-${branch.name}${commit ? `-${commit.commitName}` : ""}-${getPrettyDate()}.csv`,
+    );
   };
 
   return (

@@ -33,6 +33,7 @@ const LABEL_MARGIN = 4;
 
 type SimpleGraphProps = {
   branch: Branch;
+  commitId?: string;
   packageId?: string;
   lr?: boolean;
   className?: string;
@@ -50,6 +51,7 @@ const SimpleGraph = ({
   lr,
   severityFilter,
   showParents = true,
+  commitId,
   onNodeClick,
 }: SimpleGraphProps) => {
   const fgRef = useRef<
@@ -60,6 +62,7 @@ const SimpleGraph = ({
   const { data, isFetching } = useGetProjectGraphQuery({
     id: branch.id,
     packageId,
+    commitId,
     severityFilter,
     showParents,
   });
@@ -91,7 +94,7 @@ const SimpleGraph = ({
     nodes.forEach((n) =>
       n.name === "ProjectRoot"
         ? (n.val = 14)
-        : (n.val = Math.max(1, deg.get(n.id) ?? 1))
+        : (n.val = Math.max(1, deg.get(n.id) ?? 1)),
     );
 
     return { nodes, links };
@@ -189,7 +192,7 @@ const SimpleGraph = ({
                 x - textWidth / 2 - margin,
                 y + radius + margin,
                 textWidth + margin * 2,
-                fontSize + margin * 2
+                fontSize + margin * 2,
               );
               ctx.fillStyle = "#222";
               ctx.fillText(label, x, y + radius + margin * 2);

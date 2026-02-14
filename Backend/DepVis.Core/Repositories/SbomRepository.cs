@@ -6,10 +6,10 @@ namespace DepVis.Core.Repositories;
 
 public class SbomRepository(DepVisDbContext context)
 {
-    public async Task<Sbom?> GetLatestWithPackagesAndChildrenAsync(Guid branchId) =>
+    public async Task<Sbom?> GetLatestWithPackagesAndChildrenAsync(Guid id) =>
         await context
             .Sboms.AsNoTracking()
-            .Where(x => x.ProjectBranchId == branchId)
+            .Where(x => x.ProjectBranchId == id || x.BranchHistoryId == id)
             .Include(x => x.SbomPackages)
             .ThenInclude(x => x.Children)
             .Include(x => x.SbomPackages)
@@ -18,10 +18,10 @@ public class SbomRepository(DepVisDbContext context)
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync();
 
-    public async Task<Sbom?> GetLatestWithPackagesAndParentsAsync(Guid branchId) =>
+    public async Task<Sbom?> GetLatestWithPackagesAndParentsAsync(Guid id) =>
         await context
             .Sboms.AsNoTracking()
-            .Where(x => x.ProjectBranchId == branchId)
+            .Where(x => x.ProjectBranchId == id || x.BranchHistoryId == id)
             .Include(x => x.SbomPackages)
             .ThenInclude(sp => sp.Parents)
             .ThenInclude(p => p.Parent)

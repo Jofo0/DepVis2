@@ -1,15 +1,16 @@
 ﻿using DepVis.Core.Context;
 using DepVis.Shared.Model;
+using LibGit2Sharp;
 using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Repositories;
 
 public class PackageRepository(DepVisDbContext context)
 {
-    public IQueryable<SbomPackage> GetLatestPackagesForBranch(Guid branchId)
+    public IQueryable<SbomPackage> GetLatestPackagesForBranchOrCommit(Guid branchId)
     {
         var latestSbomIdQuery = context
-            .Sboms.Where(s => s.ProjectBranchId == branchId)
+            .Sboms.Where(s => s.ProjectBranchId == branchId || s.BranchHistoryId == branchId)
             .OrderByDescending(s => s.CreatedAt)
             .Select(s => s.Id)
             .Take(1);

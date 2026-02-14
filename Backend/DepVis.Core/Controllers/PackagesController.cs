@@ -17,10 +17,11 @@ public class PackagesController(PackageService packageService, GraphService grap
     public async Task<ActionResult<PackagesDto>> GetBranchPackages(
         Guid branchId,
         ODataQueryOptions<SbomPackage> odata,
+        [FromQuery] Guid? commitId,
         [FromQuery(Name = "$export")] bool export = false
     )
     {
-        var dto = await packageService.GetPackageData(branchId, odata);
+        var dto = await packageService.GetPackageData(branchId, odata, commitId);
 
         if (export)
         {
@@ -34,7 +35,7 @@ public class PackagesController(PackageService packageService, GraphService grap
     }
 
     [HttpGet("packages/{packageId}")]
-    public async Task<ActionResult<PackageDetailedDto>> GetBranchPackages(
+    public async Task<ActionResult<PackageDetailedDto>> GetPackageInformation(
         Guid packageId,
         CancellationToken cancellation
     )
@@ -46,12 +47,18 @@ public class PackagesController(PackageService packageService, GraphService grap
     [HttpGet("{branchId}/packages/graph")]
     public async Task<ActionResult<GraphDataDto>> GetFullGraph(
         Guid branchId,
+        [FromQuery] Guid? commitId,
         [FromQuery] string? severity,
         [FromQuery] bool showAllParents = true,
         [FromQuery(Name = "$export")] bool export = false
     )
     {
-        var graph = await graphService.GetProjectGraphData(branchId, showAllParents, severity);
+        var graph = await graphService.GetProjectGraphData(
+            branchId,
+            showAllParents,
+            severity,
+            commitId
+        );
         if (graph is null)
             return NotFound();
 
@@ -67,10 +74,11 @@ public class PackagesController(PackageService packageService, GraphService grap
     [HttpGet("{branchId}/packages/graph/{packageId}")]
     public async Task<ActionResult<GraphDataDto>> GetPackageHierarchyGraphData(
         Guid branchId,
-        Guid packageId
+        Guid packageId,
+        [FromQuery] Guid? commitId
     )
     {
-        var graph = await graphService.GetPackageHierarchyGraphData(branchId, packageId);
+        var graph = await graphService.GetPackageHierarchyGraphData(branchId, packageId, commitId);
         return graph is null ? NotFound() : Ok(graph);
     }
 }

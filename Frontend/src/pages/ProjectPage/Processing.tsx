@@ -17,7 +17,7 @@ const Processing = () => {
     refetch,
   } = useGetProjectBranchesQuery(id!);
   const [filter, setFilter] = useState<ProcessStep>(
-    InitialProcessStepUtil(data)
+    InitialProcessStepUtil(data),
   );
   const branches = data?.items ?? [];
 
@@ -84,10 +84,10 @@ const Processing = () => {
       <div className="grid grid-cols-4 pt-6 w-3/5 gap-2 self-center pl-8">
         {branches
           ?.filter(
-            (x) => ProcessStepOrder[x.processStep] >= ProcessStepOrder[filter]
+            (x) => ProcessStepOrder[x.processStep] >= ProcessStepOrder[filter],
           )
           .map((x) => (
-            <BranchProcessingCard branch={x} filter={filter} />
+            <BranchProcessingCard key={x.id} branch={x} filter={filter} />
           ))}
       </div>
     </Card>

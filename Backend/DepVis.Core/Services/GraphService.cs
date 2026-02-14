@@ -9,10 +9,11 @@ public class GraphService(SbomRepository repo)
     public async Task<GraphDataDto?> GetProjectGraphData(
         Guid branchId,
         bool showAllParents = true,
-        string? severityFilter = null
+        string? severityFilter = null,
+        Guid? commitId = null
     )
     {
-        var sbom = await repo.GetLatestWithPackagesAndChildrenAsync(branchId);
+        var sbom = await repo.GetLatestWithPackagesAndChildrenAsync(commitId ?? branchId);
 
         if (sbom == null)
             return null;
@@ -67,9 +68,13 @@ public class GraphService(SbomRepository repo)
         return new GraphDataDto { Packages = packages, Relationships = relations };
     }
 
-    public async Task<GraphDataDto?> GetPackageHierarchyGraphData(Guid branchId, Guid packageId)
+    public async Task<GraphDataDto?> GetPackageHierarchyGraphData(
+        Guid branchId,
+        Guid packageId,
+        Guid? commitId = null
+    )
     {
-        var sbom = await repo.GetLatestWithPackagesAndParentsAsync(branchId);
+        var sbom = await repo.GetLatestWithPackagesAndParentsAsync(commitId ?? branchId);
         if (sbom == null)
             return null;
 

@@ -19,6 +19,7 @@ import type {
 type IdWithOdata = {
   id: string;
   odata?: string;
+  commitId?: string;
 };
 
 export const projectApi = projectsApi.injectEndpoints({
@@ -65,17 +66,18 @@ export const projectApi = projectsApi.injectEndpoints({
       GraphDataDto,
       {
         id: string;
+        commitId?: string;
         packageId?: string;
         severityFilter?: Severity;
         showParents: boolean;
       }
     >({
-      query: ({ id, packageId, severityFilter, showParents }) =>
+      query: ({ id, packageId, commitId, severityFilter, showParents }) =>
         `/${id}/packages/graph/${packageId ? packageId : ""}?${
           severityFilter
             ? `severity=${severityFilter}&showAllParents=${showParents}`
             : ""
-        }`,
+        }${commitId ? `&commitId=${commitId}` : ""}`,
     }),
     getProjectGraphExport: builder.query<
       Blob,
@@ -83,27 +85,27 @@ export const projectApi = projectsApi.injectEndpoints({
         id: string;
         packageId?: string;
         severityFilter?: Severity;
+        commitId?: string;
         showParents: boolean;
       }
     >({
-      query: ({ id, packageId, severityFilter, showParents }) => ({
+      query: ({ id, packageId, severityFilter, commitId, showParents }) => ({
         responseHandler: (response) => response.blob(),
-        url: `/${id}/packages/graph/${
-          packageId ? packageId : ""
-        }?$export=true&${
+        url: `/${id}/packages/graph/${packageId ? packageId : ""}?$export=true${
           severityFilter
-            ? `severity=${severityFilter}&showAllParents=${showParents}`
+            ? `&severity=${severityFilter}&showAllParents=${showParents}`
             : ""
-        }`,
+        }${commitId ? `&commitId=${commitId}` : ""}`,
       }),
     }),
     getPackages: builder.query<PackagesDetailedDto, IdWithOdata>({
-      query: ({ id, odata }) => `/${id}/packages${odata ? `?${odata}` : ""}`,
+      query: ({ id, odata, commitId }) =>
+        `/${id}/packages?${odata ? `${odata}` : ""}${commitId ? `&commitId=${commitId}` : ""}`,
     }),
     getPackagesExport: builder.query<Blob, IdWithOdata>({
-      query: ({ id, odata }) => ({
+      query: ({ id, odata, commitId }) => ({
         responseHandler: (response) => response.blob(),
-        url: `/${id}/packages?$export=true${odata ? `&${odata}` : ""}`,
+        url: `/${id}/packages?$export=true${odata ? `&${odata}` : ""}${commitId ? `&commitId=${commitId}` : ""}`,
       }),
     }),
     getPackage: builder.query<PackageDetailedDto, string>({
@@ -114,13 +116,13 @@ export const projectApi = projectsApi.injectEndpoints({
       providesTags: (_res, _err, { id }) => [{ type: "Projects", id }],
     }),
     getVulnerabilities: builder.query<VulnerabilitiesDto, IdWithOdata>({
-      query: ({ id, odata }) =>
-        `/${id}/vulnerabilities${odata ? `?${odata}` : ""}`,
+      query: ({ id, odata, commitId }) =>
+        `/${id}/vulnerabilities${odata ? `?${odata}` : ""}${commitId ? `&commitId=${commitId}` : ""}`,
     }),
     getVulnerabilitiesExport: builder.query<Blob, IdWithOdata>({
-      query: ({ id, odata }) => ({
+      query: ({ id, odata, commitId }) => ({
         responseHandler: (response) => response.blob(),
-        url: `/${id}/vulnerabilities?$export=true${odata ? `&${odata}` : ""}`,
+        url: `/${id}/vulnerabilities?$export=true${odata ? `&${odata}` : ""}${commitId ? `&commitId=${commitId}` : ""}`,
       }),
     }),
     getVulnerability: builder.query<VulnerabilityDetailedDto, string>({
