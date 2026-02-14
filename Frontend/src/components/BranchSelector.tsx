@@ -76,7 +76,7 @@ const BranchSelector = ({
 
   const commits = useMemo(
     () =>
-      branch?.commits.map((c) => (
+      branch?.commits?.map((c) => (
         <SelectItem value={c.commitId} key={c.commitId}>
           {c.commitName}
         </SelectItem>
@@ -123,19 +123,19 @@ const BranchSelector = ({
           <Select
             value={commit?.commitId || ""}
             onValueChange={(value) => {
-              const selected = branch?.commits.find(
+              const selected = branch?.commits?.find(
                 (c) => c.commitId === value,
               );
               if (selected) setCommit(selected);
             }}
-            disabled={branch === null || branch?.commits.length === 0}
+            disabled={branch === null || branch?.commits?.length === 0}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue
                 placeholder={
                   branch?.isTag
                     ? "No commits available"
-                    : branch?.commits.length === 0
+                    : branch?.commits?.length === 0
                       ? "History not processed"
                       : "Select a commit"
                 }
