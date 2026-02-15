@@ -144,7 +144,7 @@ const ProjectEditForm = ({ projectId, ...props }: ProjectEditFormProps) => {
               <div className="flex gap-2 w-full items-end">
                 <InputButton
                   disabled
-                  title="GitHub Link"
+                  title="Git Link"
                   {...register("projectLink")}
                   className="w-full"
                   placeholder="https://github.com/owner/repo"
@@ -160,8 +160,8 @@ const ProjectEditForm = ({ projectId, ...props }: ProjectEditFormProps) => {
 
               {gitError && (
                 <p className="text-xs text-red-500">
-                  Couldn’t fetch repository info. Check the URL or your
-                  credentials.
+                  Couldn't fetch repository info. Check if the URL is correct
+                  and the repo is public.
                 </p>
               )}
             </div>
