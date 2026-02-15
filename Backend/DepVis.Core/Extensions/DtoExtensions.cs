@@ -132,7 +132,7 @@ public static class DtoExtensions
                         CommitMessage = x.CommitMessage,
                         CommitSha = x.CommitSha,
                         PackageCount = x.PackageCount,
-                        VulnerabilityCount = x.PackageCount,
+                        VulnerabilityCount = x.VulnerabilityCount,
                     }),
             ],
             ProcessingStep = processingStep,
