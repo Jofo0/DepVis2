@@ -9,7 +9,7 @@ RUN dotnet restore DepVis.Processing/DepVis.SbomProcessing.csproj
 COPY . .
 RUN dotnet publish DepVis.Processing/DepVis.SbomProcessing.csproj -c Release -o /app/publish --no-restore
 
-FROM mcr.microsoft.com/dotnet/runtime:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 ARG TRIVY_VERSION=v0.67.2
 
 RUN apt-get update \
