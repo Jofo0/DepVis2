@@ -9,11 +9,11 @@ import { ProcessStep } from "@/types/branches";
 import { useBranch } from "@/utils/hooks/BranchProvider";
 import { RefreshCcw } from "lucide-react";
 import ViewSelector, { ViewType } from "./Components/ViewSelector";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
 
 const BranchHistory = () => {
-  const [selectedView, setSelectedView] = useState(ViewType.Both);
+  const [selectedView, setSelectedView] = useState<ViewType | undefined>();
 
   return (
     <div className="flex flex-col gap-3 w-full h-full  max-h-full">
@@ -21,14 +21,22 @@ const BranchHistory = () => {
         title="Branch History"
         description="View and analyze branch history for the selected branch"
       >
-        <ViewSelector selected={selectedView} onSelect={setSelectedView} />
+        {selectedView && (
+          <ViewSelector selected={selectedView} onSelect={setSelectedView} />
+        )}
       </PageHeader>
-      <History selectedView={selectedView} />
+      <History selectedView={selectedView} setSelectedView={setSelectedView} />
     </div>
   );
 };
 
-const History = ({ selectedView }: { selectedView: ViewType }) => {
+const History = ({
+  selectedView,
+  setSelectedView,
+}: {
+  selectedView: ViewType | undefined;
+  setSelectedView: (view: ViewType) => void;
+}) => {
   const { branch } = useBranch();
   const {
     isFetching: isLoading,
@@ -42,6 +50,12 @@ const History = ({ selectedView }: { selectedView: ViewType }) => {
       await mutate(branch.id);
     }
   };
+
+  useEffect(() => {
+    if (data?.processingStep === ProcessStep.Processed) {
+      setSelectedView(ViewType.Both);
+    }
+  }, [data, setSelectedView]);
 
   if (!branch || isLoading || !data)
     return <div>Loading branch history...</div>;
