@@ -11,3 +11,4 @@ DepVisBe/obj/Debug/net9.0/DepVisBe.AssemblyInfo.cs
 /DepVisBe/obj/project.assets.json
 /DepVisBe/obj/project.nuget.cache
 /minio-data/*
+.env
