@@ -4,6 +4,7 @@ import type {
   Branch,
   BranchHistoryDto,
   GetBranchesDto,
+  BranchComparison,
 } from "@/types/branches";
 
 type IdWithOdata = {
@@ -37,16 +38,29 @@ export const projectApi = projectsApi.injectEndpoints({
         `/${id}/branches/detailed${odata ? `?${odata}` : ""}`,
       providesTags: ["Branches"],
     }),
-    getProjectBranchesDetailedExport: builder.query<Blob, IdWithOdata>({
+    getProjectBranchesDetailedExport: builder.query<
+      BranchComparison,
+      IdWithOdata
+    >({
       query: ({ id, odata }) => ({
         responseHandler: (response) => response.blob(),
         url: `/${id}/branches/detailed?$export=true${odata ? `&${odata}` : ""}`,
+      }),
+    }),
+    getBranchComparison: builder.query<
+      Blob,
+      { branchId: string; compareToBranchId: string }
+    >({
+      query: ({ branchId, compareToBranchId }) => ({
+        responseHandler: (response) => response.blob(),
+        url: `/${branchId}/compare/${compareToBranchId}`,
       }),
     }),
   }),
 });
 
 export const {
+  useLazyGetBranchComparisonQuery,
   useReprocessBranchMutation,
   useGetBranchHistoryQuery,
   useProcessBranchHistoryMutation,

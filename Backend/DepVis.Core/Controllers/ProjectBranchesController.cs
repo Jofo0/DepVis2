@@ -49,7 +49,7 @@ public class ProjectBranchesController(
     }
 
     [HttpGet("{branchId}/compare/{comparedWith}")]
-    public async Task<ActionResult<ProjectStatsDto>> GetBranchComparison(
+    public async Task<ActionResult<BranchCompareDto>> GetBranchComparison(
         Guid branchId,
         Guid comparedWith
     )

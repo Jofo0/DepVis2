@@ -7,6 +7,17 @@ export type BranchDetailed = {
   scanDate: string;
 };
 
+export type BranchComparison = {
+  addedPackages: string[];
+  removedPackages: string[];
+  addedVulnerabilityIds: string[];
+  removedVulnerabilityIds: string[];
+  mainBranchPackageCount: number;
+  comparedBranchPackageCount: number;
+  mainBranchVulnerabilityCount: number;
+  comparedBranchVulnerabilityCount: number;
+};
+
 export type Branch = {
   name: string;
   id: string;

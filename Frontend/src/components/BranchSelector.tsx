@@ -12,21 +12,51 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useGetProjectBranchesQuery } from "@/store/api/branchesApi";
-import { ProcessStep } from "@/types/branches";
+import {
+  ProcessStep,
+  type Branch,
+  type BranchCommitsDto,
+} from "@/types/branches";
 
 type BranchSelectorProps = {
   onlyBranches?: boolean;
   hideCommits?: boolean;
+  branch: Branch | null;
+  setBranch: (branch: Branch) => void;
+  commit: BranchCommitsDto | null;
+  setCommit: (commit: BranchCommitsDto | null) => void;
+};
+
+export const GlobalBranchSelector = ({
+  onlyBranches = false,
+  hideCommits = false,
+}: Omit<
+  BranchSelectorProps,
+  "branch" | "setBranch" | "commit" | "setCommit"
+>) => {
+  const { branch, setBranch, commit, setCommit } = useBranch();
+  return (
+    <BranchSelector
+      onlyBranches={onlyBranches}
+      hideCommits={hideCommits}
+      branch={branch}
+      setBranch={setBranch}
+      commit={commit}
+      setCommit={setCommit}
+    />
+  );
 };
 
 const BranchSelector = ({
   onlyBranches = false,
   hideCommits = false,
+  branch,
+  setBranch,
+  commit,
+  setCommit,
 }: BranchSelectorProps) => {
   const id = useGetProjectId();
   const { data, isLoading: branchesLoading } = useGetProjectBranchesQuery(id!);
-
-  const { branch, setBranch, commit, setCommit } = useBranch();
 
   const branches = data?.items;
   const filteredBranches = branches?.filter((x) =>
