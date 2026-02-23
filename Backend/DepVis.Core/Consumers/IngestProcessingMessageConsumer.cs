@@ -240,18 +240,26 @@ public class IngestProcessingMessageConsumer(
                     Recommendation = x.Recommendation,
                     Severity =
                         (x.Ratings ?? [])
-                            .Where(r => r.Source.Name == "ghsa")
                             .Select(gr => gr.Severity)
+                            .OrderByDescending(severity =>
+                                severity switch
+                                {
+                                    "Critical" => 4,
+                                    "High" => 3,
+                                    "Medium" => 2,
+                                    "Low" => 1,
+                                    _ => 0, // In case of an unknown severity
+                                }
+                            )
                             .FirstOrDefault() ?? "Unknown",
-                    References = [..(x.Advisories ?? []).Select(r => new Reference
-                    {
-                        Url = r.Url,
-                    })],
-                    CWES = [..(x.CWEs ?? []).Select(c => new CWE
-                    {
-                        Id = Guid.NewGuid(),
-                        CweId = c,
-                    })],
+                    References =
+                    [
+                        .. (x.Advisories ?? []).Select(r => new Reference { Url = r.Url }),
+                    ],
+                    CWES =
+                    [
+                        .. (x.CWEs ?? []).Select(c => new CWE { Id = Guid.NewGuid(), CweId = c }),
+                    ],
                 };
             })
             .ToList();
