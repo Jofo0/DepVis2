@@ -142,10 +142,16 @@ public class IngestProcessingMessageConsumer(
 
         await IngestVulnerablities(bom);
 
-        var packages = BuildPackages(sbomId, bom);
+        var (packages, extraBomRefs) = BuildPackages(sbomId, bom);
 
         var edges = BuildEdges(bom);
+
         var bomRefToId = packages.ToDictionary(p => p.BomRef, p => p.Id, StringComparer.Ordinal);
+
+        foreach (var e in extraBomRefs)
+        {
+            e.BomRefs.ForEach(br => bomRefToId[br] = e.Id);
+        }
 
         var maxRankByBomRef = new Dictionary<string, int>(StringComparer.Ordinal);
 
@@ -207,7 +213,7 @@ public class IngestProcessingMessageConsumer(
 
         _db.SbomPackages.AddRange(packages);
         _db.PackageDependencies.AddRange(createdDeps);
-        _db.SbomPackageVulnerabilities.AddRange(packageVulnerabilities);
+        _db.SbomPackageVulnerabilities.AddRange(packageVulnerabilities.Distinct());
         await _db.SaveChangesAsync(cancellationToken);
 
         return new()
@@ -306,8 +312,14 @@ public class IngestProcessingMessageConsumer(
         }
     }
 
-    private static List<SbomPackage> BuildPackages(Guid sbomId, CycloneDxBom bom)
+    private record PackagesDuplicatesResolve(List<string> BomRefs, Guid Id);
+
+    private static (List<SbomPackage>, List<PackagesDuplicatesResolve>) BuildPackages(
+        Guid sbomId,
+        CycloneDxBom bom
+    )
     {
+        var existingPackages = new Dictionary<string, PackagesDuplicatesResolve>();
         var comps = bom.Components ?? [];
         var packages = new List<SbomPackage>(comps.Count + 1);
 
@@ -329,10 +341,28 @@ public class IngestProcessingMessageConsumer(
 
         foreach (var x in comps)
         {
+            if (x == null)
+                continue;
+
+            var guid = Guid.NewGuid();
+
+            if (!string.IsNullOrEmpty(x.Purl))
+            {
+                if (existingPackages.ContainsKey(x.Purl))
+                {
+                    existingPackages[x.Purl].BomRefs.Add(x.BomRef);
+                    continue;
+                }
+                else
+                {
+                    existingPackages.Add(x.Purl, new PackagesDuplicatesResolve([], guid));
+                }
+            }
+
             packages.Add(
                 new SbomPackage
                 {
-                    Id = Guid.NewGuid(),
+                    Id = guid,
                     SbomId = sbomId,
                     Name = string.IsNullOrWhiteSpace(x.Name) ? "No Name Found" : x.Name,
                     Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
@@ -344,7 +374,7 @@ public class IngestProcessingMessageConsumer(
             );
         }
 
-        return packages;
+        return (packages, existingPackages.Values.ToList());
     }
 
     private static Dictionary<string, List<string>> BuildEdges(CycloneDxBom bom)
