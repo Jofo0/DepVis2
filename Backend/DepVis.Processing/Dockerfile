@@ -10,7 +10,7 @@ COPY . .
 RUN dotnet publish DepVis.Processing/DepVis.SbomProcessing.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
-ARG TRIVY_VERSION=v0.67.2
+ARG TRIVY_VERSION=v0.69.3
 
 RUN apt-get update \
     && apt-get install -y curl ca-certificates tar \
