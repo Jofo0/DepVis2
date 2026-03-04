@@ -359,12 +359,15 @@ public class IngestProcessingMessageConsumer(
                 }
             }
 
+            var group = string.IsNullOrWhiteSpace(x.Group) ? string.Empty : x.Group + "/";
+            var name = string.IsNullOrWhiteSpace(x.Name) ? "No Name Found" : x.Name;
+
             packages.Add(
                 new SbomPackage
                 {
                     Id = guid,
                     SbomId = sbomId,
-                    Name = string.IsNullOrWhiteSpace(x.Name) ? "No Name Found" : x.Name,
+                    Name = group + name,
                     Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
                     Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
                     Ecosystem = InferEcosystemFromPurl(x.Purl),

@@ -20,6 +20,7 @@ public class CycloneDxBom
 public record CycloneDxComponent(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("version")] string Version,
+    [property: JsonPropertyName("group")] string Group,
     [property: JsonPropertyName("purl")] string Purl,
     [property: JsonPropertyName("type")] string Type,
     [property: JsonPropertyName("bom-ref")] string BomRef
