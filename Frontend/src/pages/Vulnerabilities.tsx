@@ -36,7 +36,7 @@ const Vulnerabilities = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const [fetchVulnerabilities, { data, isFetching: isLoading, isSuccess }] =
+  const [fetchVulnerabilities, { data, isLoading: isLoading, isSuccess }] =
     useLazyGetVulnerabilitiesQuery();
   const [triggerExport] = useLazyGetVulnerabilitiesExportQuery();
 

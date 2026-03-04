@@ -32,7 +32,7 @@ const Packages = () => {
 
   const [ecosystemFilter, setEcosystemFilter] = useState("");
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
-  const [fetchPackages, { data, isFetching: isLoading, isSuccess }] =
+  const [fetchPackages, { data, isLoading: isLoading, isSuccess }] =
     useLazyGetPackagesQuery();
   const [triggerExport] = useLazyGetPackagesExportQuery();
 

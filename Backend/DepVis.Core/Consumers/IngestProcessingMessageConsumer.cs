@@ -250,10 +250,10 @@ public class IngestProcessingMessageConsumer(
                             .OrderByDescending(severity =>
                                 severity switch
                                 {
-                                    "Critical" => 4,
-                                    "High" => 3,
-                                    "Medium" => 2,
-                                    "Low" => 1,
+                                    "critical" => 4,
+                                    "high" => 3,
+                                    "medium" => 2,
+                                    "low" => 1,
                                     _ => 0, // In case of an unknown severity
                                 }
                             )

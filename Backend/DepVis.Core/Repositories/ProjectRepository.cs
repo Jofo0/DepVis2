@@ -9,7 +9,10 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
         await context.Projects.AsNoTracking().ToListAsync();
 
     public async Task<Project?> GetByIdAsync(Guid id) =>
-        await context.Projects.Include(x => x.ProjectBranches).AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+        await context
+            .Projects.Include(x => x.ProjectBranches)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<Project?> GetByIdDetailedAsync(Guid id) =>
         await context
@@ -147,6 +150,27 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
             var projectEntity = context.Projects.Where(p => p.Id == projectId);
             await projectEntity.ExecuteDeleteAsync();
 
+            var vulnerabilities = context
+                .Vulnerabilities.Include(x => x.References)
+                .Include(x => x.CWES)
+                .Where(v => !v.SbomPackageVulnerabilities.Any())
+                .ToList();
+
+            foreach (var vulnerability in vulnerabilities)
+            {
+                var cwes = vulnerability.CWES.ToList();
+                context.CWEs.RemoveRange(cwes);
+            }
+
+            foreach (var vulnerability in vulnerabilities)
+            {
+                var references = vulnerability.References.ToList();
+                context.References.RemoveRange(references);
+            }
+
+            context.Vulnerabilities.RemoveRange(vulnerabilities);
+
+            await context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
         catch (Exception ex)
