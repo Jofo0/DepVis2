@@ -429,22 +429,21 @@ public class IngestProcessingMessageConsumer(
         var depths = new Dictionary<string, int>(StringComparer.Ordinal);
         var visited = new HashSet<string>();
 
-        int CalculatePackageDepth(string package, int parentDepth)
+        void CalculatePackageDepth(string package, int parentDepth)
         {
-            if (depths.ContainsKey(package))
-                return depths[package];
+            if (depths.TryGetValue(package, out int depthValue))
+                return;
 
             int depth = parentDepth + 1;
             depths[package] = depth;
-            if (edges.ContainsKey(package))
+
+            if (edges.TryGetValue(package, out var packageValue))
             {
-                foreach (var child in edges[package])
+                foreach (var child in packageValue)
                 {
                     CalculatePackageDepth(child, depth);
                 }
             }
-
-            return depths[package];
         }
 
         depths[root] = 0;
