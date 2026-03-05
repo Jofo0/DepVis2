@@ -12,7 +12,7 @@ public class SbomPackage
     public string? PackageType { get; set; }
     public string? Type { get; set; }
     public string BomRef { get; set; } = string.Empty;
-    public int Depth { get; set; } = 0;
+    public int? Depth { get; set; } = null;
     public ICollection<PackageDependency> Parents { get; set; } = [];
     public ICollection<PackageDependency> Children { get; set; } = [];
 

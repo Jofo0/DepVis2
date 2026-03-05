@@ -142,9 +142,18 @@ public class IngestProcessingMessageConsumer(
 
         await IngestVulnerablities(bom);
 
-        var (packages, extraBomRefs) = BuildPackages(sbomId, bom);
+        var (packages, extraBomRefs, root) = BuildPackages(sbomId, bom);
 
         var edges = BuildEdges(bom);
+        var depths = CalculateDepths(edges, root);
+
+        foreach (var d in depths)
+        {
+            var pkg = packages.FirstOrDefault(p => p.BomRef == d.Key);
+
+            if (pkg != null)
+                pkg.Depth = d.Value;
+        }
 
         var bomRefToId = packages.ToDictionary(p => p.BomRef, p => p.Id, StringComparer.Ordinal);
 
@@ -314,7 +323,7 @@ public class IngestProcessingMessageConsumer(
 
     private record PackagesDuplicatesResolve(List<string> BomRefs, Guid Id);
 
-    private static (List<SbomPackage>, List<PackagesDuplicatesResolve>) BuildPackages(
+    private static (List<SbomPackage>, List<PackagesDuplicatesResolve>, string) BuildPackages(
         Guid sbomId,
         CycloneDxBom bom
     )
@@ -336,6 +345,7 @@ public class IngestProcessingMessageConsumer(
                 Ecosystem = "None",
                 Type = "ProjectRoot",
                 BomRef = rootRef,
+                Depth = 0,
             }
         );
 
@@ -378,7 +388,7 @@ public class IngestProcessingMessageConsumer(
             );
         }
 
-        return (packages, existingPackages.Values.ToList());
+        return (packages, existingPackages.Values.ToList(), rootRef);
     }
 
     private static Dictionary<string, List<string>> BuildEdges(CycloneDxBom bom)
@@ -409,6 +419,45 @@ public class IngestProcessingMessageConsumer(
         }
 
         return edges;
+    }
+
+    private static Dictionary<string, int> CalculateDepths(
+        Dictionary<string, List<string>> edges,
+        string root
+    )
+    {
+        var depths = new Dictionary<string, int>(StringComparer.Ordinal);
+        var visited = new HashSet<string>();
+
+        int CalculatePackageDepth(string package, int parentDepth)
+        {
+            if (depths.ContainsKey(package))
+                return depths[package];
+
+            int depth = parentDepth + 1;
+            depths[package] = depth;
+            if (edges.ContainsKey(package))
+            {
+                foreach (var child in edges[package])
+                {
+                    CalculatePackageDepth(child, depth);
+                }
+            }
+
+            return depths[package];
+        }
+
+        depths[root] = 0;
+
+        foreach (var package in edges[root])
+        {
+            if (!depths.ContainsKey(package))
+            {
+                CalculatePackageDepth(package, 0);
+            }
+        }
+
+        return depths;
     }
 
     private static HashSet<PackageDependency> BuildDependencies(
