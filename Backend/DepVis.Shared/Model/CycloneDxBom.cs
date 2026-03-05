@@ -22,6 +22,7 @@ public record CycloneDxComponent(
     [property: JsonPropertyName("version")] string Version,
     [property: JsonPropertyName("group")] string Group,
     [property: JsonPropertyName("purl")] string Purl,
+    [property: JsonPropertyName("properties")] List<CycloneDxProperty> Properties,
     [property: JsonPropertyName("type")] string Type,
     [property: JsonPropertyName("bom-ref")] string BomRef
 );
@@ -44,6 +45,11 @@ public record CycloneDxVulnerability(
     [property: JsonPropertyName("published")] DateTime Published,
     [property: JsonPropertyName("updated")] DateTime Updated,
     [property: JsonPropertyName("affects")] List<Affected> Affects
+);
+
+public record CycloneDxProperty(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("value")] string Value
 );
 
 public record Source(

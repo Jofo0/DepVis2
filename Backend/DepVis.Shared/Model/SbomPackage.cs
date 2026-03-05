@@ -9,8 +9,10 @@ public class SbomPackage
     public string? Version { get; set; }
     public string? Purl { get; set; }
     public string? Ecosystem { get; set; }
+    public string? PackageType { get; set; }
     public string? Type { get; set; }
     public string BomRef { get; set; } = string.Empty;
+    public int Depth { get; set; } = 0;
     public ICollection<PackageDependency> Parents { get; set; } = [];
     public ICollection<PackageDependency> Children { get; set; } = [];
 

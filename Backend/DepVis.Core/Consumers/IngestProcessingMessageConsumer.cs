@@ -370,6 +370,7 @@ public class IngestProcessingMessageConsumer(
                     Name = group + name,
                     Version = string.IsNullOrWhiteSpace(x.Version) ? null : x.Version,
                     Purl = string.IsNullOrWhiteSpace(x.Purl) ? null : x.Purl,
+                    PackageType = GetPackageTypeFromProperties(x.Properties),
                     Ecosystem = InferEcosystemFromPurl(x.Purl),
                     Type = x.Type,
                     BomRef = x.BomRef,
@@ -432,6 +433,16 @@ public class IngestProcessingMessageConsumer(
         }
 
         return created;
+    }
+
+    private static string? GetPackageTypeFromProperties(List<CycloneDxProperty> props)
+    {
+        var ecosystem = props.FirstOrDefault(p => p.Name == "aquasecurity:trivy:PkgType");
+
+        if (ecosystem == null)
+            return "Unknown";
+
+        return ecosystem.Value;
     }
 
     private static string? InferEcosystemFromPurl(string? purl)
