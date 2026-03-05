@@ -428,31 +428,28 @@ public class IngestProcessingMessageConsumer(
     {
         var depths = new Dictionary<string, int>(StringComparer.Ordinal);
         var visited = new HashSet<string>();
+        var queue = new Queue<string>();
 
-        void CalculatePackageDepth(string package, int parentDepth)
-        {
-            if (depths.TryGetValue(package, out int depthValue))
-                return;
-
-            int depth = parentDepth + 1;
-            depths[package] = depth;
-
-            if (edges.TryGetValue(package, out var packageValue))
-            {
-                foreach (var child in packageValue)
-                {
-                    CalculatePackageDepth(child, depth);
-                }
-            }
-        }
-
+        queue.Enqueue(root);
         depths[root] = 0;
+        visited.Add(root);
 
-        foreach (var package in edges[root])
+        while (queue.Count > 0)
         {
-            if (!depths.ContainsKey(package))
+            var package = queue.Dequeue();
+            int currentDepth = depths[package];
+
+            if (edges.TryGetValue(package, out var neighbors))
             {
-                CalculatePackageDepth(package, 0);
+                foreach (var child in neighbors)
+                {
+                    if (!visited.Contains(child))
+                    {
+                        visited.Add(child);
+                        depths[child] = currentDepth + 1;
+                        queue.Enqueue(child);
+                    }
+                }
             }
         }
 
