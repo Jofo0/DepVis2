@@ -1,6 +1,8 @@
 using DepVis.Core.Context;
 using DepVis.Core.Repositories;
 using DepVis.Core.Services;
+using DepVis.Core.Services.Interfaces;
+using DepVis.Core.Services.Processing;
 using DepVis.ServiceDefaults;
 using DepVis.Shared.Options;
 using DepVis.Shared.Services;
@@ -38,6 +40,14 @@ builder.Services.AddScoped<ProjectBranchRepository>();
 builder.Services.AddScoped<SbomRepository>();
 builder.Services.AddScoped<PackageRepository>();
 builder.Services.AddScoped<VulnerabilityRepository>();
+
+builder.Services.AddScoped<ISbomIngestionOrchestrator, SbomIngestionOrchestrator>();
+builder.Services.AddScoped<ISbomProcessor, SbomProcessor>();
+builder.Services.AddScoped<ICycloneDxBomLoader, CycloneDxBomLoader>();
+builder.Services.AddScoped<IVulnerabilityIngestionService, VulnerabilityIngestionService>();
+builder.Services.AddScoped<ISbomPackageBuilder, SbomPackageBuilder>();
+builder.Services.AddScoped<IDependencyGraphBuilder, DependencyGraphBuilder>();
+builder.Services.AddScoped<IPackageVulnerabilityMapper, PackageVulnerabilityMapper>();
 
 builder.Services.AddDbContext<DepVisDbContext>(options => options.UseSqlServer(dbConnectionString));
 builder.AddServiceDefaults(dbConnectionString, createMassTransitInfra: true);
