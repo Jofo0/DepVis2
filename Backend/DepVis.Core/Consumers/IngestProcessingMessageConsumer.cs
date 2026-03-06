@@ -114,7 +114,7 @@ public class IngestProcessingMessageConsumer(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ingestion failed.");
-            projectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
+            projectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Failed;
             branchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
             await _db.SaveChangesAsync(cancellationToken);
             throw;
@@ -147,27 +147,28 @@ public class IngestProcessingMessageConsumer(
         var edges = BuildEdges(bom);
         var depths = CalculateDepths(edges, root);
 
-        foreach (var d in depths)
-        {
-            var pkg = packages.FirstOrDefault(p => p.BomRef == d.Key);
+        var packagesByBomRef = packages.Where(p => p.BomRef != null).ToDictionary(p => p.BomRef!);
 
-            if (pkg != null)
+        var packagesById = packages.ToDictionary(p => p.Id);
+
+        var extraBomRefByContainedBomRef = extraBomRefs
+            .SelectMany(x => x.BomRefs.Select(bomRef => new { bomRef, x.Id }))
+            .ToDictionary(x => x.bomRef, x => x.Id);
+
+        foreach (var (bomRef, depth) in depths)
+        {
+            if (packagesByBomRef.TryGetValue(bomRef, out var pkg))
             {
-                if (pkg.Depth is null || pkg.Depth > d.Value)
-                    pkg.Depth = d.Value;
+                SetMinDepth(pkg, depth);
+                continue;
             }
-            else
+
+            if (
+                extraBomRefByContainedBomRef.TryGetValue(bomRef, out var packageId)
+                && packagesById.TryGetValue(packageId, out var reversedPackage)
+            )
             {
-                var reversedRef = extraBomRefs.FirstOrDefault(x => x.BomRefs.Contains(d.Key));
-                if (reversedRef != null)
-                {
-                    var reversedPackage = packages.FirstOrDefault(p => p.Id == reversedRef.Id);
-                    if (reversedPackage != null)
-                        reversedPackage.Depth =
-                            reversedPackage.Depth is null || reversedPackage.Depth > d.Value
-                                ? d.Value
-                                : reversedPackage.Depth;
-                }
+                SetMinDepth(reversedPackage, depth);
             }
         }
 
@@ -247,6 +248,12 @@ public class IngestProcessingMessageConsumer(
             Dependencies = createdDeps,
             PackageVulnerabilities = packageVulnerabilities,
         };
+    }
+
+    static void SetMinDepth(SbomPackage pkg, int depth)
+    {
+        if (pkg.Depth is null || pkg.Depth > depth)
+            pkg.Depth = depth;
     }
 
     private async Task IngestVulnerablities(
