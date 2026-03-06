@@ -31,12 +31,23 @@ public class PackageService(PackageRepository repo)
             .OrderBy(x => x.Count)
             .ToListAsync();
 
+        var depthCounts = await packages
+            .GroupBy(x =>
+                x.Depth == 1 || x.Depth == 0 ? "Manifests"
+                : x.Depth == 2 ? "Direct"
+                : "Transitive"
+            )
+            .Select(g => new NameCount { Name = g.Key, Count = g.Count() })
+            .OrderBy(x => x.Count)
+            .ToListAsync();
+
         var retrieved = await packages.ToListAsync();
 
         return new()
         {
             Vulnerabilities = vulnerableCounts,
             EcoSystems = ecosystemGroups,
+            Depths = depthCounts,
             PackageItems = [.. retrieved.Select(x => x.MapToPackageItemDto())],
         };
     }

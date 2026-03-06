@@ -31,6 +31,7 @@ const Packages = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const [ecosystemFilter, setEcosystemFilter] = useState("");
+  const [depthFilter, setDepthFilter] = useState("");
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
   const [fetchPackages, { data, isLoading: isLoading, isSuccess }] =
     useLazyGetPackagesQuery();
@@ -56,6 +57,7 @@ const Packages = () => {
     const chartFilterOdata = buildPackagesOdata({
       ecosystem: ecosystemFilter || null,
       vulnerability: vulnerabilityFilter || null,
+      depth: depthFilter || null,
     });
     const filterOdata = toODataFilter(columnFilters);
     const filter = joinODataFilters([chartFilterOdata, filterOdata]);
@@ -63,7 +65,13 @@ const Packages = () => {
     const sortOdata = toODataOrderBy(sorting);
 
     return [filter, sortOdata].filter(Boolean).join("&");
-  }, [ecosystemFilter, vulnerabilityFilter, columnFilters, sorting]);
+  }, [
+    ecosystemFilter,
+    vulnerabilityFilter,
+    columnFilters,
+    sorting,
+    depthFilter,
+  ]);
 
   useEffect(() => {
     if (!branch) return;
@@ -89,6 +97,10 @@ const Packages = () => {
 
   const onEcosystemClick = (name: string) => {
     setEcosystemFilter((prev) => (prev === name ? "" : name));
+  };
+
+  const onDepthClick = (name: string) => {
+    setDepthFilter((prev) => (prev === name ? "" : name));
   };
 
   const onVulnerabilityClick = (name: string) => {
@@ -124,6 +136,8 @@ const Packages = () => {
           isLoading={isLoading || !isSuccess || isLoadingBranch}
           onEcosystemClick={onEcosystemClick}
           onVulnerabilityClick={onVulnerabilityClick}
+          onDepthClick={onDepthClick}
+          depthFilter={depthFilter}
           onExportClick={onExportClick}
           table={table}
           ecosystemFilter={ecosystemFilter}

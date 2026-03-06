@@ -152,7 +152,23 @@ public class IngestProcessingMessageConsumer(
             var pkg = packages.FirstOrDefault(p => p.BomRef == d.Key);
 
             if (pkg != null)
-                pkg.Depth = d.Value;
+            {
+                if (pkg.Depth is null || pkg.Depth > d.Value)
+                    pkg.Depth = d.Value;
+            }
+            else
+            {
+                var reversedRef = extraBomRefs.FirstOrDefault(x => x.BomRefs.Contains(d.Key));
+                if (reversedRef != null)
+                {
+                    var reversedPackage = packages.FirstOrDefault(p => p.Id == reversedRef.Id);
+                    if (reversedPackage != null)
+                        reversedPackage.Depth =
+                            reversedPackage.Depth is null || reversedPackage.Depth > d.Value
+                                ? d.Value
+                                : reversedPackage.Depth;
+                }
+            }
         }
 
         var bomRefToId = packages.ToDictionary(p => p.BomRef, p => p.Id, StringComparer.Ordinal);

@@ -4,6 +4,7 @@ public class PackagesDto
 {
     public List<PackageItemDto> PackageItems { get; set; } = [];
     public List<NameCount> Vulnerabilities { get; set; } = [];
+    public List<NameCount> Depths { get; set; } = [];
     public List<NameCount> EcoSystems { get; set; } = [];
 }
 

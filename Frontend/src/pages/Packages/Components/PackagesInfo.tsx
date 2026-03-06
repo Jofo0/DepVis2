@@ -12,6 +12,8 @@ export type PackagesInfoProps = {
   onVulnerabilityClick: (vulnerability: string) => void;
   ecosystemFilter?: string;
   vulnerabilityFilter?: string;
+  depthFilter?: string;
+  onDepthClick?: (depth: string) => void;
 };
 
 const PackagesInfo = ({
@@ -23,6 +25,8 @@ const PackagesInfo = ({
   onVulnerabilityClick,
   ecosystemFilter,
   vulnerabilityFilter,
+  depthFilter,
+  onDepthClick,
 }: PackagesInfoProps) => {
   return (
     <div className="flex flex-row gap-10 w-full h-full justify-evenly">
@@ -44,14 +48,24 @@ const PackagesInfo = ({
           onSliceClick={onEcosystemClick}
         />
 
-        <PieCustomChart
-          title="Vulnerabilities"
-          onSliceClick={onVulnerabilityClick}
-          isLoading={isLoading}
-          className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-          filteredBy={vulnerabilityFilter}
-          pies={data?.vulnerabilities ?? []}
-        />
+        <div className="flex flex-row w-full gap-3">
+          <PieCustomChart
+            title="Vulnerabilities"
+            onSliceClick={onVulnerabilityClick}
+            isLoading={isLoading}
+            className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+            filteredBy={vulnerabilityFilter}
+            pies={data?.vulnerabilities ?? []}
+          />
+          <PieCustomChart
+            title="Depth"
+            onSliceClick={onDepthClick}
+            isLoading={isLoading}
+            className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+            filteredBy={depthFilter}
+            pies={data?.depths ?? []}
+          />
+        </div>
       </div>
     </div>
   );
