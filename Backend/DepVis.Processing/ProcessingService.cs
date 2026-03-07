@@ -10,7 +10,7 @@ namespace DepVis.SbomProcessing
             {
                 FileName = "trivy",
                 Arguments =
-                    $"fs --format cyclonedx --output {output} --include-dev-deps --scanners vuln .",
+                    $"fs --format cyclonedx --output {output} --include-dev-deps --detection-priority comprehensive --scanners vuln .",
                 WorkingDirectory = directory,
                 UseShellExecute = false,
             };
