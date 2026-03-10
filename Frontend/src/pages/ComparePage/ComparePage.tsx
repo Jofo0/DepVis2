@@ -6,8 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLazyGetBranchComparisonQuery } from "@/store/api/branchesApi";
 import {
@@ -19,8 +17,9 @@ import { useBranch } from "@/utils/hooks/BranchProvider";
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import ListPanel from "./Components/ListPanel";
-import StatCard, { DeltaBadge } from "./Components/StatCard";
+import StatCard from "./Components/StatCard";
 import PageHeader from "@/components/PageHeader";
+import CompareCard from "./Components/CompareCard";
 
 const ComparePage = () => {
   const [triggerCompare, { data, isLoading, isFetching }] =
@@ -145,71 +144,20 @@ const ComparePage = () => {
               delta={derived.vulnDelta}
             />
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Package changes</CardTitle>
-                <CardDescription className="text-xs">
-                  Added vs removed
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Plus className="h-4 w-4" /> Added
-                  </div>
-                  <Badge className="tabular-nums">
-                    {derived.addedPackagesCount}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Minus className="h-4 w-4" /> Removed
-                  </div>
-                  <Badge variant="secondary" className="tabular-nums">
-                    {derived.removedPackagesCount}
-                  </Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">Net</div>
-                  <DeltaBadge delta={derived.netPackages} />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">
-                  Vulnerability changes
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Added vs removed
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Plus className="h-4 w-4" /> Added
-                  </div>
-                  <Badge className="tabular-nums">
-                    {derived.addedVulnsCount}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Minus className="h-4 w-4" /> Removed
-                  </div>
-                  <Badge variant="secondary" className="tabular-nums">
-                    {derived.removedVulnsCount}
-                  </Badge>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">Net</div>
-                  <DeltaBadge delta={derived.netVulns} />
-                </div>
-              </CardContent>
-            </Card>
+            <CompareCard
+              addedCount={derived.addedPackagesCount}
+              removedCount={derived.removedPackagesCount}
+              title="Package changes"
+              description="Added vs removed"
+              net={derived.netPackages}
+            />
+            <CompareCard
+              addedCount={derived.addedVulnsCount}
+              removedCount={derived.removedVulnsCount}
+              title="Vulnerability changes"
+              description="Added vs removed"
+              net={derived.netVulns}
+            />
           </div>
 
           <div className="grid gap-3 lg:grid-cols-2">
@@ -217,12 +165,14 @@ const ComparePage = () => {
               title={`Added packages (in ${comparedBranchName})`}
               icon={<Plus className="h-4 w-4" />}
               items={comparison.addedPackages}
+              nameCounts={comparison.addedEcosystems}
               emptyLabel="No packages were added."
             />
             <ListPanel
               title={`Removed packages (in ${comparedBranchName})`}
               icon={<Minus className="h-4 w-4" />}
               items={comparison.removedPackages}
+              nameCounts={comparison.removedEcosystems}
               emptyLabel="No packages were removed."
             />
             <ListPanel

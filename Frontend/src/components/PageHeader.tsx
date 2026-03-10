@@ -29,7 +29,7 @@ const PageHeader = ({
           <Separator />
           <div className="flex flex-row items-center">
             <div className="flex flex-col gap-3 md:flex-row md:items-center">
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 mt-auto">
                 <GlobalBranchSelector />
               </div>
 

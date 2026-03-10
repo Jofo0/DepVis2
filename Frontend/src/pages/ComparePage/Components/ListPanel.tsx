@@ -6,15 +6,19 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import CopyButton from "./CopyButton";
+import str from "string-to-color";
+import type { NameCount } from "@/types/packages";
 
 const ListPanel = ({
   title,
   icon,
   items,
   emptyLabel,
+  nameCounts = [],
   maxHeightClass = "max-h-[320px]",
 }: {
   title: string;
+  nameCounts?: NameCount[];
   icon: React.ReactNode;
   items: string[];
   emptyLabel: string;
@@ -30,7 +34,18 @@ const ListPanel = ({
               <span className="truncate">{title}</span>
             </CardTitle>
             <CardDescription className="text-xs">
-              {items.length} total
+              <div className="flex flex-row">
+                <div>{items.length} total</div>
+                {nameCounts.map((x) => (
+                  <div
+                    key={x.name}
+                    className="ml-4"
+                    style={{ color: str(x.name) }}
+                  >
+                    {x.name}: {x.count}
+                  </div>
+                ))}
+              </div>
             </CardDescription>
           </div>
 

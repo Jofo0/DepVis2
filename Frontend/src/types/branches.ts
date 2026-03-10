@@ -1,3 +1,5 @@
+import type { NameCount } from "./packages";
+
 export type BranchDetailed = {
   id: string;
   name: string;
@@ -10,6 +12,8 @@ export type BranchDetailed = {
 export type BranchComparison = {
   addedPackages: string[];
   removedPackages: string[];
+  addedEcosystems: NameCount[];
+  removedEcosystems: NameCount[];
   addedVulnerabilityIds: string[];
   removedVulnerabilityIds: string[];
   mainBranchPackageCount: number;

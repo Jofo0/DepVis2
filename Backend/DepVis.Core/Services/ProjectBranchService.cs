@@ -44,8 +44,8 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
         var branchPackages = mainBranchData.PackageNames;
         var comparedPackages = comparedBranchData.PackageNames;
 
-        var branchPackageSet = new HashSet<string>(mainBranchData.PackageNames);
-        var comparedPackageSet = new HashSet<string>(comparedBranchData.PackageNames);
+        var branchPackageSet = new HashSet<SmallPackage>(mainBranchData.PackageNames);
+        var comparedPackageSet = new HashSet<SmallPackage>(comparedBranchData.PackageNames);
 
         var removedPackages = mainBranchData
             .PackageNames.Where(p => !comparedPackageSet.Contains(p))
@@ -62,8 +62,20 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
         var addedVulnerabilityIds = targetVulnIds.Except(sourceVulnIds).ToList();
 
         return new BranchCompareDto(
-            addedPackages,
-            removedPackages,
+            [.. addedPackages.Select(x => x.Name)],
+            [.. removedPackages.Select(x => x.Name)],
+            [
+                .. addedPackages
+                    .Select(x => x.Ecosystem)
+                    .GroupBy(x => x)
+                    .Select(g => new NameCount() { Name = g.Key, Count = g.Count() }),
+            ],
+            [
+                .. removedPackages
+                    .Select(x => x.Ecosystem)
+                    .GroupBy(x => x)
+                    .Select(g => new NameCount() { Name = g.Key, Count = g.Count() }),
+            ],
             addedVulnerabilityIds,
             removedVulnerabilityIds,
             branchPackages.Count,

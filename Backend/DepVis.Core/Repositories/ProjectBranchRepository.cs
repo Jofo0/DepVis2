@@ -20,7 +20,10 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
             .SbomPackages.AsNoTracking()
             .Where(p => p.Sbom.ProjectBranchId == id || p.Sbom.BranchHistoryId == id);
 
-        var packageNamesTask = await baseQuery.Select(p => p.Name).Distinct().ToListAsync();
+        var packageNamesTask = await baseQuery
+            .Select(p => new SmallPackage(p.Name, p.Version ?? "Unknown", p.Ecosystem ?? "Unknown"))
+            .Distinct()
+            .ToListAsync();
 
         var vulnerabilityIdsTask = await baseQuery
             .SelectMany(p => p.Vulnerabilities.Select(v => v.Id))
