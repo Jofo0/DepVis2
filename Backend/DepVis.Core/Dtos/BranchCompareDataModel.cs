@@ -22,7 +22,7 @@ public record SmallPackage(string Name, string Version, string Ecosystem)
 public record BranchCompareDto(
     List<string> AddedPackages,
     List<string> RemovedPackages,
-    List<NameCount> AddedEcosystemse,
+    List<NameCount> AddedEcosystems,
     List<NameCount> RemovedEcosystems,
     List<string> AddedVulnerabilityIds,
     List<string> RemovedVulnerabilityIds,
