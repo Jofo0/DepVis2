@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using DepVis.SbomProcessing;
 using DepVis.Shared.Messages;
+using DepVis.Shared.Model;
 using DepVis.Shared.Services;
 using LibGit2Sharp;
 using MassTransit;
@@ -15,6 +17,12 @@ public class BranchSpecificProcessingConsumer(
 ) : IConsumer<BranchHistoryProcessingMessage>
 {
     private static readonly SemaphoreSlim _trivyLock = new(1, 1);
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+    };
 
     public async Task Consume(ConsumeContext<BranchHistoryProcessingMessage> context)
     {
@@ -71,7 +79,8 @@ public class BranchSpecificProcessingConsumer(
                     )
                     .Reverse();
 
-                long lastFileSize = -1;
+                long lastVulnCount = -1;
+                long lastPackageCount = -1;
 
                 foreach (var commit in commits)
                 {
@@ -111,15 +120,28 @@ public class BranchSpecificProcessingConsumer(
                             _trivyLock.Release();
                         }
 
-                        long sbomSize = new FileInfo(outputFile).Length;
-                        if (lastFileSize == sbomSize)
+                        using Stream stream = File.OpenRead(outputFile);
+
+                        var json =
+                            JsonSerializer.Deserialize<CycloneDxBom>(stream, JsonOptions)
+                            ?? new CycloneDxBom { Components = [], Vulnerabilities = [] };
+
+                        if (
+                            json.Components?.Count == lastPackageCount
+                            && json.Vulnerabilities?.Count == lastVulnCount
+                        )
                         {
                             _logger.LogInformation(
-                                "SBOM file size is identical to the previous one. Skipping upload."
+                                "No changes in packages and vulnerabilities compared to the last processed commit. Skipping upload for commit {sha}",
+                                commit.Sha
                             );
                             continue;
                         }
-                        lastFileSize = sbomSize;
+                        else
+                        {
+                            lastPackageCount = json.Components?.Count ?? 0;
+                            lastVulnCount = json.Vulnerabilities?.Count ?? 0;
+                        }
 
                         _logger.LogDebug("Uploading the created SBOM file to minIO storage");
                         await _minioStorageService.UploadAsync(outputFile, filename);
