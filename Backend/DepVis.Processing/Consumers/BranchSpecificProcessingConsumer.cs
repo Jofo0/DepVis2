@@ -69,7 +69,6 @@ public class BranchSpecificProcessingConsumer(
                             SortBy = CommitSortStrategies.Time,
                         }
                     )
-                    .Take(maxCommits)
                     .Reverse();
 
                 long lastFileSize = -1;

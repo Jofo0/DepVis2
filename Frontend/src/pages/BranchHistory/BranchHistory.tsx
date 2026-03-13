@@ -21,7 +21,7 @@ const BranchHistory = () => {
         title="Branch History"
         description="View and analyze branch history for the selected branch"
       >
-        {selectedView && (
+        {selectedView !== undefined && (
           <ViewSelector selected={selectedView} onSelect={setSelectedView} />
         )}
       </PageHeader>

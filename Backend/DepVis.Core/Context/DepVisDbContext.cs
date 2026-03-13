@@ -61,9 +61,13 @@ public class DepVisDbContext : DbContext
             .HasForeignKey(pd => pd.ChildId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        modelBuilder.Entity<Vulnerability>()
-        .HasMany(v => v.CWES)
-        .WithMany(c => c.Vulnerabilities)
-        .UsingEntity(j => j.ToTable("VulnerabilityCWEs"));
+        modelBuilder
+            .Entity<Vulnerability>()
+            .HasMany(v => v.CWES)
+            .WithMany(c => c.Vulnerabilities)
+            .UsingEntity(j => j.ToTable("VulnerabilityCWEs"));
+
+        modelBuilder.Entity<Vulnerability>().HasKey(x => x.Id);
+        modelBuilder.Entity<Vulnerability>().HasIndex(x => x.Id).IsUnique();
     }
 }
