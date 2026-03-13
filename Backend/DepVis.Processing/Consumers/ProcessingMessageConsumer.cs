@@ -38,10 +38,10 @@ public class ProcessingMessageConsumer(
 
         try
         {
-            _logger.LogDebug("Cloning repository {githubLink}", githubLink);
+            _logger.LogInformation("Cloning repository {githubLink}", githubLink);
             var cloneOptions = new CloneOptions { Checkout = true };
             Repository.Clone(githubLink, tempDir, cloneOptions);
-            _logger.LogDebug("Repository cloned successfully");
+            _logger.LogInformation("Repository cloned successfully");
 
             string commitMessage = string.Empty;
             string commitSha = string.Empty;
@@ -138,6 +138,4 @@ public class ProcessingMessageConsumer(
             }
         }
     }
-
-
 }

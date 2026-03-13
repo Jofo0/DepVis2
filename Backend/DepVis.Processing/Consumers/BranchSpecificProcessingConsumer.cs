@@ -19,6 +19,7 @@ public class BranchSpecificProcessingConsumer(
     public async Task Consume(ConsumeContext<BranchHistoryProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
+        var maxCommits = context.Message.MaxCommits;
         var location = context.Message.Location;
 
         await _publishEndpoint.Publish(
@@ -49,7 +50,7 @@ public class BranchSpecificProcessingConsumer(
             using (var repo = new Repository(tempDir))
             {
                 string branchName = location;
-                var branch = repo.Branches.Where(x => x.FriendlyName.EndsWith(branchName)).FirstOrDefault();
+                var branch = repo.Branches.FirstOrDefault(x => x.FriendlyName.EndsWith(branchName));
 
                 if (branch == null)
                 {
@@ -60,13 +61,16 @@ public class BranchSpecificProcessingConsumer(
                     return;
                 }
 
-                var commits = repo.Commits.QueryBy(
-                    new CommitFilter
-                    {
-                        IncludeReachableFrom = branch,
-                        SortBy = CommitSortStrategies.Reverse | CommitSortStrategies.Time,
-                    }
-                );
+                var commits = repo
+                    .Commits.QueryBy(
+                        new CommitFilter
+                        {
+                            IncludeReachableFrom = branch,
+                            SortBy = CommitSortStrategies.Time,
+                        }
+                    )
+                    .Take(maxCommits)
+                    .Reverse();
 
                 long lastFileSize = -1;
 
