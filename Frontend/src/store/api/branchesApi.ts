@@ -23,7 +23,7 @@ export const projectApi = projectsApi.injectEndpoints({
         url: `/${dto.projectId}/branches/${dto.id}/process`,
         method: "POST",
       }),
-      invalidatesTags: ["Projects", "Branches"],
+      invalidatesTags: ["Projects", "Branches", "BranchHistory"],
     }),
     processBranchHistory: builder.mutation<Branch[], string>({
       query: (id) => ({ url: `/${id}/branches/history`, method: "POST" }),

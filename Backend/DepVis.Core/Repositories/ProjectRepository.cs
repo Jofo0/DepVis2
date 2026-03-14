@@ -38,60 +38,65 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
 
     public async Task RemoveBranchesAsync(Guid projectId, List<string> branches)
     {
-        using var transaction = await context.Database.BeginTransactionAsync();
+        var strategy = context.Database.CreateExecutionStrategy();
+
         try
         {
-            var packageDependencies = context.PackageDependencies.Where(pd =>
-                (
-                    pd.Parent.Sbom.ProjectBranch != null
-                    && branches.Contains(pd.Parent.Sbom.ProjectBranch.Name)
-                    && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
-                )
-                || (
-                    pd.Child.Sbom.ProjectBranch != null
-                    && branches.Contains(pd.Child.Sbom.ProjectBranch.Name)
-                    && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
-                )
-            );
-            await packageDependencies.ExecuteDeleteAsync();
-
-            var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
-                pv.SbomPackage.Sbom.ProjectBranch != null
-                && branches.Contains(pv.SbomPackage.Sbom.ProjectBranch.Name)
-                && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
-            );
-            await sbomPackageVulnerabilities.ExecuteDeleteAsync();
-
-            var sbomPackages = context.SbomPackages.Where(sp =>
-                sp.Sbom.ProjectBranch != null
-                && branches.Contains(sp.Sbom.ProjectBranch.Name)
-                && sp.Sbom.ProjectBranch.Project.Id == projectId
-            );
-            await sbomPackages.ExecuteDeleteAsync();
-
-            var sboms = context.Sboms.Where(s =>
-                s.ProjectBranch != null
-                && branches.Contains(s.ProjectBranch.Name)
-                && s.ProjectBranch.Project.Id == projectId
-            );
-
-            foreach (var sbom in await sboms.ToListAsync())
+            await strategy.ExecuteAsync(async () =>
             {
-                await minio.DeleteAsync(sbom.FileName);
-            }
+                using var transaction = await context.Database.BeginTransactionAsync();
 
-            await sboms.ExecuteDeleteAsync();
+                var packageDependencies = context.PackageDependencies.Where(pd =>
+                    (
+                        pd.Parent.Sbom.ProjectBranch != null
+                        && branches.Contains(pd.Parent.Sbom.ProjectBranch.Name)
+                        && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
+                    )
+                    || (
+                        pd.Child.Sbom.ProjectBranch != null
+                        && branches.Contains(pd.Child.Sbom.ProjectBranch.Name)
+                        && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+                    )
+                );
+                await packageDependencies.ExecuteDeleteAsync();
 
-            var projectBranches = context.ProjectBranches.Where(b =>
-                b.Project.Id == projectId && branches.Contains(b.Name)
-            );
-            await projectBranches.ExecuteDeleteAsync();
+                var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
+                    pv.SbomPackage.Sbom.ProjectBranch != null
+                    && branches.Contains(pv.SbomPackage.Sbom.ProjectBranch.Name)
+                    && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
+                );
+                await sbomPackageVulnerabilities.ExecuteDeleteAsync();
 
-            await transaction.CommitAsync();
+                var sbomPackages = context.SbomPackages.Where(sp =>
+                    sp.Sbom.ProjectBranch != null
+                    && branches.Contains(sp.Sbom.ProjectBranch.Name)
+                    && sp.Sbom.ProjectBranch.Project.Id == projectId
+                );
+                await sbomPackages.ExecuteDeleteAsync();
+
+                var sboms = context.Sboms.Where(s =>
+                    s.ProjectBranch != null
+                    && branches.Contains(s.ProjectBranch.Name)
+                    && s.ProjectBranch.Project.Id == projectId
+                );
+
+                foreach (var sbom in await sboms.ToListAsync())
+                {
+                    await minio.DeleteAsync(sbom.FileName);
+                }
+
+                await sboms.ExecuteDeleteAsync();
+
+                var projectBranches = context.ProjectBranches.Where(b =>
+                    b.Project.Id == projectId && branches.Contains(b.Name)
+                );
+                await projectBranches.ExecuteDeleteAsync();
+
+                await transaction.CommitAsync();
+            });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             throw new InvalidOperationException("Error deleting branches and associated data.", ex);
         }
     }
@@ -105,77 +110,80 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
     public async Task DeleteAsync(Project project)
     {
         var projectId = project.Id;
+        var strategy = context.Database.CreateExecutionStrategy();
 
-        using var transaction = await context.Database.BeginTransactionAsync();
         try
         {
-            var packageDependencies = context.PackageDependencies.Where(pd =>
-                (
-                    pd.Parent.Sbom.ProjectBranch != null
-                    && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
-                )
-                || (
-                    pd.Child.Sbom.ProjectBranch != null
-                    && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
-                )
-            );
-            await packageDependencies.ExecuteDeleteAsync();
-
-            var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
-                pv.SbomPackage.Sbom.ProjectBranch != null
-                && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
-            );
-            await sbomPackageVulnerabilities.ExecuteDeleteAsync();
-
-            var sbomPackages = context.SbomPackages.Where(sp =>
-                sp.Sbom.ProjectBranch != null && sp.Sbom.ProjectBranch.Project.Id == projectId
-            );
-
-            await sbomPackages.ExecuteDeleteAsync();
-
-            var sboms = context.Sboms.Where(s =>
-                s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId
-            );
-
-            foreach (var sbom in await sboms.ToListAsync())
+            await strategy.ExecuteAsync(async () =>
             {
-                await minio.DeleteAsync(sbom.FileName);
-            }
+                using var transaction = await context.Database.BeginTransactionAsync();
+                var packageDependencies = context.PackageDependencies.Where(pd =>
+                    (
+                        pd.Parent.Sbom.ProjectBranch != null
+                        && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
+                    )
+                    || (
+                        pd.Child.Sbom.ProjectBranch != null
+                        && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+                    )
+                );
+                await packageDependencies.ExecuteDeleteAsync();
 
-            await sboms.ExecuteDeleteAsync();
+                var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
+                    pv.SbomPackage.Sbom.ProjectBranch != null
+                    && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
+                );
+                await sbomPackageVulnerabilities.ExecuteDeleteAsync();
 
-            var projectBranches = context.ProjectBranches.Where(b => b.Project.Id == projectId);
-            await projectBranches.ExecuteDeleteAsync();
+                var sbomPackages = context.SbomPackages.Where(sp =>
+                    sp.Sbom.ProjectBranch != null && sp.Sbom.ProjectBranch.Project.Id == projectId
+                );
 
-            var projectEntity = context.Projects.Where(p => p.Id == projectId);
-            await projectEntity.ExecuteDeleteAsync();
+                await sbomPackages.ExecuteDeleteAsync();
 
-            var vulnerabilities = context
-                .Vulnerabilities.Include(x => x.References)
-                .Include(x => x.CWES)
-                .Where(v => !v.SbomPackageVulnerabilities.Any())
-                .ToList();
+                var sboms = context.Sboms.Where(s =>
+                    s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId
+                );
 
-            foreach (var vulnerability in vulnerabilities)
-            {
-                var cwes = vulnerability.CWES.ToList();
-                context.CWEs.RemoveRange(cwes);
-            }
+                foreach (var sbom in await sboms.ToListAsync())
+                {
+                    await minio.DeleteAsync(sbom.FileName);
+                }
 
-            foreach (var vulnerability in vulnerabilities)
-            {
-                var references = vulnerability.References.ToList();
-                context.References.RemoveRange(references);
-            }
+                await sboms.ExecuteDeleteAsync();
 
-            context.Vulnerabilities.RemoveRange(vulnerabilities);
+                var projectBranches = context.ProjectBranches.Where(b => b.Project.Id == projectId);
+                await projectBranches.ExecuteDeleteAsync();
 
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
+                var projectEntity = context.Projects.Where(p => p.Id == projectId);
+                await projectEntity.ExecuteDeleteAsync();
+
+                var vulnerabilities = context
+                    .Vulnerabilities.Include(x => x.References)
+                    .Include(x => x.CWES)
+                    .Where(v => !v.SbomPackageVulnerabilities.Any())
+                    .ToList();
+
+                foreach (var vulnerability in vulnerabilities)
+                {
+                    var cwes = vulnerability.CWES.ToList();
+                    context.CWEs.RemoveRange(cwes);
+                }
+
+                foreach (var vulnerability in vulnerabilities)
+                {
+                    var references = vulnerability.References.ToList();
+                    context.References.RemoveRange(references);
+                }
+
+                context.Vulnerabilities.RemoveRange(vulnerabilities);
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             throw new InvalidOperationException("Error deleting project and associated data.", ex);
         }
     }

@@ -15,6 +15,7 @@ public class SbomProcessor(
 {
     public async Task<SbomProcessingResult> ProcessAsync(
         Sbom sbom,
+        bool skipGraphBuilding = false,
         CancellationToken cancellationToken = default
     )
     {
@@ -28,7 +29,8 @@ public class SbomProcessor(
             bom,
             packageBuild.Packages,
             packageBuild.DuplicateResolutions,
-            packageBuild.RootBomRef
+            packageBuild.RootBomRef,
+            skipGraphBuilding
         );
 
         var vulnerabilityBuild = packageVulnerabilityMapper.Map(
@@ -38,7 +40,8 @@ public class SbomProcessor(
         );
 
         db.SbomPackages.AddRange(packageBuild.Packages);
-        db.PackageDependencies.AddRange(graphBuild.Dependencies);
+        if (!skipGraphBuilding)
+            db.PackageDependencies.AddRange(graphBuild.Dependencies);
         db.SbomPackageVulnerabilities.AddRange(
             vulnerabilityBuild.PackageVulnerabilities.Distinct()
         );

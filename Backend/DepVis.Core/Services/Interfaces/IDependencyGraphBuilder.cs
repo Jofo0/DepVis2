@@ -8,7 +8,8 @@ public interface IDependencyGraphBuilder
         CycloneDxBom bom,
         IReadOnlyList<SbomPackage> packages,
         IReadOnlyList<PackagesDuplicatesResolve> duplicateResolutions,
-        string rootBomRef
+        string rootBomRef,
+        bool skipDependencies = false
     );
 }
 

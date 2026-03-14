@@ -6,6 +6,7 @@ public interface ISbomProcessor
 {
     Task<SbomProcessingResult> ProcessAsync(
         Sbom sbom,
+        bool skipGraphBuilding = false,
         CancellationToken cancellationToken = default
     );
 }

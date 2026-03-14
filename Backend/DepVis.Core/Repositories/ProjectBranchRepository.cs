@@ -58,39 +58,77 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
 
     public async Task DeleteBranchDependencies(Guid projectBranchId)
     {
-        using var transaction = await context.Database.BeginTransactionAsync();
+        var strategy = context.Database.CreateExecutionStrategy();
+
         try
         {
-            var packageDependencies = context.PackageDependencies.Where(pd =>
-                (pd.Parent.Sbom.ProjectBranchId == projectBranchId)
-                || (pd.Child.Sbom.ProjectBranchId == projectBranchId)
-            );
-            await packageDependencies.ExecuteDeleteAsync();
-
-            var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
-                pv.SbomPackage.Sbom.ProjectBranchId == projectBranchId
-            );
-            await sbomPackageVulnerabilities.ExecuteDeleteAsync();
-
-            var sbomPackages = context.SbomPackages.Where(sp =>
-                sp.Sbom.ProjectBranchId == projectBranchId
-            );
-            await sbomPackages.ExecuteDeleteAsync();
-
-            var sboms = context.Sboms.Where(s => s.ProjectBranchId == projectBranchId);
-
-            foreach (var sbom in await sboms.ToListAsync())
+            await strategy.ExecuteAsync(async () =>
             {
-                await minio.DeleteAsync(sbom.FileName);
-            }
+                using var transaction = await context.Database.BeginTransactionAsync();
 
-            await sboms.ExecuteDeleteAsync();
+                var packageDependencies = context.PackageDependencies.Where(pd =>
+                    (pd.Parent.Sbom.ProjectBranchId == projectBranchId)
+                    || (pd.Child.Sbom.ProjectBranchId == projectBranchId)
+                    || (
+                        pd.Child.Sbom.BranchHistory != null
+                        && pd.Child.Sbom.BranchHistory.ProjectBranchId == projectBranchId
+                    )
+                    || (
+                        pd.Parent.Sbom.BranchHistory != null
+                        && pd.Parent.Sbom.BranchHistory.ProjectBranchId == projectBranchId
+                    )
+                );
 
-            await transaction.CommitAsync();
+                await packageDependencies.ExecuteDeleteAsync();
+
+                var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
+                    pv.SbomPackage.Sbom.ProjectBranchId == projectBranchId
+                    || (
+                        pv.SbomPackage.Sbom.BranchHistory != null
+                        && pv.SbomPackage.Sbom.BranchHistory.ProjectBranchId == projectBranchId
+                    )
+                );
+                await sbomPackageVulnerabilities.ExecuteDeleteAsync();
+
+                var sbomPackages = context.SbomPackages.Where(sp =>
+                    sp.Sbom.ProjectBranchId == projectBranchId
+                    || (
+                        sp.Sbom.BranchHistory != null
+                        && sp.Sbom.BranchHistory.ProjectBranchId == projectBranchId
+                    )
+                );
+                await sbomPackages.ExecuteDeleteAsync();
+
+                var sboms = context.Sboms.Where(s =>
+                    s.ProjectBranchId == projectBranchId
+                    || s.BranchHistory != null && s.BranchHistory.ProjectBranchId == projectBranchId
+                );
+
+                foreach (var sbom in await sboms.ToListAsync())
+                {
+                    await minio.DeleteAsync(sbom.FileName);
+                }
+
+                await sboms.ExecuteDeleteAsync();
+
+                await context
+                    .BranchHistories.Where(x => x.ProjectBranchId == projectBranchId)
+                    .ExecuteDeleteAsync();
+
+                await context
+                    .ProjectBranches.Where(x => x.Id == projectBranchId)
+                    .ExecuteUpdateAsync(x =>
+                        x.SetProperty(
+                            x => x.HistoryProcessingStep,
+                            Shared.Model.Enums.ProcessStep.NotStarted
+                        )
+                    );
+
+                await transaction.CommitAsync();
+            });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             throw new InvalidOperationException("Error deleting branches and associated data.", ex);
         }
     }

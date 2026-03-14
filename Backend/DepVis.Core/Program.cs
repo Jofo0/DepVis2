@@ -49,7 +49,13 @@ builder.Services.AddScoped<ISbomPackageBuilder, SbomPackageBuilder>();
 builder.Services.AddScoped<IDependencyGraphBuilder, DependencyGraphBuilder>();
 builder.Services.AddScoped<IPackageVulnerabilityMapper, PackageVulnerabilityMapper>();
 
-builder.Services.AddDbContext<DepVisDbContext>(options => options.UseSqlServer(dbConnectionString));
+builder.Services.AddDbContext<DepVisDbContext>(options =>
+    options.UseSqlServer(
+        dbConnectionString,
+        providerOptions => providerOptions.EnableRetryOnFailure()
+    )
+);
+
 builder.AddServiceDefaults(dbConnectionString, createMassTransitInfra: true);
 
 var frontendCors = "AllowFrontend";

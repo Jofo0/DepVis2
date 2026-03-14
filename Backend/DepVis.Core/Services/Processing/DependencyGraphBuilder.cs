@@ -8,7 +8,8 @@ public class DependencyGraphBuilder : IDependencyGraphBuilder
         CycloneDxBom bom,
         IReadOnlyList<SbomPackage> packages,
         IReadOnlyList<PackagesDuplicatesResolve> duplicateResolutions,
-        string rootBomRef
+        string rootBomRef,
+        bool skipDependencies = false
     )
     {
         var edges = BuildEdges(bom);
@@ -16,10 +17,12 @@ public class DependencyGraphBuilder : IDependencyGraphBuilder
 
         ApplyDepths(packages, duplicateResolutions, depths);
 
-        var bomRefToId = BuildBomRefToId(packages, duplicateResolutions);
-        var dependencies = BuildDependencies(edges, bomRefToId);
-
-        return new DependencyGraphBuildResult(bomRefToId, dependencies);
+        return new DependencyGraphBuildResult(
+            BuildBomRefToId(packages, duplicateResolutions),
+            skipDependencies
+                ? []
+                : BuildDependencies(edges, BuildBomRefToId(packages, duplicateResolutions))
+        );
     }
 
     private static Dictionary<string, List<string>> BuildEdges(CycloneDxBom bom)

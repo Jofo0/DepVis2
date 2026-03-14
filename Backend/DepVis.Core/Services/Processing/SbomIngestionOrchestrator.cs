@@ -30,8 +30,9 @@ public class SbomIngestionOrchestrator(
             MarkPending(sbom, isHistory);
             await db.SaveChangesAsync(cancellationToken);
 
-            var result = await processor.ProcessAsync(sbom, cancellationToken);
+            var result = await processor.ProcessAsync(sbom, isHistory, cancellationToken);
 
+            sbom = await LoadSbomAsync(sbomId, cancellationToken);
             MarkSuccess(sbom, result, isHistory);
             await db.SaveChangesAsync(cancellationToken);
         }
