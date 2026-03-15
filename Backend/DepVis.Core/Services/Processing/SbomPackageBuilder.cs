@@ -57,6 +57,8 @@ public class SbomPackageBuilder : ISbomPackageBuilder
                 ? "No Name Found"
                 : component.Name;
 
+            var packageType = GetPackageTypeFromProperties(component.Properties);
+
             packages.Add(
                 new SbomPackage
                 {
@@ -67,8 +69,8 @@ public class SbomPackageBuilder : ISbomPackageBuilder
                         ? null
                         : component.Version,
                     Purl = string.IsNullOrWhiteSpace(component.Purl) ? null : component.Purl,
-                    PackageType = GetPackageTypeFromProperties(component.Properties),
-                    Ecosystem = InferEcosystemFromPurl(component.Purl),
+                    PackageType = packageType,
+                    Ecosystem = InferEcosystem(component.Purl, packageType),
                     Type = component.Type,
                     BomRef = component.BomRef,
                 }
@@ -82,21 +84,23 @@ public class SbomPackageBuilder : ISbomPackageBuilder
     {
         var packageType = props.FirstOrDefault(p => p.Name == "aquasecurity:trivy:PkgType");
 
-        return packageType?.Value ?? "Unknown";
+        return packageType?.Value ?? "None";
     }
 
-    private static string? InferEcosystemFromPurl(string? purl)
+    private static string? InferEcosystem(string? purl, string? packageType)
     {
+        var fallback = string.IsNullOrEmpty(packageType) ? "None" : packageType;
+
         if (string.IsNullOrWhiteSpace(purl))
-            return "Unknown";
+            return fallback;
 
         const string prefix = "pkg:";
         if (!purl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            return "Unknown";
+            return fallback;
 
         var slashIndex = purl.IndexOf('/', prefix.Length);
         if (slashIndex < 0)
-            return "Unknown";
+            return fallback;
 
         return purl[prefix.Length..slashIndex].ToLowerInvariant();
     }

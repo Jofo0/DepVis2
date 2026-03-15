@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 public class ProjectRepository(DepVisDbContext context, MinioStorageService minio)
 {
     public async Task<List<Project>> GetAllAsync() =>
-        await context.Projects.AsNoTracking().ToListAsync();
+        await context.Projects.Include(x => x.ProjectStatistics).AsNoTracking().ToListAsync();
 
     public async Task<Project?> GetByIdAsync(Guid id) =>
         await context

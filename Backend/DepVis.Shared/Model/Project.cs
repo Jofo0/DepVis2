@@ -9,4 +9,5 @@ public class Project
     public ProjectType ProjectType { get; set; } = ProjectType.GitHub;
     public string ProjectLink { get; set; } = string.Empty;
     public ICollection<ProjectBranch> ProjectBranches { get; set; } = [];
+    public ProjectStatistics? ProjectStatistics { get; set; }
 }

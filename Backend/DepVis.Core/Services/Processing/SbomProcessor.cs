@@ -40,11 +40,15 @@ public class SbomProcessor(
         );
 
         db.SbomPackages.AddRange(packageBuild.Packages);
+
         if (!skipGraphBuilding)
+        {
             db.PackageDependencies.AddRange(graphBuild.Dependencies);
-        db.SbomPackageVulnerabilities.AddRange(
-            vulnerabilityBuild.PackageVulnerabilities.Distinct()
-        );
+        }
+
+        var distinctVulnerabilities = vulnerabilityBuild.PackageVulnerabilities.Distinct().ToList();
+
+        db.SbomPackageVulnerabilities.AddRange(distinctVulnerabilities);
 
         await db.SaveChangesAsync(cancellationToken);
 
@@ -52,7 +56,15 @@ public class SbomProcessor(
         {
             Packages = packageBuild.Packages,
             Dependencies = graphBuild.Dependencies,
-            PackageVulnerabilities = vulnerabilityBuild.PackageVulnerabilities,
+            PackageVulnerabilities = distinctVulnerabilities,
+            EcoSystems =
+            [
+                .. packageBuild
+                    .Packages.Where(x => !string.IsNullOrEmpty(x.Ecosystem))
+                    .GroupBy(x => x.Ecosystem)
+                    .OrderByDescending(g => g.Count())
+                    .Select(p => p.Key!),
+            ],
         };
     }
 }

@@ -3,7 +3,7 @@ import ProjectCard from "@/components/cards/ProjectCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetProjectsQuery } from "@/store/api/projectsApi";
 
-const SelectProjectPage = () => {
+const DashboardPage = () => {
   const { data: projects, isLoading } = useGetProjectsQuery();
 
   return (
@@ -19,4 +19,4 @@ const SelectProjectPage = () => {
   );
 };
 
-export default SelectProjectPage;
+export default DashboardPage;

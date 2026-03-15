@@ -35,6 +35,7 @@ public class SbomIngestionOrchestrator(
             sbom = await LoadSbomAsync(sbomId, cancellationToken);
             MarkSuccess(sbom, result, isHistory);
             await db.SaveChangesAsync(cancellationToken);
+            await UpdateProjectStatistics(sbom, result, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -45,6 +46,60 @@ public class SbomIngestionOrchestrator(
 
             throw;
         }
+    }
+
+    private async Task UpdateProjectStatistics(
+        Sbom sbom,
+        SbomProcessingResult newData,
+        CancellationToken cancellationToken
+    )
+    {
+        var strategy = db.Database.CreateExecutionStrategy();
+
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await db.Database.BeginTransactionAsync(
+                cancellationToken
+            );
+
+            var projectStats = await db.ProjectStatistics.FirstOrDefaultAsync(
+                x => x.ProjectId == sbom.ProjectBranch.ProjectId,
+                cancellationToken
+            );
+
+            if (projectStats == null)
+            {
+                logger.LogDebug(
+                    "Project statistics not found for project {ProjectId}. Creating them",
+                    sbom.ProjectBranch.ProjectId
+                );
+
+                db.ProjectStatistics.Add(
+                    new ProjectStatistics
+                    {
+                        Id = Guid.NewGuid(),
+                        ProjectId = sbom.ProjectBranch.ProjectId,
+                        PackageCount = newData.Packages.Count,
+                        VulnerabilityCount = newData.PackageVulnerabilities.Count,
+                        EcoSystems = string.Join(",", newData.EcoSystems),
+                    }
+                );
+            }
+            else if (projectStats.PackageCount < newData.Packages.Count)
+            {
+                logger.LogDebug(
+                    "Updating project statistics for project {ProjectId}.",
+                    sbom.ProjectBranch.ProjectId
+                );
+
+                projectStats.PackageCount = newData.Packages.Count;
+                projectStats.VulnerabilityCount = newData.PackageVulnerabilities.Count;
+                projectStats.EcoSystems = string.Join(",", newData.EcoSystems);
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        });
     }
 
     private async Task<Sbom> LoadSbomAsync(Guid sbomId, CancellationToken cancellationToken)
@@ -70,14 +125,10 @@ public class SbomIngestionOrchestrator(
 
     private static void MarkSuccess(Sbom sbom, SbomProcessingResult result, bool isHistory)
     {
-        var vulnerabilityCount = result
-            .PackageVulnerabilities.DistinctBy(x => x.SbomPackageId)
-            .Count();
-
         if (isHistory)
         {
             sbom.BranchHistory!.PackageCount = result.Packages.Count;
-            sbom.BranchHistory.VulnerabilityCount = vulnerabilityCount;
+            sbom.BranchHistory.VulnerabilityCount = result.PackageVulnerabilities.Count;
             sbom.BranchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
             sbom.ProjectBranch!.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Success;
@@ -86,7 +137,7 @@ public class SbomIngestionOrchestrator(
         }
 
         sbom.ProjectBranch!.PackageCount = result.Packages.Count;
-        sbom.ProjectBranch.VulnerabilityCount = vulnerabilityCount;
+        sbom.ProjectBranch.VulnerabilityCount = result.PackageVulnerabilities.Count;
         sbom.ProjectBranch.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
         sbom.ProjectBranch.ProcessStep = Shared.Model.Enums.ProcessStep.Processed;
     }

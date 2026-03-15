@@ -10,8 +10,11 @@ public static class DtoExtensions
         {
             Id = project.Id,
             Name = project.Name,
-            ProjectType = project.ProjectType,
             ProjectLink = project.ProjectLink,
+            EcoSystems =
+            [
+                .. project.ProjectStatistics?.EcoSystems.Split(",").Where(x => x != "None") ?? [],
+            ],
         };
 
     public static ProjectStatsDto MapToDto(this ProjectBranch stats) =>

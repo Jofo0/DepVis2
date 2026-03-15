@@ -2,7 +2,7 @@ import { Routes as RoutesReactRouter, Route, Outlet } from "react-router-dom";
 import ProjectCreatePage from "./pages/ProjectCreatePage";
 import ProjectDetailPage from "./pages/ProjectPage/ProjectPage";
 import Layout from "./pages/Layout";
-import SelectProjectPage from "./pages/SelectProjectPage";
+import DashboardPage from "./pages/DashboardPage";
 import Branches from "./pages/Branches";
 import Graph from "./pages/Graph";
 import Packages from "./pages/Packages/Packages";
@@ -21,7 +21,7 @@ const Routes = () => {
           </div>
         }
       >
-        <Route path="/" element={<SelectProjectPage />} />
+        <Route path="/" element={<DashboardPage />} />
         <Route path="/new" element={<ProjectCreatePage />} />
       </Route>
       <Route element={<Layout />}>
