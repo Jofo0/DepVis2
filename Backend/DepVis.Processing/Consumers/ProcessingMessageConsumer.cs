@@ -19,16 +19,18 @@ public class ProcessingMessageConsumer(
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
-        var isTag = context.Message.IsTag;
-        var location = context.Message.Location;
+        var branches = context.Message.GitTargets;
 
-        await _publishEndpoint.Publish(
-            new UpdateProcessingMessage
-            {
-                ProjectBranchId = context.Message.ProjectBranchId,
-                ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
-            }
-        );
+        foreach (var branch in branches)
+        {
+            await _publishEndpoint.Publish(
+                new UpdateProcessingMessage
+                {
+                    ProjectBranchId = branch.ProjectBranchId,
+                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
+                }
+            );
+        }
 
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
@@ -36,16 +38,17 @@ public class ProcessingMessageConsumer(
         var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
         var outputFile = Path.Combine(tempDir, filename);
 
+        _logger.LogInformation("Cloning repository {githubLink}", githubLink);
+        var cloneOptions = new CloneOptions { Checkout = true };
+        Repository.Clone(githubLink, tempDir, cloneOptions);
+        _logger.LogInformation("Repository cloned successfully");
+
+        string commitMessage = string.Empty;
+        string commitSha = string.Empty;
+        DateTime commitDate = DateTime.Now;
+
         try
         {
-            _logger.LogInformation("Cloning repository {githubLink}", githubLink);
-            var cloneOptions = new CloneOptions { Checkout = true };
-            Repository.Clone(githubLink, tempDir, cloneOptions);
-            _logger.LogInformation("Repository cloned successfully");
-
-            string commitMessage = string.Empty;
-            string commitSha = string.Empty;
-            DateTime commitDate = DateTime.Now;
             using (var repo = new Repository(tempDir))
             {
                 var checkoutOptions = new CheckoutOptions()
@@ -53,59 +56,88 @@ public class ProcessingMessageConsumer(
                     CheckoutModifiers = CheckoutModifiers.Force,
                 };
 
-                if (isTag)
+                foreach (var branch in branches)
                 {
-                    Tag tag =
-                        repo.Tags[location]
-                        ?? throw new Exception($"Tag {location} not found in the repository");
+                    _logger.LogInformation("Processing branch/tag {branch}", branch.Location);
+                    try
+                    {
+                        if (branch.IsTag)
+                        {
+                            Tag tag =
+                                repo.Tags[branch.Location]
+                                ?? throw new Exception(
+                                    $"Tag {branch.Location} not found in the repository"
+                                );
 
-                    Commands.Checkout(repo, tag.Target.Sha, checkoutOptions);
+                            Commands.Checkout(repo, tag.Target.Sha, checkoutOptions);
+                        }
+                        else
+                        {
+                            Commands.Checkout(repo, branch.Location, checkoutOptions);
+                        }
+
+                        _logger.LogInformation("Retrieving latest commit information");
+
+                        var commit = repo.Head.Tip;
+                        commitMessage = commit.MessageShort;
+                        commitDate = commit.Author.When.LocalDateTime;
+                        commitSha = commit.Sha;
+
+                        _logger.LogInformation(
+                            "Latest commit: {sha} - {message} ({date})",
+                            commitSha,
+                            commitMessage,
+                            commitDate
+                        );
+
+                        await _trivyLock.WaitAsync(context.CancellationToken);
+                        try
+                        {
+                            await _processingService.RunTrivy(
+                                tempDir,
+                                outputFile,
+                                context.CancellationToken
+                            );
+                        }
+                        finally
+                        {
+                            _trivyLock.Release();
+                        }
+
+                        _logger.LogDebug("Uploading the created SBOM file to minIO storage");
+                        await _minioStorageService.UploadAsync(outputFile, filename);
+                        _logger.LogDebug("SBOM uploaded succesfully");
+
+                        await _publishEndpoint.Publish(
+                            new UpdateProcessingMessage
+                            {
+                                ProjectBranchId = branch.ProjectBranchId,
+                                ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
+                                FileName = filename,
+                                CommitDate = commitDate,
+                                CommitMessage = commitMessage,
+                                CommitSha = commitSha,
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(
+                            "An error occurred during the processing of {githubLink}. Message [{errorMessage}]",
+                            githubLink,
+                            ex.Message
+                        );
+
+                        await _publishEndpoint.Publish(
+                            new UpdateProcessingMessage
+                            {
+                                ProjectBranchId = branch.ProjectBranchId,
+                                ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
+                            }
+                        );
+                    }
                 }
-                else
-                {
-                    Commands.Checkout(repo, location, checkoutOptions);
-                }
-
-                _logger.LogInformation("Retrieving latest commit information");
-
-                var commit = repo.Head.Tip;
-                commitMessage = commit.MessageShort;
-                commitDate = commit.Author.When.LocalDateTime;
-                commitSha = commit.Sha;
-
-                _logger.LogInformation(
-                    "Latest commit: {sha} - {message} ({date})",
-                    commitSha,
-                    commitMessage,
-                    commitDate
-                );
             }
-
-            await _trivyLock.WaitAsync(context.CancellationToken);
-            try
-            {
-                await _processingService.RunTrivy(tempDir, outputFile, context.CancellationToken);
-            }
-            finally
-            {
-                _trivyLock.Release();
-            }
-
-            _logger.LogDebug("Uploading the created SBOM file to minIO storage");
-            await _minioStorageService.UploadAsync(outputFile, filename);
-            _logger.LogDebug("SBOM uploaded succesfully");
-
-            await _publishEndpoint.Publish(
-                new UpdateProcessingMessage
-                {
-                    ProjectBranchId = context.Message.ProjectBranchId,
-                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
-                    FileName = filename,
-                    CommitDate = commitDate,
-                    CommitMessage = commitMessage,
-                    CommitSha = commitSha,
-                }
-            );
         }
         catch (Exception ex)
         {
@@ -115,13 +147,14 @@ public class ProcessingMessageConsumer(
                 ex.Message
             );
 
-            await _publishEndpoint.Publish(
-                new UpdateProcessingMessage
-                {
-                    ProjectBranchId = context.Message.ProjectBranchId,
-                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
-                }
-            );
+            foreach (var branch in branches)
+                await _publishEndpoint.Publish(
+                    new UpdateProcessingMessage
+                    {
+                        ProjectBranchId = branch.ProjectBranchId,
+                        ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
+                    }
+                );
         }
         finally
         {

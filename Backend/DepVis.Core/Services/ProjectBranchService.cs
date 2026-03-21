@@ -29,9 +29,15 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
             new()
             {
                 GitHubLink = branch.Project.ProjectLink,
-                ProjectBranchId = branch.Id,
-                Location = branch.Name,
-                IsTag = branch.IsTag,
+                GitTargets =
+                [
+                    new()
+                    {
+                        IsTag = branch.IsTag,
+                        Location = branch.Name,
+                        ProjectBranchId = branch.Id,
+                    },
+                ],
             }
         );
     }
