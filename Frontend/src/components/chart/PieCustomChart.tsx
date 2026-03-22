@@ -1,7 +1,14 @@
-import { PieChart, Pie, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Legend } from "recharts";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import type { NameCount } from "@/types/packages";
 import str from "string-to-color";
+import { Info } from "lucide-react";
+import {
+  Tooltip as UiTooltip,
+  TooltipContent as UiTooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   ChartContainer,
   ChartTooltip,
@@ -40,29 +47,18 @@ export const PieCustomChart = ({
   };
 
   return (
-    <Card className={`w-full ${className} overflow-hidden`}>
-      <CardHeader>{title}</CardHeader>
-      <div className="flex flex-row justify-between">
-        <CardDescription className="px-7">
-          Click on any slice to filter by the value
-        </CardDescription>
-        <CardDescription className="px-7">
-          {filteredBy && (
-            <div className="flex flex-row gap-1">
-              Currently filtered by:
-              <div className="text-black">{filteredBy}</div>
-            </div>
-          )}
-        </CardDescription>
+    <Card className={`w-full ${className} overflow-hidden relative`}>
+      <div className="w-full flex flex-row justify-between items-center ">
+        <CardHeader className="w-1/2">{title}</CardHeader>
       </div>
 
-      <div className="h-full w-full">
+      <div className="h-full w-full flex items-start justify-center">
         {isLoading ? (
           <ChartLoader />
         ) : (
           <ChartContainer
             config={chartConfig}
-            className="aspect-square max-h-5/6 min-h-5/6 w-full"
+            className="h-11/12 w-11/12 relative "
           >
             <PieChart>
               <ChartTooltip
@@ -80,11 +76,32 @@ export const PieCustomChart = ({
                 onClick={handleSliceClick}
                 style={{ cursor: onSliceClick ? "pointer" : "default" }}
               />
-              <Tooltip />
               <Legend />
             </PieChart>
           </ChartContainer>
         )}
+      </div>
+      <div className="absolute bottom-5 left-5">
+        <CardDescription className="h-full pt-1">
+          {filteredBy && (
+            <div className="flex flex-row gap-1">
+              Currently filtered by:
+              <div className="text-black">{filteredBy}</div>
+            </div>
+          )}
+        </CardDescription>
+      </div>
+      <div className="absolute top-5 right-3.5">
+        <TooltipProvider>
+          <UiTooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-4 w-4 text-gray-500" />
+            </TooltipTrigger>
+            <UiTooltipContent>
+              <p>Click on any slice to filter by the value</p>
+            </UiTooltipContent>
+          </UiTooltip>
+        </TooltipProvider>
       </div>
     </Card>
   );

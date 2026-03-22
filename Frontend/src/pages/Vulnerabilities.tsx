@@ -33,6 +33,7 @@ const Vulnerabilities = () => {
   const { branch, commit, isLoading: isLoadingBranch } = useBranch();
   const columns = useGetVulnerabilitiesColumns();
   const [riskFilter, setRiskFilter] = useState("");
+  const [depthFilter, setDepthFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -62,7 +63,10 @@ const Vulnerabilities = () => {
   useEffect(() => {
     if (!branch) return;
 
-    const chartOdata = buildOdata({ severity: riskFilter || "" });
+    const chartOdata = buildOdata({
+      severity: riskFilter || "",
+      depth: depthFilter || "",
+    });
     const filterOdata = toODataFilter(columnFilters);
     const filter = joinODataFilters([chartOdata, filterOdata]);
     const sortOdata = toODataOrderBy(sorting);
@@ -79,6 +83,7 @@ const Vulnerabilities = () => {
   }, [
     branch,
     riskFilter,
+    depthFilter,
     sorting,
     columnFilters,
     fetchVulnerabilities,
@@ -89,10 +94,17 @@ const Vulnerabilities = () => {
     setRiskFilter((prev) => (prev === name ? "" : name));
   };
 
+  const onDepthClick = (name: string) => {
+    setDepthFilter((prev) => (prev === name ? "" : name));
+  };
+
   const onExportClick = async () => {
     if (!branch) return;
 
-    const chartOdata = buildOdata({ severity: riskFilter || "" });
+    const chartOdata = buildOdata({
+      severity: riskFilter || "",
+      depth: depthFilter || "",
+    });
     const filterOdata = toODataFilter(columnFilters);
     const filter = joinODataFilters([chartOdata, filterOdata]);
     const sortOdata = toODataOrderBy(sorting);
@@ -130,19 +142,29 @@ const Vulnerabilities = () => {
               />
             </div>
             <div className="flex flex-col gap-6 w-1/2 h-full ">
-              <PieCustomChart
-                title="Risk Severities"
-                className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
-                pies={
-                  data?.risks.map((risk) => ({
-                    ...risk,
-                    color: riskToColor(risk.name as Severity),
-                  })) ?? []
-                }
-                filteredBy={riskFilter}
-                isLoading={isLoading || !isSuccess}
-                onSliceClick={onRiskClick}
-              />
+              <div className="flex flex-row w-full gap-3">
+                <PieCustomChart
+                  title="Risk Severities"
+                  className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+                  pies={
+                    data?.risks.map((risk) => ({
+                      ...risk,
+                      color: riskToColor(risk.name as Severity),
+                    })) ?? []
+                  }
+                  filteredBy={riskFilter}
+                  isLoading={isLoading || !isSuccess}
+                  onSliceClick={onRiskClick}
+                />
+                <PieCustomChart
+                  title="Depth"
+                  className="min-h-[calc(42vh)] max-h-[calc(42vh)]"
+                  pies={data?.depths ?? []}
+                  filteredBy={depthFilter}
+                  isLoading={isLoading || !isSuccess}
+                  onSliceClick={onDepthClick}
+                />
+              </div>
               <div
                 className={`flex items-center justify-center self-center h-1/2 w-full`}
               >

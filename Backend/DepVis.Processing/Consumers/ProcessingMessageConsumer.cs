@@ -35,20 +35,13 @@ public class ProcessingMessageConsumer(
         var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
 
-        var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
-        var outputFile = Path.Combine(tempDir, filename);
-
-        _logger.LogInformation("Cloning repository {githubLink}", githubLink);
-        var cloneOptions = new CloneOptions { Checkout = true };
-        Repository.Clone(githubLink, tempDir, cloneOptions);
-        _logger.LogInformation("Repository cloned successfully");
-
-        string commitMessage = string.Empty;
-        string commitSha = string.Empty;
-        DateTime commitDate = DateTime.Now;
-
         try
         {
+            _logger.LogInformation("Cloning repository {githubLink}", githubLink);
+            var cloneOptions = new CloneOptions { Checkout = true };
+            Repository.Clone(githubLink, tempDir, cloneOptions);
+            _logger.LogInformation("Repository cloned successfully");
+
             using (var repo = new Repository(tempDir))
             {
                 var checkoutOptions = new CheckoutOptions()
@@ -59,6 +52,13 @@ public class ProcessingMessageConsumer(
                 foreach (var branch in branches)
                 {
                     _logger.LogInformation("Processing branch/tag {branch}", branch.Location);
+
+                    var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
+                    var outputFile = Path.Combine(tempDir, filename);
+                    string commitMessage = string.Empty;
+                    string commitSha = string.Empty;
+                    DateTime commitDate = DateTime.Now;
+
                     try
                     {
                         if (branch.IsTag)
@@ -148,6 +148,7 @@ public class ProcessingMessageConsumer(
             );
 
             foreach (var branch in branches)
+            {
                 await _publishEndpoint.Publish(
                     new UpdateProcessingMessage
                     {
@@ -155,6 +156,7 @@ public class ProcessingMessageConsumer(
                         ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
                     }
                 );
+            }
         }
         finally
         {

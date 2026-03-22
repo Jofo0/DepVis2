@@ -4,4 +4,5 @@ public class VulnerabilitiesDto
 {
     public List<VulnerabilitySmallDto> Vulnerabilities { get; set; } = new();
     public List<NameCount> Risks { get; set; } = new();
+    public List<NameCount> Depths { get; set; } = new();
 }

@@ -27,15 +27,19 @@ public class PackageService(PackageRepository repo)
 
         var vulnerableCounts = await packages
             .GroupBy(x => x.Vulnerabilities.Count > 0)
-            .Select(g => new NameCount { Name = g.Key ? "Vulnerable" : "OK", Count = g.Count() })
+            .Select(g => new NameCount
+            {
+                Name = g.Key ? Constants.VulnerablePackage : Constants.NotVulnerablePackage,
+                Count = g.Count(),
+            })
             .OrderBy(x => x.Count)
             .ToListAsync();
 
         var depthCounts = await packages
             .GroupBy(x =>
-                x.Depth == 1 || x.Depth == 0 ? "Manifests"
-                : x.Depth == 2 ? "Direct"
-                : "Transitive"
+                x.Depth == 1 || x.Depth == 0 ? Constants.Manifests
+                : x.Depth == 2 ? Constants.Direct
+                : Constants.Transitive
             )
             .Select(g => new NameCount { Name = g.Key, Count = g.Count() })
             .OrderBy(x => x.Count)
