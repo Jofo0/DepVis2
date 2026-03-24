@@ -35,7 +35,9 @@ public class SbomIngestionOrchestrator(
             sbom = await LoadSbomAsync(sbomId, cancellationToken);
             MarkSuccess(sbom, result, isHistory);
             await db.SaveChangesAsync(cancellationToken);
-            await UpdateProjectStatistics(sbom, result, cancellationToken);
+
+            if (!isHistory)
+                await UpdateProjectStatistics(sbom, result, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -128,6 +130,7 @@ public class SbomIngestionOrchestrator(
         if (isHistory)
         {
             sbom.BranchHistory!.PackageCount = result.Packages.Count;
+            sbom.BranchHistory.DirectVulnerabilityCount = result.DirectVulnerabilities.Count;
             sbom.BranchHistory.VulnerabilityCount = result.PackageVulnerabilities.Count;
             sbom.BranchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 

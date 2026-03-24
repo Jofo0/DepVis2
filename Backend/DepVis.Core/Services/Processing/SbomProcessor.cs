@@ -15,13 +15,14 @@ public class SbomProcessor(
 {
     public async Task<SbomProcessingResult> ProcessAsync(
         Sbom sbom,
-        bool skipGraphBuilding = false,
+        bool skipInsertion = false,
         CancellationToken cancellationToken = default
     )
     {
         var bom = await bomLoader.LoadAsync(sbom.FileName, cancellationToken);
 
-        await vulnerabilityIngestionService.IngestAsync(bom, cancellationToken);
+        if (!skipInsertion)
+            await vulnerabilityIngestionService.IngestAsync(bom, cancellationToken);
 
         var packageBuild = packageBuilder.Build(sbom.Id, bom);
 
@@ -30,7 +31,7 @@ public class SbomProcessor(
             packageBuild.Packages,
             packageBuild.DuplicateResolutions,
             packageBuild.RootBomRef,
-            skipGraphBuilding
+            skipInsertion
         );
 
         var vulnerabilityBuild = packageVulnerabilityMapper.Map(
@@ -39,16 +40,20 @@ public class SbomProcessor(
             graphBuild.BomRefToId
         );
 
-        db.SbomPackages.AddRange(packageBuild.Packages);
-
-        if (!skipGraphBuilding)
-        {
-            db.PackageDependencies.AddRange(graphBuild.Dependencies);
-        }
-
         var distinctVulnerabilities = vulnerabilityBuild.PackageVulnerabilities.Distinct().ToList();
+        var directVulnerabilities = vulnerabilityBuild
+            .PackageVulnerabilities.Distinct()
+            .Where(pv => pv.SbomPackage.Depth == 2)
+            .ToList();
 
-        db.SbomPackageVulnerabilities.AddRange(distinctVulnerabilities);
+        if (!skipInsertion)
+        {
+            db.SbomPackages.AddRange(packageBuild.Packages);
+
+            db.PackageDependencies.AddRange(graphBuild.Dependencies);
+
+            db.SbomPackageVulnerabilities.AddRange(distinctVulnerabilities);
+        }
 
         await db.SaveChangesAsync(cancellationToken);
 
@@ -65,6 +70,7 @@ public class SbomProcessor(
                     .OrderByDescending(g => g.Count())
                     .Select(p => p.Key!),
             ],
+            DirectVulnerabilities = directVulnerabilities,
         };
     }
 }
