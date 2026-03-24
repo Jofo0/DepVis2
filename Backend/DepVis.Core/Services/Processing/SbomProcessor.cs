@@ -43,7 +43,9 @@ public class SbomProcessor(
         var distinctVulnerabilities = vulnerabilityBuild.PackageVulnerabilities.Distinct().ToList();
         var directVulnerabilities = vulnerabilityBuild
             .PackageVulnerabilities.Distinct()
-            .Where(pv => pv.SbomPackage.Depth == 2)
+            .Where(pv =>
+                packageBuild.Packages.FirstOrDefault(x => x.Id == pv.SbomPackageId)?.Depth == 2
+            )
             .ToList();
 
         if (!skipInsertion)
