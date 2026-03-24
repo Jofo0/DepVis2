@@ -4,20 +4,27 @@ namespace DepVis.SbomProcessing
 {
     public class ProcessingService(ILogger<ProcessingService> _logger)
     {
-        public async Task RunTrivy(string directory, string output, CancellationToken ct = default)
+        public async Task RunTrivy(
+            string directory,
+            string output,
+            string runnerKey,
+            CancellationToken ct = default
+        )
         {
+            var cacheDir = Path.Combine(Path.GetTempPath(), runnerKey);
+            Directory.CreateDirectory(cacheDir);
+
             var trivy = new ProcessStartInfo
             {
                 FileName = "trivy",
                 Arguments =
-                    $"fs --format cyclonedx --output {output} --include-dev-deps --scanners vuln .",
+                    $"fs --format cyclonedx --output \"{output}\" --include-dev-deps --scanners vuln --cache-dir \"{cacheDir}\" .",
                 WorkingDirectory = directory,
                 UseShellExecute = false,
             };
 
-            _logger.LogDebug("Running Trivy on the cloned repository");
+            _logger.LogDebug("Running Trivy with cache {cacheDir}", cacheDir);
             await RunProcessAsync(trivy, ct);
-            _logger.LogDebug("Trivy ran succesfully and the SBOM has been created");
         }
 
         public async Task RunSyft(string directory, string output, CancellationToken ct = default)

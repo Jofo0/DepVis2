@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
 using System.Text.Json;
 using DepVis.SbomProcessing;
 using DepVis.Shared.Messages;
@@ -16,7 +16,6 @@ public class BranchSpecificProcessingConsumer(
     ProcessingService _processingService
 ) : IConsumer<BranchHistoryProcessingMessage>
 {
-    private static readonly SemaphoreSlim _trivyLock = new(1, 1);
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -29,6 +28,7 @@ public class BranchSpecificProcessingConsumer(
         var githubLink = context.Message.GitHubLink;
         var maxCommits = context.Message.MaxCommits;
         var location = context.Message.Location;
+        var workerCount = Math.Max(1, 4);
 
         await _publishEndpoint.Publish(
             new UpdateBranchHistoryProcessingMessage
@@ -39,25 +39,25 @@ public class BranchSpecificProcessingConsumer(
             }
         );
 
-        var tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempDir);
+        var rootTempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        var sourceRepoDir = Path.Combine(rootTempDir, "source");
+        Directory.CreateDirectory(sourceRepoDir);
 
-        List<CommitProcessingInfo> commitProcessingInfos = [];
+        var commitProcessingInfos = new ConcurrentBag<CommitProcessingInfo>();
 
-        var count = 0;
         try
         {
             _logger.LogDebug("Cloning repository {githubLink}", githubLink);
+
             var cloneOptions = new CloneOptions { Checkout = true };
-            Repository.Clone(githubLink, tempDir, cloneOptions);
+            Repository.Clone(githubLink, sourceRepoDir, cloneOptions);
+
             _logger.LogDebug("Repository cloned successfully");
 
-            string commitMessage = string.Empty;
-            string commitSha = string.Empty;
-            DateTime commitDate = DateTime.Now;
-            using (var repo = new Repository(tempDir))
+            List<CommitDescriptor> commitsToProcess;
+            using (var repo = new Repository(sourceRepoDir))
             {
-                string branchName = location;
+                var branchName = location;
                 var branch = repo.Branches.FirstOrDefault(x => x.FriendlyName.EndsWith(branchName));
 
                 if (branch == null)
@@ -66,10 +66,19 @@ public class BranchSpecificProcessingConsumer(
                         "Branch {branchName} not found in the repository.",
                         branchName
                     );
+
+                    await _publishEndpoint.Publish(
+                        new UpdateProcessingMessage
+                        {
+                            ProjectBranchId = context.Message.ProjectBranchId,
+                            ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
+                        }
+                    );
+
                     return;
                 }
 
-                var commits = repo
+                commitsToProcess = repo
                     .Commits.QueryBy(
                         new CommitFilter
                         {
@@ -77,110 +86,83 @@ public class BranchSpecificProcessingConsumer(
                             SortBy = CommitSortStrategies.Time,
                         }
                     )
-                    .Reverse();
-
-                long lastVulnCount = -1;
-                long lastPackageCount = -1;
-
-                foreach (var commit in commits)
-                {
-                    try
+                    .Reverse()
+                    .Take(maxCommits > 0 ? maxCommits : int.MaxValue)
+                    .Select(c => new CommitDescriptor
                     {
-                        var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
-                        var outputFile = Path.Combine(tempDir, filename);
-                        count++;
+                        Sha = c.Sha,
+                        MessageShort = c.MessageShort,
+                        CommitDate = c.Author.When.LocalDateTime,
+                    })
+                    .ToList();
+            }
 
-                        _logger.LogInformation(
-                            "Checking out commit {sha} - {message} ({date})",
-                            commit.Sha,
-                            commit.MessageShort,
-                            commit.Author.When.LocalDateTime
-                        );
+            if (commitsToProcess.Count == 0)
+            {
+                _logger.LogInformation("No commits found to process.");
 
-                        var checkoutOptions = new CheckoutOptions()
-                        {
-                            CheckoutModifiers = CheckoutModifiers.Force,
-                        };
-
-                        Commands.Checkout(repo, commit, checkoutOptions);
-
-                        commitMessage = commit.MessageShort;
-                        commitDate = commit.Author.When.LocalDateTime;
-                        commitSha = commit.Sha;
-
-                        _logger.LogInformation("Processing commit");
-
-                        await _trivyLock.WaitAsync(context.CancellationToken);
-                        try
-                        {
-                            await _processingService.RunTrivy(tempDir, outputFile);
-                        }
-                        finally
-                        {
-                            _trivyLock.Release();
-                        }
-
-                        using Stream stream = File.OpenRead(outputFile);
-
-                        var json =
-                            JsonSerializer.Deserialize<CycloneDxBom>(stream, JsonOptions)
-                            ?? new CycloneDxBom { Components = [], Vulnerabilities = [] };
-
-                        if (
-                            json.Components?.Count == lastPackageCount
-                            && json.Vulnerabilities?.Count == lastVulnCount
-                        )
-                        {
-                            _logger.LogInformation(
-                                "No changes in packages and vulnerabilities compared to the last processed commit. Skipping upload for commit {sha}",
-                                commit.Sha
-                            );
-                            continue;
-                        }
-                        else
-                        {
-                            lastPackageCount = json.Components?.Count ?? 0;
-                            lastVulnCount = json.Vulnerabilities?.Count ?? 0;
-                        }
-
-                        _logger.LogDebug("Uploading the created SBOM file to minIO storage");
-                        await _minioStorageService.UploadAsync(outputFile, filename);
-                        _logger.LogDebug("SBOM uploaded successfully");
-
-                        commitProcessingInfos.Add(
-                            new CommitProcessingInfo
-                            {
-                                FileName = filename,
-                                CommitMessage = commitMessage,
-                                CommitSha = commitSha,
-                                CommitDate = commitDate,
-                            }
-                        );
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(
-                            "An error occurred while processing commit {sha}. Message: [{errorMessage}]",
-                            commit.Sha,
-                            ex.Message
-                        );
-                        continue;
-                    }
-                }
                 await _publishEndpoint.Publish(
                     new UpdateBranchHistoryProcessingMessage
                     {
                         ProjectBranchId = context.Message.ProjectBranchId,
                         ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
                         ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
-                        Commits = commitProcessingInfos,
+                        Commits = [],
                     }
                 );
+
+                return;
             }
+
+            var actualWorkerCount = Math.Min(workerCount, commitsToProcess.Count);
+
+            _logger.LogInformation(
+                "Preparing {workerCount} workers for {commitCount} commits",
+                actualWorkerCount,
+                commitsToProcess.Count
+            );
+
+            var workerFolders = new List<string>(actualWorkerCount);
+            for (var i = 0; i < actualWorkerCount; i++)
+            {
+                var workerDir = Path.Combine(rootTempDir, $"worker-{i}");
+                CopyDirectory(sourceRepoDir, workerDir);
+                workerFolders.Add(workerDir);
+            }
+
+            var commitChunks = SplitIntoChunks(commitsToProcess, actualWorkerCount);
+            var processedResults = new ConcurrentBag<ProcessedCommitResult>();
+
+            var workerTasks = commitChunks.Select(
+                (chunk, workerIndex) =>
+                    ProcessChunkAsync(
+                        workerIndex: workerIndex,
+                        workerRepoDir: workerFolders[workerIndex],
+                        commits: chunk,
+                        projectBranchId: context.Message.ProjectBranchId,
+                        resultBag: processedResults,
+                        cancellationToken: context.CancellationToken
+                    )
+            );
+
+            await Task.WhenAll(workerTasks);
+
+            var globallyDedupedResults = DeduplicateAcrossWorkers(processedResults);
+
+            await _publishEndpoint.Publish(
+                new UpdateBranchHistoryProcessingMessage
+                {
+                    ProjectBranchId = context.Message.ProjectBranchId,
+                    ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
+                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
+                    Commits = globallyDedupedResults,
+                }
+            );
         }
         catch (Exception ex)
         {
             _logger.LogError(
+                ex,
                 "An error occurred during the processing of {githubLink}. Message [{errorMessage}]",
                 githubLink,
                 ex.Message
@@ -196,17 +178,248 @@ public class BranchSpecificProcessingConsumer(
         }
         finally
         {
-            if (Directory.Exists(tempDir))
+            if (Directory.Exists(rootTempDir))
             {
                 try
                 {
-                    Directory.Delete(tempDir, true);
+                    Directory.Delete(rootTempDir, recursive: true);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    _logger.LogInformation("Failed to delete temp directory {tempDir}", tempDir);
+                    _logger.LogInformation(
+                        ex,
+                        "Failed to delete temp directory {tempDir}",
+                        rootTempDir
+                    );
                 }
             }
         }
+    }
+
+    private async Task ProcessChunkAsync(
+        int workerIndex,
+        string workerRepoDir,
+        IReadOnlyList<CommitDescriptor> commits,
+        Guid projectBranchId,
+        ConcurrentBag<ProcessedCommitResult> resultBag,
+        CancellationToken cancellationToken
+    )
+    {
+        if (commits.Count == 0)
+        {
+            _logger.LogInformation("Worker {workerIndex} received no commits.", workerIndex);
+            return;
+        }
+
+        long lastVulnCount = -1;
+        long lastPackageCount = -1;
+
+        using var repo = new Repository(workerRepoDir);
+
+        foreach (var commit in commits)
+        {
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                _logger.LogInformation(
+                    "Worker {workerIndex} checking out commit {sha} - {message} ({date})",
+                    workerIndex,
+                    commit.Sha,
+                    commit.MessageShort,
+                    commit.CommitDate
+                );
+
+                var commitRef = repo.Lookup<Commit>(commit.Sha);
+                if (commitRef == null)
+                {
+                    _logger.LogWarning(
+                        "Worker {workerIndex} could not find commit {sha} in repo copy",
+                        workerIndex,
+                        commit.Sha
+                    );
+                    continue;
+                }
+
+                Commands.Checkout(
+                    repo,
+                    commitRef,
+                    new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force }
+                );
+
+                var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
+                var outputFile = Path.Combine(workerRepoDir, filename);
+
+                _logger.LogInformation(
+                    "Worker {workerIndex} processing commit {sha}",
+                    workerIndex,
+                    commit.Sha
+                );
+
+                var runnerKey = $"branch-history-{workerIndex}";
+                var trivyLock = TrivyLockProvider.GetLock(runnerKey);
+
+                await trivyLock.WaitAsync(cancellationToken);
+                try
+                {
+                    await _processingService.RunTrivy(
+                        workerRepoDir,
+                        outputFile,
+                        runnerKey,
+                        cancellationToken
+                    );
+                }
+                finally
+                {
+                    trivyLock.Release();
+                }
+
+                await using var stream = File.OpenRead(outputFile);
+
+                var json =
+                    await JsonSerializer.DeserializeAsync<CycloneDxBom>(
+                        stream,
+                        JsonOptions,
+                        cancellationToken
+                    ) ?? new CycloneDxBom { Components = [], Vulnerabilities = [] };
+
+                if (
+                    json.Components?.Count == lastPackageCount
+                    && json.Vulnerabilities?.Count == lastVulnCount
+                )
+                {
+                    _logger.LogInformation(
+                        "Worker {workerIndex}: no package/vulnerability count changes for commit {sha}, skipping upload",
+                        workerIndex,
+                        commit.Sha
+                    );
+                    continue;
+                }
+
+                lastPackageCount = json.Components?.Count ?? 0;
+                lastVulnCount = json.Vulnerabilities?.Count ?? 0;
+
+                _logger.LogDebug("Worker {workerIndex} uploading SBOM file to MinIO", workerIndex);
+
+                await _minioStorageService.UploadAsync(outputFile, filename);
+
+                resultBag.Add(
+                    new ProcessedCommitResult()
+                    {
+                        CommitInfo = new CommitProcessingInfo
+                        {
+                            FileName = filename,
+                            CommitMessage = commit.MessageShort,
+                            CommitSha = commit.Sha,
+                            CommitDate = commit.CommitDate,
+                        },
+                        PackageCount = lastPackageCount,
+                        VulnerabilityCount = lastVulnCount,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Worker {workerIndex}: error while processing commit {sha}. Message: [{errorMessage}]",
+                    workerIndex,
+                    commit.Sha,
+                    ex.Message
+                );
+            }
+        }
+    }
+
+    private static List<List<CommitDescriptor>> SplitIntoChunks(
+        IReadOnlyList<CommitDescriptor> commits,
+        int workerCount
+    )
+    {
+        var result = new List<List<CommitDescriptor>>(workerCount);
+
+        var baseSize = commits.Count / workerCount;
+        var remainder = commits.Count % workerCount;
+        var offset = 0;
+
+        for (var i = 0; i < workerCount; i++)
+        {
+            var size = baseSize + (i < remainder ? 1 : 0);
+            result.Add(commits.Skip(offset).Take(size).ToList());
+            offset += size;
+        }
+
+        return result;
+    }
+
+    private List<CommitProcessingInfo> DeduplicateAcrossWorkers(
+        IEnumerable<ProcessedCommitResult> results
+    )
+    {
+        var ordered = results
+            .OrderBy(x => x.CommitInfo.CommitDate)
+            .ThenBy(x => x.CommitInfo.CommitSha);
+
+        var deduped = new List<CommitProcessingInfo>();
+        ProcessedCommitResult? lastKept = null;
+
+        foreach (var current in ordered)
+        {
+            if (
+                lastKept != null
+                && lastKept.PackageCount == current.PackageCount
+                && lastKept.VulnerabilityCount == current.VulnerabilityCount
+            )
+            {
+                _logger.LogInformation(
+                    "Globally deduplicating commit {sha}; counts match previous kept commit",
+                    current.CommitInfo.CommitSha
+                );
+                continue;
+            }
+
+            deduped.Add(current.CommitInfo);
+            lastKept = current;
+        }
+
+        return deduped;
+    }
+
+    private static void CopyDirectory(string sourceDir, string destinationDir)
+    {
+        var source = new DirectoryInfo(sourceDir);
+
+        if (!source.Exists)
+        {
+            throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
+        }
+
+        Directory.CreateDirectory(destinationDir);
+
+        foreach (var file in source.GetFiles())
+        {
+            var targetFilePath = Path.Combine(destinationDir, file.Name);
+            file.CopyTo(targetFilePath, overwrite: true);
+        }
+
+        foreach (var subDir in source.GetDirectories())
+        {
+            var newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+            CopyDirectory(subDir.FullName, newDestinationDir);
+        }
+    }
+
+    private sealed class CommitDescriptor
+    {
+        public required string Sha { get; init; }
+        public required string MessageShort { get; init; }
+        public required DateTime CommitDate { get; init; }
+    }
+
+    private sealed class ProcessedCommitResult
+    {
+        public required CommitProcessingInfo CommitInfo { get; init; }
+        public required long PackageCount { get; init; }
+        public required long VulnerabilityCount { get; init; }
     }
 }

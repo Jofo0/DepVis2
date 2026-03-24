@@ -90,18 +90,22 @@ public class ProcessingMessageConsumer(
                             commitDate
                         );
 
-                        await _trivyLock.WaitAsync(context.CancellationToken);
+                        var runnerKey = "single-branch";
+                        var trivyLock = TrivyLockProvider.GetLock(runnerKey);
+
+                        await trivyLock.WaitAsync(context.CancellationToken);
                         try
                         {
                             await _processingService.RunTrivy(
                                 tempDir,
                                 outputFile,
+                                runnerKey,
                                 context.CancellationToken
                             );
                         }
                         finally
                         {
-                            _trivyLock.Release();
+                            trivyLock.Release();
                         }
 
                         _logger.LogDebug("Uploading the created SBOM file to minIO storage");
