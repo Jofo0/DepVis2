@@ -41,8 +41,6 @@ public class BranchSpecificProcessingConsumer(
         var sourceRepoDir = Path.Combine(rootTempDir, "source");
         Directory.CreateDirectory(sourceRepoDir);
 
-        var commitProcessingInfos = new ConcurrentBag<CommitProcessingInfo>();
-
         try
         {
             _logger.LogDebug("Cloning repository {githubLink}", githubLink);
@@ -113,12 +111,14 @@ public class BranchSpecificProcessingConsumer(
                 return;
             }
 
-            var actualWorkerCount = Math.Min(workerCount, commitsToProcess.Count);
+            var progress = new ProgressState { TotalCommits = commitsToProcess.Count };
+
+            var actualWorkerCount = Math.Min(workerCount, progress.TotalCommits);
 
             _logger.LogInformation(
                 "Preparing {workerCount} workers for {commitCount} commits",
                 actualWorkerCount,
-                commitsToProcess.Count
+                progress.TotalCommits
             );
 
             var workerFolders = new List<string>(actualWorkerCount);
@@ -139,6 +139,7 @@ public class BranchSpecificProcessingConsumer(
                         workerRepoDir: workerFolders[workerIndex],
                         commits: chunk,
                         projectBranchId: context.Message.ProjectBranchId,
+                        progress: progress,
                         resultBag: processedResults,
                         cancellationToken: context.CancellationToken
                     )
@@ -200,6 +201,7 @@ public class BranchSpecificProcessingConsumer(
         string workerRepoDir,
         IReadOnlyList<CommitDescriptor> commits,
         Guid projectBranchId,
+        ProgressState progress,
         ConcurrentBag<ProcessedCommitResult> resultBag,
         CancellationToken cancellationToken
     )
@@ -236,6 +238,14 @@ public class BranchSpecificProcessingConsumer(
                         "Worker {workerIndex} could not find commit {sha} in repo copy",
                         workerIndex,
                         commit.Sha
+                    );
+
+                    var missingProcessed = Interlocked.Increment(ref progress.CommitsProcessed);
+                    await PublishProgressIfNeeded(
+                        projectBranchId,
+                        progress.TotalCommits,
+                        missingProcessed,
+                        cancellationToken
                     );
                     continue;
                 }
@@ -292,6 +302,14 @@ public class BranchSpecificProcessingConsumer(
                         workerIndex,
                         commit.Sha
                     );
+
+                    var skippedProcessed = Interlocked.Increment(ref progress.CommitsProcessed);
+                    await PublishProgressIfNeeded(
+                        projectBranchId,
+                        progress.TotalCommits,
+                        skippedProcessed,
+                        cancellationToken
+                    );
                     continue;
                 }
 
@@ -316,6 +334,14 @@ public class BranchSpecificProcessingConsumer(
                         VulnerabilityCount = lastVulnCount,
                     }
                 );
+
+                var processed = Interlocked.Increment(ref progress.CommitsProcessed);
+                await PublishProgressIfNeeded(
+                    projectBranchId,
+                    progress.TotalCommits,
+                    processed,
+                    cancellationToken
+                );
             }
             catch (Exception ex)
             {
@@ -326,8 +352,46 @@ public class BranchSpecificProcessingConsumer(
                     commit.Sha,
                     ex.Message
                 );
+
+                var failedProcessed = Interlocked.Increment(ref progress.CommitsProcessed);
+                await PublishProgressIfNeeded(
+                    projectBranchId,
+                    progress.TotalCommits,
+                    failedProcessed,
+                    cancellationToken
+                );
             }
         }
+    }
+
+    private async Task PublishProgressIfNeeded(
+        Guid projectBranchId,
+        int totalCommits,
+        int commitsProcessed,
+        CancellationToken cancellationToken
+    )
+    {
+        if (commitsProcessed % 100 != 0 && commitsProcessed != totalCommits)
+        {
+            return;
+        }
+
+        _logger.LogInformation(
+            "Branch history progress for {projectBranchId}: {commitsProcessed}/{totalCommits}",
+            projectBranchId,
+            commitsProcessed,
+            totalCommits
+        );
+
+        await _publishEndpoint.Publish(
+            new BranchProcessingCountMessage
+            {
+                ProjectBranchId = projectBranchId,
+                TotalCommits = totalCommits,
+                ProcessedCommits = commitsProcessed,
+            },
+            cancellationToken
+        );
     }
 
     private static List<List<CommitDescriptor>> SplitIntoChunks(
@@ -413,6 +477,12 @@ public class BranchSpecificProcessingConsumer(
         public required string Sha { get; init; }
         public required string MessageShort { get; init; }
         public required DateTime CommitDate { get; init; }
+    }
+
+    private sealed class ProgressState
+    {
+        public int TotalCommits { get; init; }
+        public int CommitsProcessed;
     }
 
     private sealed class ProcessedCommitResult
