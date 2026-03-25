@@ -44,6 +44,8 @@ export type GetBranchesDto = {
 export type BranchHistoryDto = {
   histories: BranchHistoryItem[];
   processingStep: ProcessStep;
+  totalCommits: number;
+  processedCommits: number;
 };
 
 export type BranchCommitsDto = {

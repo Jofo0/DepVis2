@@ -25,6 +25,8 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+    volumes:
+      - /var/lib/depvis/tmp:/tmp
     environment:
       - ConnectionStrings__FrontEnd=${FRONTEND_URL}
       - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True

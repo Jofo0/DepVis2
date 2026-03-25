@@ -88,6 +88,12 @@ const History = ({
       <div className="flex flex-col items-center justify-center w-full h-full">
         <Card className="flex flex-col justify-center items-center w-1/3 self-center ">
           <div className="p-4">Branch History is being processed</div>
+          {data.totalCommits !== 0 && (
+            <div>
+              Total Commits / Processed Commits: {data.totalCommits} /
+              {data.processedCommits}
+            </div>
+          )}
           <Button variant={"ghost"} onClick={refetch}>
             <RefreshCcw />
           </Button>
