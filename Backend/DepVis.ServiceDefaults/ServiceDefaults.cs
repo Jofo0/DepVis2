@@ -31,8 +31,9 @@ public static class ServiceDefaults
         return builder;
     }
 
-    private static void EnsureDatabaseExists(string fullConnectionString, int maxRetries = 10)
+    private static void EnsureDatabaseExists(string fullConnectionString, int slowBoundary = 10)
     {
+        var totalBoundary = slowBoundary * 2;
         var builder = new SqlConnectionStringBuilder(fullConnectionString);
 
         var databaseName = builder.InitialCatalog;
@@ -44,7 +45,7 @@ public static class ServiceDefaults
         builder.InitialCatalog = "master";
         var masterConnectionString = builder.ConnectionString;
 
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        for (int attempt = 1; attempt <= totalBoundary; attempt++)
         {
             try
             {
@@ -52,35 +53,79 @@ public static class ServiceDefaults
                     $"[DB INIT] Attempt {attempt}: connecting to SQL Server (master)..."
                 );
 
-                using var connection = new SqlConnection(masterConnectionString);
-                connection.Open();
+                using var masterConnection = new SqlConnection(masterConnectionString);
+                masterConnection.Open();
 
-                var cmdText =
-                    $@"
-                    IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{databaseName}')
-                    BEGIN
-                        PRINT 'Creating database {databaseName}';
-                        CREATE DATABASE [{databaseName}];
-                    END";
+                // 1) Create DB if it does not exist
+                using (var createCommand = masterConnection.CreateCommand())
+                {
+                    createCommand.CommandText =
+                        $@"
+IF DB_ID(@dbName) IS NULL
+BEGIN
+    DECLARE @sql nvarchar(max) =
+        N'CREATE DATABASE ' + QUOTENAME(@dbName);
+    EXEC(@sql);
+END";
+                    createCommand.Parameters.AddWithValue("@dbName", databaseName);
+                    createCommand.ExecuteNonQuery();
+                }
 
-                using var command = new SqlCommand(cmdText, connection);
-                command.ExecuteNonQuery();
+                // 2) Wait until SQL Server reports the DB is ONLINE
+                var isOnline = false;
 
-                Console.WriteLine($"[DB INIT] Database '{databaseName}' ready.");
+                for (var i = 0; i < 30; i++)
+                {
+                    using var statusCommand = masterConnection.CreateCommand();
+                    statusCommand.CommandText =
+                        @"SELECT state_desc FROM sys.databases WHERE name = @dbName";
+                    statusCommand.Parameters.AddWithValue("@dbName", databaseName);
+
+                    var state = statusCommand.ExecuteScalar() as string;
+                    Console.WriteLine(
+                        $"[DB INIT] Database '{databaseName}' state: {state ?? "<null>"}"
+                    );
+
+                    if (string.Equals(state, "ONLINE", StringComparison.OrdinalIgnoreCase))
+                    {
+                        isOnline = true;
+                        break;
+                    }
+
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                }
+
+                if (!isOnline)
+                    throw new InvalidOperationException(
+                        $"Database '{databaseName}' was created/found, but never became ONLINE."
+                    );
+
+                // 3) Verify actual usability by connecting to the target DB
+                using var dbConnection = new SqlConnection(fullConnectionString);
+                dbConnection.Open();
+
+                using var pingCommand = dbConnection.CreateCommand();
+                pingCommand.CommandText = "SELECT 1";
+                pingCommand.ExecuteScalar();
+
+                Console.WriteLine($"[DB INIT] Database '{databaseName}' is ready.");
                 return;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(
-                    $"[DB INIT] Failed (attempt {attempt}/{maxRetries}): {ex.Message}"
+                    $"[DB INIT] Failed (attempt {attempt}/{totalBoundary}): {ex.Message}"
                 );
 
-                if (attempt == maxRetries)
-                    throw;
-
-                Thread.Sleep(TimeSpan.FromSeconds(3));
+                Thread.Sleep(
+                    attempt >= slowBoundary ? TimeSpan.FromSeconds(25) : TimeSpan.FromSeconds(3)
+                );
             }
         }
+
+        throw new InvalidOperationException(
+            $"Database '{databaseName}' did not become ready in time."
+        );
     }
 
     private static IServiceCollection ConfigureMassTransit(

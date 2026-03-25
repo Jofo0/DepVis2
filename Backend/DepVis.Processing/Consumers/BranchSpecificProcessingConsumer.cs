@@ -1,13 +1,12 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
-using DepVis.SbomProcessing;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
 using LibGit2Sharp;
 using MassTransit;
 
-namespace DepVis.Processing.Consumers;
+namespace DepVis.SbomProcessing.Consumers;
 
 public class BranchSpecificProcessingConsumer(
     ILogger<BranchSpecificProcessingConsumer> _logger,
@@ -26,7 +25,6 @@ public class BranchSpecificProcessingConsumer(
     public async Task Consume(ConsumeContext<BranchHistoryProcessingMessage> context)
     {
         var githubLink = context.Message.GitHubLink;
-        var maxCommits = context.Message.MaxCommits;
         var location = context.Message.Location;
         var workerCount = Math.Max(1, 4);
 
@@ -78,23 +76,24 @@ public class BranchSpecificProcessingConsumer(
                     return;
                 }
 
-                commitsToProcess = repo
-                    .Commits.QueryBy(
-                        new CommitFilter
+                commitsToProcess =
+                [
+                    .. repo
+                        .Commits.QueryBy(
+                            new CommitFilter
+                            {
+                                IncludeReachableFrom = branch,
+                                SortBy = CommitSortStrategies.Time,
+                            }
+                        )
+                        .Reverse()
+                        .Select(c => new CommitDescriptor
                         {
-                            IncludeReachableFrom = branch,
-                            SortBy = CommitSortStrategies.Time,
-                        }
-                    )
-                    .Reverse()
-                    .Take(maxCommits > 0 ? maxCommits : int.MaxValue)
-                    .Select(c => new CommitDescriptor
-                    {
-                        Sha = c.Sha,
-                        MessageShort = c.MessageShort,
-                        CommitDate = c.Author.When.LocalDateTime,
-                    })
-                    .ToList();
+                            Sha = c.Sha,
+                            MessageShort = c.MessageShort,
+                            CommitDate = c.Author.When.LocalDateTime,
+                        }),
+                ];
             }
 
             if (commitsToProcess.Count == 0)
