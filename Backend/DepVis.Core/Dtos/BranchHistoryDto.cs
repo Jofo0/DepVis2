@@ -6,8 +6,8 @@ public class BranchHistoryDto
 {
     public ProcessStep ProcessingStep { get; set; }
     public List<BranchHistoryEntryDto> Histories { get; set; } = [];
-    public int TotalCount { get; set; }
-    public int PendingCount { get; set; }
+    public int TotalCommits { get; set; }
+    public int ProcessedCommits { get; set; }
 }
 
 public class BranchHistoryEntryDto

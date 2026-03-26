@@ -127,8 +127,8 @@ public static class DtoExtensions
                     }),
             ],
             ProcessingStep = processingStep,
-            PendingCount = bh.TotalHistoryCommits,
-            TotalCount = bh.ProcessedHistoryCommits,
+            ProcessedCommits = bh.TotalHistoryCommits,
+            TotalCommits = bh.ProcessedHistoryCommits,
         };
     }
 }
