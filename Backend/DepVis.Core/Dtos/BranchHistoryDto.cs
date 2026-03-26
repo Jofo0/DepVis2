@@ -17,4 +17,5 @@ public class BranchHistoryEntryDto
     public string CommitSha { get; set; } = string.Empty;
     public int PackageCount { get; set; }
     public int VulnerabilityCount { get; set; }
+    public int DirectVulnerabilityCount { get; set; }
 }

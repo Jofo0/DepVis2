@@ -11,10 +11,12 @@ import { RefreshCcw } from "lucide-react";
 import ViewSelector, { ViewType } from "./Components/ViewSelector";
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
+import { downloadBlob } from "@/utils/downloadBlob";
+import { getPrettyDate } from "@/utils/dateHelper";
+import { useLazyExportBranchHistoryQuery } from "../../store/api/branchesApi";
 
 const BranchHistory = () => {
   const [selectedView, setSelectedView] = useState<ViewType | undefined>();
-
   return (
     <div className="flex flex-col gap-3 w-full h-full  max-h-full">
       <PageHeader
@@ -43,6 +45,7 @@ const History = ({
     data,
     refetch,
   } = useGetBranchHistoryQuery(branch ? branch.id : "", { skip: !branch });
+  const [triggerExport] = useLazyExportBranchHistoryQuery();  
   const [mutate] = useProcessBranchHistoryMutation();
 
   const onProcessHistoryClick = async () => {
@@ -50,6 +53,16 @@ const History = ({
       await mutate(branch.id);
     }
   };
+
+  const onExportClick = async () => {
+    if (!branch) return;
+    const blob = await triggerExport(branch.id).unwrap();
+
+    downloadBlob(
+      blob,
+      `history-${branch.name}-${getPrettyDate()}.csv`,
+    );
+  }
 
   useEffect(() => {
     if (data?.processingStep === ProcessStep.Processed) {
@@ -98,6 +111,9 @@ const History = ({
   return (
     <div className="h-full w-full flex flex-col justify-start">
       <div className="h-full max-h-10/12 flex flex-row items-start justify-center gap-2 pt-8">
+          <Button variant={"outline"} onClick={onExportClick} className="mt-5">
+            Export History
+          </Button>
         {selectedView !== ViewType.Vulnerabilities && (
           <XYChart
             className={`${selectedView === ViewType.Packages ? "h-11/12 " : "h-full w-1/2"}`}

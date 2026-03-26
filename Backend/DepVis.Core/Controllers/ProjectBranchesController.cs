@@ -68,11 +68,26 @@ public class ProjectBranchesController(
     [HttpGet("{branchId}/branches/history")]
     public async Task<ActionResult<BranchHistoryDto>> GetBranchHistory(
         Guid branchId,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        [FromQuery(Name = "$export")] bool export = false
     )
     {
         var data = await branchService.GetBranchHistory(branchId, cancellationToken);
-        return data is null ? NotFound() : Ok(data);
+
+        if (data is null)
+        {
+            return NotFound();
+        }
+
+        if (export)
+        {
+            var rows = data.Histories;
+            var stream = await CsvExport.WriteToCsvStreamAsync(rows);
+            stream.Position = 0;
+            return File(stream, "text/csv", $"branch-history-{branchId}-{DateTime.Now}.csv");
+        }
+
+        return Ok(data);
     }
 
     [HttpPost("{branchId}/branches/history")]
