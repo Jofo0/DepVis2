@@ -9,6 +9,8 @@ services:
       - "127.0.0.1:1433:1433"
     networks:
       - my_network
+    volumes:
+      - sqlserver-data:/var/opt/mssql
     healthcheck:
       # Wait until SQL Server is accepting logins and can run a query
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"]
@@ -80,6 +82,9 @@ services:
     volumes:
       - "./minio-data:/data"
 
+volumes:
+  sqlserver-data:
+  
 networks:
   my_network:
     driver: bridge
