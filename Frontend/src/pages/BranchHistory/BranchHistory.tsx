@@ -103,7 +103,7 @@ const History = ({
           <div className="p-4">Branch History is being processed</div>
           {data.totalCommits !== 0 && (
             <div>
-              Total Commits / Processed Commits: {data.totalCommits} /
+              Processed Commits / Total Commits: {data.totalCommits} /
               {data.processedCommits}
             </div>
           )}
