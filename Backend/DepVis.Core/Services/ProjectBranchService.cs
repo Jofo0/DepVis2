@@ -1,10 +1,8 @@
-﻿using System.Net.WebSockets;
-using DepVis.Core.Dtos;
+﻿using DepVis.Core.Dtos;
 using DepVis.Core.Extensions;
 using DepVis.Core.Repositories;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
-using LibGit2Sharp;
 using MassTransit;
 using Microsoft.AspNetCore.OData.Query;
 

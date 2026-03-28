@@ -29,8 +29,12 @@ export const projectApi = projectsApi.injectEndpoints({
       query: (id) => ({ url: `/${id}/branches/history`, method: "POST" }),
       invalidatesTags: ["BranchHistory"],
     }),
-    getBranchHistory: builder.query<BranchHistoryDto, string>({
+    getBranchHistory: builder.query<BranchHistoryDto, string>({ 
       query: (id) => ({ url: `/${id}/branches/history`, method: "GET" }),
+      providesTags: ["BranchHistory"],
+    }),
+    exportBranchHistory: builder.query<Blob, string>({ 
+      query: (id) => ({ url: `/${id}/branches/history?$export=true`, method: "GET", responseHandler: (response) => response.blob() }),
       providesTags: ["BranchHistory"],
     }),
     getProjectBranchesDetailed: builder.query<BranchDetailed[], IdWithOdata>({
@@ -60,6 +64,7 @@ export const {
   useReprocessBranchMutation,
   useGetBranchHistoryQuery,
   useProcessBranchHistoryMutation,
+  useLazyExportBranchHistoryQuery,
   useGetProjectBranchesDetailedQuery,
   useGetProjectBranchesQuery,
   useLazyGetProjectBranchesDetailedExportQuery,

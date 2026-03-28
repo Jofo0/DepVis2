@@ -108,10 +108,6 @@ public static class DtoExtensions
 
     public static BranchHistoryDto MapToBranchHistoryDto(this ProjectBranch bh)
     {
-        var pending = bh.BranchHistories.Count(x =>
-            x.ProcessStatus == Shared.Model.Enums.ProcessStatus.Pending
-        );
-        var total = bh.BranchHistories.Count;
         var processingStep = bh.HistoryProcessingStep;
 
         return new()
@@ -127,6 +123,7 @@ public static class DtoExtensions
                         CommitSha = x.CommitSha,
                         PackageCount = x.PackageCount,
                         VulnerabilityCount = x.VulnerabilityCount,
+                        DirectVulnerabilityCount = x.DirectVulnerabilityCount,
                     }),
             ],
             ProcessingStep = processingStep,
