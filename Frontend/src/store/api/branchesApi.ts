@@ -25,16 +25,30 @@ export const projectApi = projectsApi.injectEndpoints({
       }),
       invalidatesTags: ["Projects", "Branches", "BranchHistory"],
     }),
+    ingestBranchHistory: builder.mutation<
+      void,
+      { branchId: string; historyId: string }
+    >({
+      query: (dto) => ({
+        url: `/${dto.branchId}/history/${dto.historyId}/ingest`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Projects", "Branches", "BranchHistory"],
+    }),
     processBranchHistory: builder.mutation<Branch[], string>({
       query: (id) => ({ url: `/${id}/branches/history`, method: "POST" }),
       invalidatesTags: ["BranchHistory"],
     }),
-    getBranchHistory: builder.query<BranchHistoryDto, string>({ 
+    getBranchHistory: builder.query<BranchHistoryDto, string>({
       query: (id) => ({ url: `/${id}/branches/history`, method: "GET" }),
       providesTags: ["BranchHistory"],
     }),
-    exportBranchHistory: builder.query<Blob, string>({ 
-      query: (id) => ({ url: `/${id}/branches/history?$export=true`, method: "GET", responseHandler: (response) => response.blob() }),
+    exportBranchHistory: builder.query<Blob, string>({
+      query: (id) => ({
+        url: `/${id}/branches/history?$export=true`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
       providesTags: ["BranchHistory"],
     }),
     getProjectBranchesDetailed: builder.query<BranchDetailed[], IdWithOdata>({
@@ -62,6 +76,7 @@ export const projectApi = projectsApi.injectEndpoints({
 export const {
   useLazyGetBranchComparisonQuery,
   useReprocessBranchMutation,
+  useIngestBranchHistoryMutation,
   useGetBranchHistoryQuery,
   useProcessBranchHistoryMutation,
   useLazyExportBranchHistoryQuery,
