@@ -145,20 +145,20 @@ public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndp
         string projectLink
     )
     {
-        await publishEndpoint.Publish<ProcessingMessage>(
-            new()
-            {
-                GitHubLink = projectLink,
-                GitTargets =
-                [
-                    .. branches.Select(b => new GitTarget()
+        foreach (var branch in branches)
+        {
+            await publishEndpoint.Publish<ProcessingMessage>(
+                new()
+                {
+                    GitHubLink = projectLink,
+                    GitTarget = new GitTarget()
                     {
-                        IsTag = b.IsTag,
-                        Location = b.Name,
-                        ProjectBranchId = b.Id,
-                    }),
-                ],
-            }
-        );
+                        IsTag = branch.IsTag,
+                        Location = branch.Name,
+                        ProjectBranchId = branch.Id,
+                    },
+                }
+            );
+        }
     }
 }

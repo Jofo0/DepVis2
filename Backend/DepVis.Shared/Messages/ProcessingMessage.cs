@@ -3,7 +3,7 @@
 public class ProcessingMessage
 {
     public required string GitHubLink { get; set; } = string.Empty;
-    public List<GitTarget> GitTargets { get; set; } = new();
+    public required GitTarget GitTarget { get; set; }
 }
 
 public class GitTarget

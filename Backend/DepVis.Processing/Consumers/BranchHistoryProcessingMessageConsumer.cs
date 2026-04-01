@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
+using DepVis.SbomProcessing.Models;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
@@ -8,8 +9,8 @@ using MassTransit;
 
 namespace DepVis.SbomProcessing.Consumers;
 
-public class BranchSpecificProcessingConsumer(
-    ILogger<BranchSpecificProcessingConsumer> _logger,
+public class BranchHistoryProcessingMessageConsumer(
+    ILogger<BranchHistoryProcessingMessageConsumer> _logger,
     MinioStorageService _minioStorageService,
     IPublishEndpoint _publishEndpoint,
     ProcessingService _processingService
@@ -395,7 +396,7 @@ public class BranchSpecificProcessingConsumer(
     }
 
     private static List<List<CommitDescriptor>> SplitIntoChunks(
-        IReadOnlyList<CommitDescriptor> commits,
+        List<CommitDescriptor> commits,
         int workerCount
     )
     {
@@ -470,25 +471,5 @@ public class BranchSpecificProcessingConsumer(
             var newDestinationDir = Path.Combine(destinationDir, subDir.Name);
             CopyDirectory(subDir.FullName, newDestinationDir);
         }
-    }
-
-    private sealed class CommitDescriptor
-    {
-        public required string Sha { get; init; }
-        public required string MessageShort { get; init; }
-        public required DateTime CommitDate { get; init; }
-    }
-
-    private sealed class ProgressState
-    {
-        public int TotalCommits { get; init; }
-        public int CommitsProcessed;
-    }
-
-    private sealed class ProcessedCommitResult
-    {
-        public required CommitProcessingInfo CommitInfo { get; init; }
-        public required long PackageCount { get; init; }
-        public required long VulnerabilityCount { get; init; }
     }
 }

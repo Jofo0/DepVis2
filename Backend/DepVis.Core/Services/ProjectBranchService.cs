@@ -9,9 +9,7 @@ using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Services;
 
-public class ProjectBranchService(
-    ProjectBranchRepository repo,
-    IPublishEndpoint publishEndpoint)
+public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint publishEndpoint)
 {
     public async Task<ProjectBranchDto> GetProjectBranches(Guid id)
     {
@@ -26,19 +24,16 @@ public class ProjectBranchService(
             return;
 
         await repo.DeleteBranchDependencies(id);
-        await publishEndpoint.Publish(
-            new ProcessingMessage
+        await publishEndpoint.Publish<ProcessingMessage>(
+            new()
             {
                 GitHubLink = branch.Project.ProjectLink,
-                GitTargets =
-                [
-                    new GitTarget
-                    {
-                        IsTag = branch.IsTag,
-                        Location = branch.Name,
-                        ProjectBranchId = branch.Id
-                    }
-                ]
+                GitTarget = new()
+                {
+                    IsTag = branch.IsTag,
+                    Location = branch.Name,
+                    ProjectBranchId = branch.Id,
+                },
             }
         );
     }
