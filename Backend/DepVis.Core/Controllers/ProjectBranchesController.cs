@@ -74,10 +74,7 @@ public class ProjectBranchesController(
     {
         var data = await branchService.GetBranchHistory(branchId, cancellationToken);
 
-        if (data is null)
-        {
-            return NotFound();
-        }
+        if (data is null) return NotFound();
 
         if (export)
         {
@@ -97,6 +94,17 @@ public class ProjectBranchesController(
     )
     {
         await branchService.ProcessHistory(branchId, cancellationToken);
+        return Ok();
+    }
+
+    [HttpPost("{branchId}/history/{branchHistoryId}/ingest")]
+    public async Task<ActionResult> IngestBranchHistory(
+        Guid branchId,
+        Guid branchHistoryId,
+        CancellationToken cancellationToken
+    )
+    {
+        await branchService.IngestHistory(branchHistoryId, cancellationToken);
         return Ok();
     }
 }

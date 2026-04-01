@@ -3,12 +3,15 @@ using DepVis.Core.Extensions;
 using DepVis.Core.Repositories;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
+using DepVis.Shared.Model.Enums;
 using MassTransit;
 using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Services;
 
-public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint publishEndpoint)
+public class ProjectBranchService(
+    ProjectBranchRepository repo,
+    IPublishEndpoint publishEndpoint)
 {
     public async Task<ProjectBranchDto> GetProjectBranches(Guid id)
     {
@@ -23,20 +26,40 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
             return;
 
         await repo.DeleteBranchDependencies(id);
-        await publishEndpoint.Publish<ProcessingMessage>(
-            new()
+        await publishEndpoint.Publish(
+            new ProcessingMessage
             {
                 GitHubLink = branch.Project.ProjectLink,
                 GitTargets =
                 [
-                    new()
+                    new GitTarget
                     {
                         IsTag = branch.IsTag,
                         Location = branch.Name,
-                        ProjectBranchId = branch.Id,
-                    },
-                ],
+                        ProjectBranchId = branch.Id
+                    }
+                ]
             }
+        );
+    }
+
+    public async Task IngestHistory(Guid historyId, CancellationToken cancellationToken)
+    {
+        var branchHistory = await repo.GetBranchHistoryAsync(historyId, cancellationToken);
+        if (branchHistory == null)
+            return;
+
+        branchHistory.ProcessState = HistoryProcessing.Ingesting;
+        branchHistory.ProcessStatus = ProcessStatus.Pending;
+
+        await repo.Update(branchHistory, cancellationToken);
+
+        await publishEndpoint.Publish(
+            new IngestBranchHistoryMessage
+            {
+                BranchHistoryId = historyId
+            },
+            cancellationToken
         );
     }
 
@@ -72,13 +95,13 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
                 .. addedPackages
                     .Select(x => x.Ecosystem)
                     .GroupBy(x => x)
-                    .Select(g => new NameCount() { Name = g.Key, Count = g.Count() }),
+                    .Select(g => new NameCount { Name = g.Key, Count = g.Count() })
             ],
             [
                 .. removedPackages
                     .Select(x => x.Ecosystem)
                     .GroupBy(x => x)
-                    .Select(g => new NameCount() { Name = g.Key, Count = g.Count() }),
+                    .Select(g => new NameCount { Name = g.Key, Count = g.Count() })
             ],
             addedVulnerabilityIds,
             removedVulnerabilityIds,
@@ -113,15 +136,15 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
         if (branch is null)
             return;
 
-        branch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.Created;
+        branch.HistoryProcessingStep = ProcessStep.Created;
         await repo.Update(branch, cancellationToken);
 
         await publishEndpoint.Publish(
-            new BranchHistoryProcessingMessage()
+            new BranchHistoryProcessingMessage
             {
                 GitHubLink = branch.Project.ProjectLink,
                 Location = branch.Name,
-                ProjectBranchId = branch.Id,
+                ProjectBranchId = branch.Id
             },
             cancellationToken
         );

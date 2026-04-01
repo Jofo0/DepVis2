@@ -2,9 +2,6 @@
 
 public enum HistoryProcessing
 {
-    NotStarted,
-    CreatingSbom,
-    SbomCreated,
-    ProcessingSbom,
-    Finished,
+    Processing,
+    Ingesting
 }

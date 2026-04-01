@@ -13,6 +13,7 @@ public class BranchHistory
     public string CommitMessage { get; set; } = string.Empty;
     public string CommitSha { get; set; } = string.Empty;
     public ProcessStatus ProcessStatus { get; set; } = ProcessStatus.Pending;
+    public HistoryProcessing ProcessState { get; set; } = HistoryProcessing.Processing;
     public ProjectBranch ProjectBranch { get; set; } = null!;
     public ICollection<Sbom> Sboms { get; set; } = [];
 }

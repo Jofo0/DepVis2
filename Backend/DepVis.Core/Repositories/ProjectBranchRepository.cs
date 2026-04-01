@@ -8,11 +8,13 @@ namespace DepVis.Core.Repositories;
 
 public class ProjectBranchRepository(DepVisDbContext context, MinioStorageService minio)
 {
-    public async Task<ProjectBranch?> GetByIdAsync(Guid id) =>
-        await context
+    public async Task<ProjectBranch?> GetByIdAsync(Guid id)
+    {
+        return await context
             .ProjectBranches.Include(x => x.Project)
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
+    }
 
     public async Task<BranchCompareDataModel> GetCompareDataAsync(Guid id)
     {
@@ -33,28 +35,34 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
         return new BranchCompareDataModel(id, packageNamesTask, vulnerabilityIdsTask);
     }
 
-    public async Task<List<ProjectBranch>> GetByProjectAsync(Guid projectId) =>
-        await context
+    public async Task<List<ProjectBranch>> GetByProjectAsync(Guid projectId)
+    {
+        return await context
             .ProjectBranches.AsNoTracking()
             .Include(x => x.BranchHistories)
             .Where(x => x.ProjectId == projectId)
             .ToListAsync();
+    }
 
     public async Task<ProjectBranch?> GetProjectBranchHistory(
         Guid projectBranchId,
         CancellationToken cancellationToken = default
-    ) =>
-        await context
+    )
+    {
+        return await context
             .ProjectBranches.AsNoTracking()
             .Where(x => x.Id == projectBranchId)
             .Include(x => x.BranchHistories)
             .FirstOrDefaultAsync(cancellationToken);
+    }
 
-    public IQueryable<ProjectBranch> QueryByProject(Guid projectId) =>
-        context
+    public IQueryable<ProjectBranch> QueryByProject(Guid projectId)
+    {
+        return context
             .ProjectBranches.Include(x => x.Sboms)
             .AsNoTracking()
             .Where(x => x.ProjectId == projectId);
+    }
 
     public async Task DeleteBranchDependencies(Guid projectBranchId)
     {
@@ -67,8 +75,8 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
                 using var transaction = await context.Database.BeginTransactionAsync();
 
                 var packageDependencies = context.PackageDependencies.Where(pd =>
-                    (pd.Parent.Sbom.ProjectBranchId == projectBranchId)
-                    || (pd.Child.Sbom.ProjectBranchId == projectBranchId)
+                    pd.Parent.Sbom.ProjectBranchId == projectBranchId
+                    || pd.Child.Sbom.ProjectBranchId == projectBranchId
                     || (
                         pd.Child.Sbom.BranchHistory != null
                         && pd.Child.Sbom.BranchHistory.ProjectBranchId == projectBranchId
@@ -101,13 +109,10 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
 
                 var sboms = context.Sboms.Where(s =>
                     s.ProjectBranchId == projectBranchId
-                    || s.BranchHistory != null && s.BranchHistory.ProjectBranchId == projectBranchId
+                    || (s.BranchHistory != null && s.BranchHistory.ProjectBranchId == projectBranchId)
                 );
 
-                foreach (var sbom in await sboms.ToListAsync())
-                {
-                    await minio.DeleteAsync(sbom.FileName);
-                }
+                foreach (var sbom in await sboms.ToListAsync()) await minio.DeleteAsync(sbom.FileName);
 
                 await sboms.ExecuteDeleteAsync();
 
@@ -137,5 +142,23 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
     {
         context.ProjectBranches.Update(projectBranch);
         return context.SaveChangesAsync(cancellationToken);
+    }
+
+
+    public Task Update(BranchHistory branchHistory, CancellationToken cancellationToken = default)
+    {
+        context.BranchHistories.Update(branchHistory);
+        return context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<BranchHistory?> GetBranchHistoryAsync(
+        Guid historyId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await context
+            .BranchHistories
+            .Include(x => x.ProjectBranch)
+            .FirstOrDefaultAsync(x => x.Id == historyId, cancellationToken);
     }
 }
