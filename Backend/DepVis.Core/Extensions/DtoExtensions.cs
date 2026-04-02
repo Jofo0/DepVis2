@@ -65,10 +65,12 @@ public static class DtoExtensions
                     [
                         .. x
                             .BranchHistories.OrderByDescending(x => x.CommitDate)
-                            .Select(x => new BranchCommitDto()
+                            .Select(bh => new BranchCommitDto()
                             {
-                                CommitId = x.Id,
-                                CommitName = x.CommitMessage,
+                                CommitId = bh.Id,
+                                CommitName = bh.CommitMessage,
+                                ProcessState = bh.ProcessState,
+                                ProcessStatus = bh.ProcessStatus,
                             }),
                     ],
                 }),

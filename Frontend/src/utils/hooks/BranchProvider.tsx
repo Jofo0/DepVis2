@@ -21,7 +21,7 @@ const BranchContext = createContext<BranchContextType>({
 
 export const BranchProvider = ({ children }: { children: React.ReactNode }) => {
   const id = useGetProjectId();
-  const { isLoading } = useGetProjectBranchesQuery(id!);
+  const { data, isLoading } = useGetProjectBranchesQuery(id!);
 
   const [branch, setBranch] = useState<Branch | null>(null);
   const [commit, setCommit] = useState<BranchCommitsDto | null>(null);
@@ -53,8 +53,23 @@ export const BranchProvider = ({ children }: { children: React.ReactNode }) => {
   }, [branch]);
 
   useEffect(() => {
-    localStorage.setItem("commit", JSON.stringify(commit));
+    if (commit) {
+      localStorage.setItem("commit", JSON.stringify(commit));
+    }
   }, [commit]);
+
+  useEffect(() => {
+    console.log(branch, commit);
+    if (commit && branch) {
+      if (
+        data?.items
+          .find((x) => x.id === branch?.id)
+          ?.commits.find((c) => c.commitId === commit.commitId)
+      ) {
+        setCommit(commit);
+      }
+    }
+  }, [data, branch?.id]);
 
   return (
     <BranchContext.Provider

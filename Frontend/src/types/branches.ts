@@ -51,6 +51,8 @@ export type BranchHistoryDto = {
 export type BranchCommitsDto = {
   commitId: string;
   commitName: string;
+  processState: HistoryProcessStep;
+  processStatus: ProcessStatus;
 };
 
 export type BranchHistoryItem = {
@@ -67,6 +69,11 @@ export enum ProcessStep {
   SbomCreation = "SbomCreation",
   SbomIngest = "SbomIngest",
   Processed = "Processed",
+}
+
+export enum HistoryProcessStep {
+  Processing = "Processing",
+  Ingesting = "Ingesting",
 }
 
 export const ProcessStepOrder: Record<ProcessStep, number> = {

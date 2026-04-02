@@ -109,10 +109,14 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
 
                 var sboms = context.Sboms.Where(s =>
                     s.ProjectBranchId == projectBranchId
-                    || (s.BranchHistory != null && s.BranchHistory.ProjectBranchId == projectBranchId)
+                    || (
+                        s.BranchHistory != null
+                        && s.BranchHistory.ProjectBranchId == projectBranchId
+                    )
                 );
 
-                foreach (var sbom in await sboms.ToListAsync()) await minio.DeleteAsync(sbom.FileName);
+                foreach (var sbom in await sboms.ToListAsync())
+                    await minio.DeleteAsync(sbom.FileName);
 
                 await sboms.ExecuteDeleteAsync();
 
@@ -138,17 +142,22 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
         }
     }
 
-    public Task Update(ProjectBranch projectBranch, CancellationToken cancellationToken = default)
+    public async Task Update(
+        ProjectBranch projectBranch,
+        CancellationToken cancellationToken = default
+    )
     {
         context.ProjectBranches.Update(projectBranch);
-        return context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
-
-    public Task Update(BranchHistory branchHistory, CancellationToken cancellationToken = default)
+    public async Task Update(
+        BranchHistory branchHistory,
+        CancellationToken cancellationToken = default
+    )
     {
         context.BranchHistories.Update(branchHistory);
-        return context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<BranchHistory?> GetBranchHistoryAsync(
@@ -157,8 +166,8 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
     )
     {
         return await context
-            .BranchHistories
-            .Include(x => x.ProjectBranch)
+            .BranchHistories.Include(x => x.ProjectBranch)
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == historyId, cancellationToken);
     }
 }

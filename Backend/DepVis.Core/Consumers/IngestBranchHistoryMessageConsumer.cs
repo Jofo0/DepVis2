@@ -23,8 +23,10 @@ public class IngestBranchHistoryMessageConsumer(
             message.BranchHistoryId
         );
 
-        var sbom = await dbContext.Sboms
-            .FirstOrDefaultAsync(s => s.BranchHistoryId == message.BranchHistoryId, context.CancellationToken);
+        var sbom = await dbContext.Sboms.FirstOrDefaultAsync(
+            s => s.BranchHistoryId == message.BranchHistoryId,
+            context.CancellationToken
+        );
 
         var history = await projectBranchRepository.GetBranchHistoryAsync(
             message.BranchHistoryId,
@@ -48,13 +50,21 @@ public class IngestBranchHistoryMessageConsumer(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing SBOM for BranchHistory {branchHistoryId}", message.BranchHistoryId);
+            logger.LogError(
+                ex,
+                "Error processing SBOM for BranchHistory {branchHistoryId}",
+                message.BranchHistoryId
+            );
             history.ProcessStatus = ProcessStatus.Failed;
         }
 
         history.ProcessState = HistoryProcessing.Ingesting;
         history.ProcessStatus = ProcessStatus.Success;
+        await projectBranchRepository.Update(history, context.CancellationToken);
 
-        logger.LogDebug("Ingestion completed for BranchHistory {branchHistoryId}", message.BranchHistoryId);
+        logger.LogDebug(
+            "Ingestion completed for BranchHistory {branchHistoryId}",
+            message.BranchHistoryId
+        );
     }
 }
