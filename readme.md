@@ -1,13 +1,15 @@
 # DepVis v2
 ## Description
 
-DepVis v2 is a tool for visualization and analysis of open source dependencies and vulnerabilities using a link to the Git repository as the input.
+DepVis v2 is a tool for visualizing and analyzing open-source dependencies and vulnerabilities using a Git repository URL as input.
 
-This tool uses Trivy to scan repositories and hence it supports many ecosystems that can be found [here](https://trivy.dev/docs/latest/guide/coverage/language/#supported-languages).
+It leverages Trivy to scan repositories, supporting a wide range of ecosystems (see supported languages: https://trivy.dev/docs/latest/guide/coverage/language/#supported-languages).
 
-This tool was developed as part of Master's thesis "DepVis v2: A Graph-Based Visualization Tool for Software Dependencies" by Jozef Gajdoš at FI MUNI.
+This tool was developed as part of the Master's thesis  
+**"DepVis v2: A Graph-Based Visualization Tool for Software Dependencies"**  
+by Jozef Gajdoš at FI MUNI.
 
-
+## Screenshots
 
 <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
   <img src="images/Dashboard.png" alt="Dashboard Image" >
@@ -15,6 +17,25 @@ This tool was developed as part of Master's thesis "DepVis v2: A Graph-Based Vis
   <img src="images/Vulnerabilities.png" alt="Vulnerabilities Image" >
   <img src="images/Graph.png" alt="Graph Image" >
 </div>
+
+## Features
+
+- Graph-based visualization of dependencies
+- Detailed list of dependencies
+- Vulnerability detection with detailed insights
+- Full branch history scanning
+- Comparison of branches and tags
+
+## Quick Start
+
+```bash
+git clone <repository-url>
+cd depvis-v2
+cp .env.example .env
+docker compose up
+```
+
+Then open [this](http://localhost:8080/) url.
 
 ## Running The App
 
@@ -38,10 +59,3 @@ This tool was developed as part of Master's thesis "DepVis v2: A Graph-Based Vis
 2. After you create the project, the application will start analyzing the repository. This may take some time depending on the size of the repository and the number of dependencies.
 3. Once the analysis is complete, you can view the results in multiple pages containing graph visualization of the dependencies, list of dependencies, list of vulnerabilities and more.
 
-## Features
-
-- Graph visualization of dependencies
-- List of dependencies with details
-- List of vulnerabilities with details
-- Scan of the full branch history
-- Direct comparison of different branches and tags
