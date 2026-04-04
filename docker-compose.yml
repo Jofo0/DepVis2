@@ -4,7 +4,7 @@ services:
     image: mcr.microsoft.com/mssql/server@sha256:6249e946034c0b72e98cbbdd790deede2bb94fe5c73335ecdbb77176af4d267c
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong!Passw0rd
+      - SA_PASSWORD=${DB_PASSWORD}
     ports:
       - "127.0.0.1:1433:1433"
     networks:
@@ -31,7 +31,7 @@ services:
       - /var/lib/depvis/tmp:/tmp
     environment:
       - ConnectionStrings__FrontEnd=${FRONTEND_URL}
-      - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
       - ConnectionStrings__MinioEndpoint=minio
     networks:
       - my_network
@@ -48,7 +48,7 @@ services:
         condition: service_healthy
     environment:
       - ConnectionStrings__FrontEnd=${FRONTEND_URL}
-      - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
       - ConnectionStrings__MinioEndpoint=minio
     networks:
       - my_network
