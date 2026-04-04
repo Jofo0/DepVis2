@@ -7,6 +7,16 @@ This tool uses Trivy to scan repositories and hence it supports many ecosystems 
 
 This tool was developed as part of Master's thesis "DepVis v2: A Graph-Based Visualization Tool for Software Dependencies" by Jozef Gajdoš at FI MUNI.
 
+
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+  <img src="images/Dashboard.png" alt="Image 2" style="width: 50%;">
+  <img src="images/Packages.png" alt="Image 2" style="width: 50%;">
+  <img src="images/Vulnerabilities.png" alt="Image 3" style="width: 50%;">
+  <img src="images/Graph.png" alt="Image 1" style="width: 50%;">
+
+</div>
+
 ## Running The App
 
 ### Pre-requisites 
