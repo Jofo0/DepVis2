@@ -78,6 +78,7 @@ export const projectApi = projectsApi.injectEndpoints({
             ? `severity=${severityFilter}&showAllParents=${showParents}`
             : ""
         }${commitId ? `&commitId=${commitId}` : ""}`,
+      providesTags: ["Graph"],
     }),
     getProjectGraphExport: builder.query<
       Blob,
@@ -101,6 +102,9 @@ export const projectApi = projectsApi.injectEndpoints({
     getPackages: builder.query<PackagesDetailedDto, IdWithOdata>({
       query: ({ id, odata, commitId }) =>
         `/${id}/packages?${odata ? `${odata}` : ""}${commitId ? `&commitId=${commitId}` : ""}`,
+      providesTags: (_res, _err, { id, commitId }) => [
+        { type: "Packages", id: `${id}-${commitId ?? ""}` },
+      ],
     }),
     getPackagesExport: builder.query<Blob, IdWithOdata>({
       query: ({ id, odata, commitId }) => ({
@@ -118,6 +122,9 @@ export const projectApi = projectsApi.injectEndpoints({
     getVulnerabilities: builder.query<VulnerabilitiesDto, IdWithOdata>({
       query: ({ id, odata, commitId }) =>
         `/${id}/vulnerabilities?${odata ? `${odata}` : ""}${commitId ? `&commitId=${commitId}` : ""}`,
+      providesTags: (_res, _err, { id, commitId }) => [
+        { type: "Vulnerabilities", id: `${id}-${commitId ?? ""}` },
+      ],
     }),
     getVulnerabilitiesExport: builder.query<Blob, IdWithOdata>({
       query: ({ id, odata, commitId }) => ({

@@ -59,17 +59,21 @@ export const BranchProvider = ({ children }: { children: React.ReactNode }) => {
   }, [commit]);
 
   useEffect(() => {
-    console.log(branch, commit);
-    if (commit && branch) {
-      if (
-        data?.items
-          .find((x) => x.id === branch?.id)
-          ?.commits.find((c) => c.commitId === commit.commitId)
-      ) {
-        setCommit(commit);
+    const updatedBranch = data?.items.find((x) => x.id === branch?.id) ?? null;
+
+    if (updatedBranch) {
+      setBranch(updatedBranch);
+
+      if (commit && updatedBranch) {
+        const updatedCommit = updatedBranch.commits.find(
+          (c) => c.commitId === commit.commitId,
+        );
+        if (updatedCommit) {
+          setCommit(updatedCommit);
+        }
       }
     }
-  }, [data, branch?.id]);
+  }, [data]);
 
   return (
     <BranchContext.Provider

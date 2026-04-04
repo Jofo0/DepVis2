@@ -7,7 +7,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLazyGetBranchComparisonQuery } from "@/store/api/branchesApi";
+import {
+  useGetProjectBranchesQuery,
+  useLazyGetBranchComparisonQuery,
+} from "@/store/api/branchesApi";
 import {
   type Branch,
   type BranchCommitsDto,
@@ -20,10 +23,13 @@ import ListPanel from "./Components/ListPanel";
 import StatCard from "./Components/StatCard";
 import PageHeader from "@/components/PageHeader";
 import CompareCard from "./Components/CompareCard";
+import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
 
 const ComparePage = () => {
+  const id = useGetProjectId();
   const [triggerCompare, { data, isLoading, isFetching }] =
     useLazyGetBranchComparisonQuery();
+  const { data: branchesData } = useGetProjectBranchesQuery(id!);
 
   const { branch, commit } = useBranch();
   const [compareBranch, setCompareBranch] = useState<Branch | null>(null);
@@ -39,6 +45,24 @@ const ComparePage = () => {
       });
     }
   }, [branch, commit, compareBranch, compareCommit, triggerCompare]);
+
+  useEffect(() => {
+    const updatedBranch =
+      branchesData?.items.find((x) => x.id === compareBranch?.id) ?? null;
+
+    if (updatedBranch) {
+      setCompareBranch(updatedBranch);
+
+      if (compareCommit && updatedBranch) {
+        const updatedCommit = updatedBranch.commits.find(
+          (c) => c.commitId === compareCommit?.commitId,
+        );
+        if (updatedCommit) {
+          setCompareCommit(updatedCommit);
+        }
+      }
+    }
+  }, [branchesData]);
 
   const comparison = data as BranchComparison | undefined;
 
@@ -75,7 +99,7 @@ const ComparePage = () => {
         description="Compare packages and vulnerabilities between sources"
         secondaryDescription="Select two sources to see what changed."
       >
-        <div className="min-w-0 flex-1">
+        <div>
           <div className="mb-2 text-xs font-medium text-muted-foreground">
             Compare to
           </div>

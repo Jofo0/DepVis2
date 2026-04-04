@@ -25,6 +25,8 @@ import {
 import { Button } from "./ui/button";
 import IconTooltip from "./IconTooltip";
 import { BadgeInfo, Info, Loader } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { projectsApi } from "@/store";
 
 type BranchSelectorProps = {
   onlyBranches?: boolean;
@@ -205,6 +207,7 @@ const HistoryIngestButton = ({
   commit: BranchCommitsDto | null;
 }) => {
   const id = useGetProjectId();
+  const dispatch = useDispatch();
   const { refetch, isFetching: isFetchingBranches } =
     useGetProjectBranchesQuery(id!);
   const [mutate, { isLoading }] = useIngestBranchHistoryMutation();
@@ -214,6 +217,27 @@ const HistoryIngestButton = ({
       return;
     }
     await mutate({ historyId: commit.commitId, branchId });
+  };
+
+  const handleRefetch = async () => {
+    const { data } = await refetch();
+
+    const updatedCommit = data?.items
+      .find((b) => b.id === branchId)
+      ?.commits.find((c) => c.commitId === commit!.commitId);
+
+    if (
+      updatedCommit?.processState === HistoryProcessStep.Ingesting &&
+      updatedCommit?.processStatus === ProcessStatus.Success
+    ) {
+      dispatch(
+        projectsApi.util.invalidateTags([
+          "BranchHistory",
+          { type: "Packages", id: `${branchId}-${commit!.commitId}` },
+          { type: "Vulnerabilities", id: `${branchId}-${commit!.commitId}` },
+        ]),
+      );
+    }
   };
 
   if (!commit || !branchId) {
@@ -237,16 +261,12 @@ const HistoryIngestButton = ({
     );
   }
 
-  if (commit.processStatus === ProcessStatus.Success) {
+  if (commit.processStatus === ProcessStatus.Pending) {
     return (
-      <IconTooltip
-        content="History data ingested successfully."
-        trigger={<Info />}
-      />
-    );
-  } else if (commit.processStatus === ProcessStatus.Pending) {
-    return (
-      <div className="flex flex-row items-center" onClick={() => refetch()}>
+      <div
+        className="flex flex-row items-center pb-1.5"
+        onClick={() => handleRefetch()}
+      >
         <IconTooltip
           content="History data is being ingested... Click the button to refresh the status."
           trigger={
