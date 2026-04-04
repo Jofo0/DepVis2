@@ -29,7 +29,7 @@ by Jozef Gajdoš at FI MUNI.
 ## Quick Start
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Jofo0/DepVis2.git
 cd depvis-v2
 cp .env.example .env
 docker compose up
