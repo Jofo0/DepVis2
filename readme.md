@@ -1,4 +1,16 @@
 # DepVis v2
+
+## Quick Start
+
+```bash
+git clone https://github.com/Jofo0/DepVis2.git
+cd depvis-v2
+cp .env.example .env
+docker compose up
+```
+
+Then open [this](http://localhost:8080/) url.
+
 ## Description
 
 DepVis v2 is a tool for visualizing and analyzing open-source dependencies and vulnerabilities using a Git repository URL as input.
@@ -25,17 +37,6 @@ by Jozef Gajdoš at FI MUNI.
 - Vulnerability detection with detailed insights
 - Full branch history scanning
 - Comparison of branches and tags
-
-## Quick Start
-
-```bash
-git clone https://github.com/Jofo0/DepVis2.git
-cd depvis-v2
-cp .env.example .env
-docker compose up
-```
-
-Then open [this](http://localhost:8080/) url.
 
 ## Running The App
 
