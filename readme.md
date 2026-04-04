@@ -10,11 +10,10 @@ This tool was developed as part of Master's thesis "DepVis v2: A Graph-Based Vis
 
 
 <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-  <img src="images/Dashboard.png" alt="Image 2" style="width: 50%;">
-  <img src="images/Packages.png" alt="Image 2" style="width: 50%;">
-  <img src="images/Vulnerabilities.png" alt="Image 3" style="width: 50%;">
-  <img src="images/Graph.png" alt="Image 1" style="width: 50%;">
-
+  <img src="images/Dashboard.png" alt="Dashboard Image" >
+  <img src="images/Packages.png" alt="Packages Image" >
+  <img src="images/Vulnerabilities.png" alt="Vulnerabilities Image" >
+  <img src="images/Graph.png" alt="Graph Image" >
 </div>
 
 ## Running The App
