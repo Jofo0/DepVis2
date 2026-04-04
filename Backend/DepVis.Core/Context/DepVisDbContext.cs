@@ -69,5 +69,44 @@ public class DepVisDbContext : DbContext
 
         modelBuilder.Entity<Vulnerability>().HasKey(x => x.Id);
         modelBuilder.Entity<Vulnerability>().HasIndex(x => x.Id).IsUnique();
+
+        modelBuilder
+            .Entity<Sbom>()
+            .HasIndex(s => new { s.ProjectBranchId, s.CreatedAt })
+            .IsDescending(false, true)
+            .HasDatabaseName("IX_Sboms_ProjectBranchId_CreatedAt");
+
+        modelBuilder
+            .Entity<Sbom>()
+            .HasIndex(s => new { s.BranchHistoryId, s.CreatedAt })
+            .IsDescending(false, true)
+            .HasDatabaseName("IX_Sboms_BranchHistoryId_CreatedAt");
+
+        modelBuilder
+            .Entity<ProjectBranch>()
+            .HasIndex(pb => new { pb.ProjectId, pb.Name })
+            .HasDatabaseName("IX_ProjectBranches_ProjectId_Name");
+
+        modelBuilder
+            .Entity<BranchHistory>()
+            .HasIndex(bh => new { bh.ProjectBranchId, bh.ProcessStatus })
+            .HasDatabaseName("IX_BranchHistories_ProjectBranchId_ProcessStatus");
+
+        modelBuilder
+            .Entity<BranchHistory>()
+            .HasIndex(bh => new { bh.ProjectBranchId, bh.ProcessState })
+            .HasDatabaseName("IX_BranchHistories_ProjectBranchId_ProcessState");
+
+        modelBuilder.Entity<Sbom>().HasIndex(s => s.CommitSha).HasDatabaseName("IX_Sbom_CommitSha");
+
+        modelBuilder
+            .Entity<SbomPackage>()
+            .HasIndex(sp => new
+            {
+                sp.Ecosystem,
+                sp.Name,
+                sp.Version,
+            })
+            .HasDatabaseName("IX_SbomPackage_Ecosystem_Name_Version");
     }
 }
