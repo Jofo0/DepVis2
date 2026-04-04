@@ -1,6 +1,7 @@
 import { PieCustomChart } from "@/components/chart/PieCustomChart";
 import PageHeader from "@/components/PageHeader";
 import { DataTable } from "@/components/table/DataTable";
+import { Button } from "@/components/ui/button";
 import VulnerabilityCard from "@/components/VulnerabilityCard";
 import {
   useLazyGetVulnerabilitiesExportQuery,
@@ -128,13 +129,16 @@ const Vulnerabilities = () => {
         <PageHeader
           title="Vulnerabilities"
           description="View and analyze vulnerabilities in the selected source"
-        />
+        >
+          <Button variant={"outline"} onClick={onExportClick} className="mt-5">
+            Export Vulnerabilities
+          </Button>
+        </PageHeader>
 
         {!isLoadingBranch && branch && (
           <div className="flex flex-row gap-10 w-full h-full justify-evenly">
             <div className="h-max-full w-1/2">
               <DataTable
-                onExportClick={onExportClick}
                 isLoading={isLoading || !isSuccess}
                 onClick={(row) => setSelectedVulnerability(row)}
                 className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"

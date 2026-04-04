@@ -16,7 +16,6 @@ interface DataTableProps<TData> {
   isLoading?: boolean;
   onClick?: (row: TData) => void;
   loadingRows?: number;
-  onExportClick: () => void;
 }
 
 export function DataTable<TData>({
@@ -24,7 +23,6 @@ export function DataTable<TData>({
   table,
   isLoading = false,
   onClick,
-  onExportClick,
 }: DataTableProps<TData>) {
   const visibleColCount =
     table.getVisibleFlatColumns?.().length ?? table.getAllColumns().length;
@@ -111,7 +109,7 @@ export function DataTable<TData>({
           )}
         </TableBody>
       </Table>
-      <DataTablePagination onExportClick={onExportClick} table={table} />
+      <DataTablePagination table={table} />
     </div>
   );
 }

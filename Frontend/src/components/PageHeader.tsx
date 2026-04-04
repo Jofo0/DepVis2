@@ -8,6 +8,8 @@ type PageHeaderProps = {
   description?: string;
   secondaryDescription?: string;
   hideSelector?: boolean;
+  onlyBranches?: boolean;
+  hideCommits?: boolean;
 } & PropsWithChildren;
 
 const PageHeader = ({
@@ -16,6 +18,8 @@ const PageHeader = ({
   secondaryDescription,
   children,
   hideSelector = false,
+  hideCommits = false,
+  onlyBranches = false,
 }: PageHeaderProps) => {
   return (
     <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
@@ -30,7 +34,10 @@ const PageHeader = ({
           <div className="flex flex-row items-center">
             <div className="flex flex-col gap-3 md:flex-row md:items-center">
               <div className="min-w-0 flex-1 mt-auto">
-                <GlobalBranchSelector />
+                <GlobalBranchSelector
+                  hideCommits={hideCommits}
+                  onlyBranches={onlyBranches}
+                />
               </div>
 
               {children}

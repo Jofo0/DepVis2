@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
+import { Separator } from "@/components/ui/separator";
 
 const Branches = () => {
   const projectId = useGetProjectId();
@@ -91,14 +92,20 @@ const Branches = () => {
         hideSelector
         title="Branches"
         description="View and analyze branches in the selected project"
-      />
+      >
+        <Separator />
+        <div>
+          <Button variant={"outline"} onClick={onExportClick} className="mt-5">
+            Export Branches
+          </Button>
+        </div>
+      </PageHeader>
       <div className="flex flex-row gap-10 w-full h-full justify-evenly">
         <div className="h-max-full w-2/3">
           <DataTable
             isLoading={isLoading}
             className="min-h-[calc(87vh)] max-h-[calc(87vh)]"
             table={table}
-            onExportClick={onExportClick}
           />
         </div>
         <div className="flex flex-col gap-6 w-1/2 h-full">

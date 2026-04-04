@@ -18,22 +18,17 @@ import { useEffect } from "react";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
-  onExportClick: () => void;
 }
 
 export function DataTablePagination<TData>({
   table,
-  onExportClick,
 }: DataTablePaginationProps<TData>) {
   useEffect(() => {
     table.setPageSize(50);
   }, [table]);
 
   return (
-    <div className="flex items-center justify-between px-2 py-1 bg-white">
-      <Button variant={"outline"} onClick={onExportClick}>
-        Export
-      </Button>
+    <div className="flex items-center justify-between pr-2 py-1 bg-white">
       <div className="text-muted-foreground flex-1 text-sm pl-5">
         {table.getFilteredRowModel().rows.length} item(s)
       </div>

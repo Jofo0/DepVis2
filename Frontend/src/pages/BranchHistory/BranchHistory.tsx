@@ -16,13 +16,28 @@ import { getPrettyDate } from "@/utils/dateHelper";
 import { useLazyExportBranchHistoryQuery } from "../../store/api/branchesApi";
 
 const BranchHistory = () => {
+  const { branch } = useBranch();
   const [selectedView, setSelectedView] = useState<ViewType | undefined>();
+  const [triggerExport] = useLazyExportBranchHistoryQuery();
+
+  const onExportClick = async () => {
+    if (!branch) return;
+    const blob = await triggerExport(branch.id).unwrap();
+
+    downloadBlob(blob, `history-${branch.name}-${getPrettyDate()}.csv`);
+  };
+
   return (
     <div className="flex flex-col gap-3 w-full h-full  max-h-full">
       <PageHeader
+        hideCommits
+        onlyBranches
         title="Branch History"
         description="View and analyze branch history for the selected branch"
       >
+        <Button variant={"outline"} onClick={onExportClick} className="mt-5">
+          Export History
+        </Button>
         {selectedView !== undefined && (
           <ViewSelector selected={selectedView} onSelect={setSelectedView} />
         )}
@@ -45,7 +60,6 @@ const History = ({
     data,
     refetch,
   } = useGetBranchHistoryQuery(branch ? branch.id : "", { skip: !branch });
-  const [triggerExport] = useLazyExportBranchHistoryQuery();  
   const [mutate] = useProcessBranchHistoryMutation();
 
   const onProcessHistoryClick = async () => {
@@ -53,16 +67,6 @@ const History = ({
       await mutate(branch.id);
     }
   };
-
-  const onExportClick = async () => {
-    if (!branch) return;
-    const blob = await triggerExport(branch.id).unwrap();
-
-    downloadBlob(
-      blob,
-      `history-${branch.name}-${getPrettyDate()}.csv`,
-    );
-  }
 
   useEffect(() => {
     if (data?.processingStep === ProcessStep.Processed) {
@@ -116,10 +120,7 @@ const History = ({
 
   return (
     <div className="h-full w-full flex flex-col justify-start">
-      <div className="h-full max-h-10/12 flex flex-row items-start justify-center gap-2 pt-8">
-          <Button variant={"outline"} onClick={onExportClick} className="mt-5">
-            Export History
-          </Button>
+      <div className="h-full max-h-10/12 flex flex-row items-start justify-center gap-2">
         {selectedView !== ViewType.Vulnerabilities && (
           <XYChart
             className={`${selectedView === ViewType.Packages ? "h-11/12 " : "h-full w-1/2"}`}

@@ -23,6 +23,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import PackagesInfo from "./Components/PackagesInfo";
 import PageHeader from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
 
 const Packages = () => {
   const { branch, commit, isLoading: isLoadingBranch } = useBranch();
@@ -125,25 +126,26 @@ const Packages = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 w-full h-full">
-      <div className="flex flex-col w-full h-full items-startjustify-evenly gap-2">
-        <PageHeader
-          title="Packages"
-          description="View and analyze packages in the selected source"
-        />
-        <PackagesInfo
-          data={data}
-          isLoading={isLoading || !isSuccess || isLoadingBranch}
-          onEcosystemClick={onEcosystemClick}
-          onVulnerabilityClick={onVulnerabilityClick}
-          onDepthClick={onDepthClick}
-          depthFilter={depthFilter}
-          onExportClick={onExportClick}
-          table={table}
-          ecosystemFilter={ecosystemFilter}
-          vulnerabilityFilter={vulnerabilityFilter}
-        />
-      </div>
+    <div className="flex flex-col w-full h-full justify-evenly gap-2">
+      <PageHeader
+        title="Packages"
+        description="View and analyze packages in the selected source"
+      >
+        <Button variant={"outline"} onClick={onExportClick} className="mt-5">
+          Export Packages
+        </Button>
+      </PageHeader>
+      <PackagesInfo
+        data={data}
+        isLoading={isLoading || !isSuccess || isLoadingBranch}
+        onEcosystemClick={onEcosystemClick}
+        onVulnerabilityClick={onVulnerabilityClick}
+        onDepthClick={onDepthClick}
+        depthFilter={depthFilter}
+        table={table}
+        ecosystemFilter={ecosystemFilter}
+        vulnerabilityFilter={vulnerabilityFilter}
+      />
     </div>
   );
 };

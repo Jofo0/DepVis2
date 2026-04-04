@@ -7,7 +7,6 @@ export type PackagesInfoProps = {
   isLoading: boolean;
   data: PackagesDetailedDto | undefined;
   table: Table<PackageItemDto>;
-  onExportClick: () => void;
   onEcosystemClick: (ecosystem: string) => void;
   onVulnerabilityClick: (vulnerability: string) => void;
   ecosystemFilter?: string;
@@ -20,7 +19,6 @@ const PackagesInfo = ({
   isLoading,
   data,
   table,
-  onExportClick,
   onEcosystemClick,
   onVulnerabilityClick,
   ecosystemFilter,
@@ -32,7 +30,6 @@ const PackagesInfo = ({
     <div className="flex flex-row gap-10 w-full h-full justify-evenly">
       <div className="h-max-full w-1/2">
         <DataTable
-          onExportClick={onExportClick}
           isLoading={isLoading}
           className="min-h-[calc(100vh-9rem)] max-h-[calc(100vh-9rem)]"
           table={table}
