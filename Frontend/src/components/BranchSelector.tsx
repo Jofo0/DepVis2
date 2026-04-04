@@ -65,6 +65,9 @@ const BranchSelector = ({
   commit,
   setCommit,
 }: BranchSelectorProps) => {
+  const truncateWithEllipsis = (text: string, maxLength = 25) =>
+    text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+
   const id = useGetProjectId();
   const { data, isLoading: branchesLoading } = useGetProjectBranchesQuery(id!);
 
@@ -113,8 +116,8 @@ const BranchSelector = ({
   const commits = useMemo(
     () =>
       branch?.commits?.map((c) => (
-        <SelectItem value={c.commitId} key={c.commitId}>
-          {c.commitName}
+        <SelectItem value={c.commitId} key={c.commitId} title={c.commitName}>
+          {truncateWithEllipsis(c.commitName)}
         </SelectItem>
       )),
     [branch],
