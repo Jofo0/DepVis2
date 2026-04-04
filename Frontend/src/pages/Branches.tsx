@@ -25,7 +25,7 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, LoadingButton } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
 import { Separator } from "@/components/ui/separator";
 
@@ -40,7 +40,8 @@ const Branches = () => {
     odata: toODataOrderBy(sorting),
   });
 
-  const [triggerExport] = useLazyGetProjectBranchesDetailedExportQuery();
+  const [triggerExport, { isFetching: isExporting }] =
+    useLazyGetProjectBranchesDetailedExportQuery();
 
   const openReprocessDialog = useCallback(async (id: string) => {
     setProcessingId(id);
@@ -95,9 +96,12 @@ const Branches = () => {
       >
         <Separator />
         <div>
-          <Button variant={"outline"} onClick={onExportClick} className="mt-5">
-            Export Branches
-          </Button>
+          <LoadingButton
+            isLoading={isExporting}
+            text="Export Branches"
+            onClick={onExportClick}
+            className="mt-5"
+          />
         </div>
       </PageHeader>
       <div className="flex flex-row gap-10 w-full h-full justify-evenly">

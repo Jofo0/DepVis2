@@ -8,11 +8,11 @@ import { useState } from "react";
 import NamesSelector from "@/components/graph/GraphMisc/NamesSelector";
 import Legend from "@/components/graph/GraphMisc/Legend/Legend";
 import NodeInformation from "@/components/graph/GraphMisc/NodeInformation/NodeInformation";
-import { Button } from "@/components/ui/button";
 import { useLazyGetProjectGraphExportQuery } from "@/store/api/projectsApi";
 import { downloadBlob } from "@/utils/downloadBlob";
 import { getPrettyDate } from "@/utils/dateHelper";
 import PageHeader from "@/components/PageHeader";
+import { LoadingButton } from "@/components/ui/button";
 
 const Graph = () => {
   const { branch, commit } = useBranch();
@@ -23,7 +23,8 @@ const Graph = () => {
   const [showParents, setShowParents] = useState(true);
   const [selectedNode, setSelectedNode] = useState<string | undefined>();
 
-  const [triggerExport] = useLazyGetProjectGraphExportQuery();
+  const [triggerExport, { isFetching: isExporting }] =
+    useLazyGetProjectGraphExportQuery();
   const onInformationClose = () => {
     setSelectedNode(undefined);
   };
@@ -50,9 +51,11 @@ const Graph = () => {
         description="Visualize and analyze the dependency graph for the selected source"
       >
         <div className="flex flex-row gap-2">
-          <Button variant={"outline"} onClick={onExportClick} className="mt-5">
-            Export Graph
-          </Button>
+          <LoadingButton
+            isLoading={isExporting}
+            text="Export Vulnerabilities"
+            onClick={onExportClick}
+          />
           <Separator />
           <SeveritySelector
             selected={selectedSeverity}

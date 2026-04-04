@@ -23,7 +23,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import PackagesInfo from "./Components/PackagesInfo";
 import PageHeader from "@/components/PageHeader";
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/button";
 
 const Packages = () => {
   const { branch, commit, isLoading: isLoadingBranch } = useBranch();
@@ -36,7 +36,8 @@ const Packages = () => {
   const [vulnerabilityFilter, setVulnerabilityFilter] = useState("");
   const [fetchPackages, { data, isLoading: isLoading, isSuccess }] =
     useLazyGetPackagesQuery();
-  const [triggerExport] = useLazyGetPackagesExportQuery();
+  const [triggerExport, { isFetching: isExporting }] =
+    useLazyGetPackagesExportQuery();
 
   const table = useReactTable({
     data: data?.packageItems ?? [],
@@ -131,9 +132,11 @@ const Packages = () => {
         title="Packages"
         description="View and analyze packages in the selected source"
       >
-        <Button variant={"outline"} onClick={onExportClick} className="mt-5">
-          Export Packages
-        </Button>
+        <LoadingButton
+          isLoading={isExporting}
+          text="Export Vulnerabilities"
+          onClick={onExportClick}
+        />
       </PageHeader>
       <PackagesInfo
         data={data}

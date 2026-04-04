@@ -1,7 +1,7 @@
 import { PieCustomChart } from "@/components/chart/PieCustomChart";
 import PageHeader from "@/components/PageHeader";
 import { DataTable } from "@/components/table/DataTable";
-import { Button } from "@/components/ui/button";
+import { LoadingButton } from "@/components/ui/button";
 import VulnerabilityCard from "@/components/VulnerabilityCard";
 import {
   useLazyGetVulnerabilitiesExportQuery,
@@ -40,7 +40,8 @@ const Vulnerabilities = () => {
 
   const [fetchVulnerabilities, { data, isLoading: isLoading, isSuccess }] =
     useLazyGetVulnerabilitiesQuery();
-  const [triggerExport] = useLazyGetVulnerabilitiesExportQuery();
+  const [triggerExport, { isFetching: isExporting }] =
+    useLazyGetVulnerabilitiesExportQuery();
 
   const [selectedVulnerability, setSelectedVulnerability] =
     useState<VulnerabilitySmallDto | null>(null);
@@ -130,9 +131,11 @@ const Vulnerabilities = () => {
           title="Vulnerabilities"
           description="View and analyze vulnerabilities in the selected source"
         >
-          <Button variant={"outline"} onClick={onExportClick} className="mt-5">
-            Export Vulnerabilities
-          </Button>
+          <LoadingButton
+            isLoading={isExporting}
+            text="Export Vulnerabilities"
+            onClick={onExportClick}
+          />
         </PageHeader>
 
         {!isLoadingBranch && branch && (
