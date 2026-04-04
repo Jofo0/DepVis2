@@ -53,7 +53,7 @@ const Graph = () => {
         <div className="flex flex-row gap-2">
           <LoadingButton
             isLoading={isExporting}
-            text="Export Vulnerabilities"
+            text="Export Graph"
             onClick={onExportClick}
           />
           <Separator />

@@ -134,7 +134,7 @@ const Packages = () => {
       >
         <LoadingButton
           isLoading={isExporting}
-          text="Export Vulnerabilities"
+          text="Export Packages"
           onClick={onExportClick}
         />
       </PageHeader>
