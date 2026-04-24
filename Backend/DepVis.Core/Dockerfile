@@ -7,7 +7,7 @@ COPY DepVis.Shared/DepVis.Shared.csproj ./DepVis.Shared/
 RUN dotnet restore DepVis.Core/DepVis.Core.csproj
 
 COPY . .
-RUN dotnet publish DepVis.Core/DepVis.Core.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish DepVis.Core/DepVis.Core.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
