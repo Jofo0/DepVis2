@@ -22,5 +22,5 @@ public class ProjectBranch
     public int ProcessedHistoryCommits { get; set; } = 0;
     public Project Project { get; set; } = null!;
     public ICollection<BranchHistory> BranchHistories { get; set; } = [];
-    public ICollection<Sbom> Sboms { get; set; } = [];
+    public Sbom? Sbom { get; set; }
 }

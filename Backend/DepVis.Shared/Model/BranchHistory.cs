@@ -15,5 +15,5 @@ public class BranchHistory
     public ProcessStatus ProcessStatus { get; set; } = ProcessStatus.Pending;
     public HistoryProcessing ProcessState { get; set; } = HistoryProcessing.Processing;
     public ProjectBranch ProjectBranch { get; set; } = null!;
-    public ICollection<Sbom> Sboms { get; set; } = [];
+    public Sbom? Sbom { get; set; }
 }

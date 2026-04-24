@@ -71,6 +71,20 @@ public class DepVisDbContext : DbContext
         modelBuilder.Entity<Vulnerability>().HasIndex(x => x.Id).IsUnique();
 
         modelBuilder
+            .Entity<ProjectBranch>()
+            .HasOne(pb => pb.Sbom)
+            .WithOne(s => s.ProjectBranch)
+            .HasForeignKey<Sbom>(s => s.ProjectBranchId)
+            .IsRequired(false);
+
+        modelBuilder
+            .Entity<BranchHistory>()
+            .HasOne(bh => bh.Sbom)
+            .WithOne(s => s.BranchHistory)
+            .HasForeignKey<Sbom>(s => s.BranchHistoryId)
+            .IsRequired(false);
+
+        modelBuilder
             .Entity<Sbom>()
             .HasIndex(s => new { s.ProjectBranchId, s.CreatedAt })
             .IsDescending(false, true)

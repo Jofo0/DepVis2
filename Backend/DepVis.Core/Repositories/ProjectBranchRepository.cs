@@ -59,7 +59,7 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
     public IQueryable<ProjectBranch> QueryByProject(Guid projectId)
     {
         return context
-            .ProjectBranches.Include(x => x.Sboms)
+            .ProjectBranches.Include(x => x.Sbom)
             .AsNoTracking()
             .Where(x => x.ProjectId == projectId);
     }

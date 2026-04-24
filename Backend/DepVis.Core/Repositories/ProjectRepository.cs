@@ -18,8 +18,8 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
         await context
             .Projects.AsNoTracking()
             .Include(x => x.ProjectBranches)
-            .ThenInclude(x => x.Sboms)
-            .ThenInclude(sboms => sboms.SbomPackages)
+            .ThenInclude(x => x.Sbom)
+            .ThenInclude(sbom => sbom.SbomPackages)
             .ThenInclude(sp => sp.Children)
             .ThenInclude(cd => cd.Child)
             .FirstOrDefaultAsync(p => p.Id == id);
