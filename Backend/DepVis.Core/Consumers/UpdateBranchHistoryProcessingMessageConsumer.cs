@@ -40,7 +40,6 @@ public class UpdateBranchHistoryProcessingMessageConsumer(
                 {
                     BranchHistoryId = historyId,
                     FileName = commitInfo.FileName,
-                    ProjectBranchId = projectBranch.Id,
                     CommitDate = commitInfo.CommitDate,
                     CommitMessage = commitInfo.CommitMessage,
                     CommitSha = commitInfo.CommitSha,
