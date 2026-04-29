@@ -19,11 +19,9 @@ public class SbomIngestionOrchestrator(
     {
         var sbom = await LoadSbomAsync(sbomId, cancellationToken);
 
-        if (sbom.ProjectBranch is null)
+        if ((!isHistory && sbom.ProjectBranch is null) || (isHistory && sbom.BranchHistory is null))
             return;
 
-        if (isHistory && sbom.BranchHistory is null)
-            return;
 
         try
         {
@@ -106,7 +104,7 @@ public class SbomIngestionOrchestrator(
 
     private async Task<Sbom> LoadSbomAsync(Guid sbomId, CancellationToken cancellationToken)
     {
-        var query = db.Sboms.Include(x => x.ProjectBranch).Include(x => x.BranchHistory);
+        var query = db.Sboms.Include(x => x.ProjectBranch).Include(x => x.BranchHistory).ThenInclude(x => x.ProjectBranch);
 
         return await query.FirstAsync(x => x.Id == sbomId, cancellationToken);
     }
@@ -115,9 +113,9 @@ public class SbomIngestionOrchestrator(
     {
         if (isHistory)
         {
-            sbom.ProjectBranch!.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.SbomIngest;
-            sbom.ProjectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Pending;
-            sbom.BranchHistory!.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
+            sbom.BranchHistory!.ProjectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.SbomIngest;
+            sbom.BranchHistory.ProjectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Pending;
+            sbom.BranchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
             return;
         }
 
@@ -134,8 +132,8 @@ public class SbomIngestionOrchestrator(
             sbom.BranchHistory.VulnerabilityCount = result.PackageVulnerabilities.Count;
             sbom.BranchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
-            sbom.ProjectBranch!.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Success;
-            sbom.ProjectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.Processed;
+            sbom.BranchHistory.ProjectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Success;
+            sbom.BranchHistory.ProjectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.Processed;
             return;
         }
 

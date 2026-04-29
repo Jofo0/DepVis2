@@ -36,7 +36,6 @@ public class UpdateProcessingMessageConsumer(
             sbom = new Sbom()
             {
                 FileName = message.FileName,
-                ProjectBranchId = projectBranch.Id,
                 CommitDate = message.CommitDate,
                 CommitMessage = message.CommitMessage,
                 CommitSha = message.CommitSha,
