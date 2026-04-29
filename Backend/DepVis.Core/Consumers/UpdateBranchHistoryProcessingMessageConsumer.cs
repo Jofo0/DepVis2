@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Consumers;
 
-public class BranchHistoryProcessingMessageConsumer(
-    ILogger<BranchHistoryProcessingMessageConsumer> logger,
+public class UpdateBranchHistoryProcessingMessageConsumer(
+    ILogger<UpdateBranchHistoryProcessingMessageConsumer> logger,
     IPublishEndpoint publishEndpoint,
     DepVisDbContext dbContext
 ) : IConsumer<UpdateBranchHistoryProcessingMessage>
