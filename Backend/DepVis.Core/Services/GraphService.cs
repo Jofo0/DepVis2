@@ -54,8 +54,6 @@ public class GraphService(SbomRepository repo)
             )
             .ToList();
 
-        // Also pick the highest Severity out of all vulnerabilities
-
         var packages = sbom
             .SbomPackages.Select(x => new PackageDto
             {
