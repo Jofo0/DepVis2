@@ -11,6 +11,8 @@ docker compose up
 
 Then open [this](http://localhost:8080/) url.
 
+To test the functionalities, using https://github.com/anchore/syft as a project is a good start.
+
 ## Description
 
 DepVis v2 is a tool for visualizing and analyzing open-source dependencies and vulnerabilities using a Git repository URL as input.
@@ -20,15 +22,6 @@ It leverages Trivy to scan repositories, supporting a wide range of ecosystems (
 This tool was developed as part of the Master's thesis  
 **"DepVis v2: A Graph-Based Visualization Tool for Software Dependencies"**  
 by Jozef Gajdoš at FI MUNI.
-
-## Screenshots
-
-<div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
-  <img src="images/Dashboard.png" alt="Dashboard Image" >
-  <img src="images/Packages.png" alt="Packages Image" >
-  <img src="images/Vulnerabilities.png" alt="Vulnerabilities Image" >
-  <img src="images/Graph.png" alt="Graph Image" >
-</div>
 
 ## Features
 
@@ -60,3 +53,11 @@ by Jozef Gajdoš at FI MUNI.
 2. After you create the project, the application will start analyzing the repository. This may take some time depending on the size of the repository and the number of dependencies.
 3. Once the analysis is complete, you can view the results in multiple pages containing graph visualization of the dependencies, list of dependencies, list of vulnerabilities and more.
 
+## Screenshots
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+  <img src="images/Dashboard.png" alt="Dashboard Image" >
+  <img src="images/Packages.png" alt="Packages Image" >
+  <img src="images/Vulnerabilities.png" alt="Vulnerabilities Image" >
+  <img src="images/Graph.png" alt="Graph Image" >
+</div>

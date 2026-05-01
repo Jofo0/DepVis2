@@ -103,6 +103,20 @@ const ProjectCreateForm = () => {
           </Button>
         </div>
 
+        <p className="text-sm text-muted-foreground">
+          Not all ecosystems are equally supported. Check if your lock files are
+          covered under the Repository column in the{" "}
+          <a
+            href="https://trivy.dev/docs/latest/guide/coverage/language/#supported-languages"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-primary hover:text-primary/80"
+          >
+            Trivy supported languages
+          </a>{" "}
+          table.
+        </p>
+
         <DevInput
           title="Name"
           error={errors.name?.message}
