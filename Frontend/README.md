@@ -1,69 +1,106 @@
-# React + TypeScript + Vite
+# DepVis v2 — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**DepVis** is a dependency visualization and software composition analysis (SCA) platform. This is the frontend application that provides an interactive UI for managing projects, analyzing dependencies, tracking vulnerabilities, and visualizing dependency graphs.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Project Management** — Create, edit, and delete software projects with metadata (name, type, tags, ecosystem)
+- **Dependency Graph** — Interactive force-directed graph visualization with severity-based filtering and DOT export
+- **Vulnerability Tracking** — View, filter, and sort security vulnerabilities by severity (low / medium / high / critical) with details, CWEs, and recommendations
+- **Package Analysis** — Explore dependency trees with ecosystem and depth-based hierarchy analysis
+- **Branch Comparison** — Compare branches to see added/removed packages, ecosystems, and vulnerabilities
+- **Branch History** — Track dependency changes across commits over time
+- **Processing Pipeline** — Monitor SBOM creation and ingestion workflows
+- **Data Export** — Export analysis data as CSV or DOT files
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Category | Technologies |
+|---|---|
+| Framework | React 19, TypeScript, Vite 7 |
+| State | Redux Toolkit, RTK Query |
+| Routing | React Router 7 |
+| Styling | TailwindCSS 4, shadcn/ui, Radix UI |
+| Visualization | React Force Graph 2D, Cytoscape.js, Recharts, d3-force |
+| Tables | TanStack Table |
+| Forms | React Hook Form, Zod |
+| i18n | react-intl |
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- [Node.js](https://nodejs.org/) 20+
+- npm
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting Started
+
+### Install dependencies
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Configure the API
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Set the backend API URL via the `VITE_API_BASE_URL` environment variable. It defaults to `https://localhost:7273` if not set.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# .env (or .env.local)
+VITE_API_BASE_URL=https://localhost:7273
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Production build
+
+```bash
+npm run build
+npm run preview   # preview the production build locally
+```
+
+### Lint
+
+```bash
+npm run lint
+```
+
+## Docker
+
+Build and run the frontend as an Nginx-served container:
+
+```bash
+docker build --build-arg VITE_API_BASE_URL=https://your-api-url -t depvis-frontend .
+docker run -p 80:80 depvis-frontend
+```
+
+The image uses a multi-stage build (Node 20 Alpine → Nginx Alpine) and serves the SPA on port 80 with client-side routing support.
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── ui/              # shadcn/ui primitives (button, dialog, table, …)
+│   ├── cards/           # ProjectCard, ProcessingCard
+│   ├── chart/           # PieCustomChart, XYChart
+│   ├── graph/           # Dependency graph, node info, legend, selectors
+│   └── table/           # DataTable, SearchFilter, SortButton
+├── pages/
+│   ├── DashboardPage    # Project grid overview
+│   ├── ProjectPage/     # Project details & processing status
+│   ├── Graph            # Interactive dependency graph
+│   ├── Vulnerabilities  # Vulnerability table & charts
+│   ├── Branches         # Branch management
+│   ├── Packages/        # Package analysis
+│   ├── BranchHistory/   # Commit-level tracking
+│   └── ComparePage/     # Branch comparison
+├── store/api/           # RTK Query API slices (projects, branches, git)
+├── types/               # TypeScript type definitions
+├── utils/               # Helpers, hooks, OData builders, column definitions
+├── theme/               # Colors, ThemeProvider
+├── intl/                # i18n translations
+└── lib/                 # Shared utilities
 ```
