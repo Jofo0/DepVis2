@@ -45,6 +45,8 @@ export const BranchProvider = ({ children }: { children: React.ReactNode }) => {
           if (branch.commits.length > 0) {
             setCommit(branch.commits[0]);
           }
+        } else if (branch.commits.length == 0) {
+          setCommit(null);
         }
       }
 

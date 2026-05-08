@@ -132,6 +132,7 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
                 projectBranch.TotalHistoryCommits = 0;
                 projectBranch.HistoryProcessingStep = ProcessStep.NotStarted;
                 projectBranch.PackageCount = 0;
+                projectBranch.VulnerabilityCount = 0;
                 projectBranch.ProcessStatus = ProcessStatus.Pending;
                 projectBranch.ProcessStep = ProcessStep.NotStarted;
 
