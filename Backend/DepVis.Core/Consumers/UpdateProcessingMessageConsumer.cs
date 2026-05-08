@@ -20,7 +20,7 @@ public class UpdateProcessingMessageConsumer(
             message.ProjectBranchId
         );
 
-        var projectBranch = await dbContext.ProjectBranches.FirstAsync(x =>
+        var projectBranch = await dbContext.ProjectBranches.FirstOrDefaultAsync(x =>
             x.Id == message.ProjectBranchId
         );
         if (projectBranch == null)

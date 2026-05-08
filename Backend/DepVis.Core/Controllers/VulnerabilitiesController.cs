@@ -1,4 +1,4 @@
-﻿using DepVis.Core.Dtos;
+using DepVis.Core.Dtos;
 using DepVis.Core.Services;
 using DepVis.Core.Util;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +25,7 @@ public class VulnerabilitiesController(VulnerabilityService vulnerabilityService
             var rows = dto.Vulnerabilities;
             var stream = await CsvExport.WriteToCsvStreamAsync(rows);
             stream.Position = 0;
-            return File(stream, "text/csv", $"vulnerabilities-{branchId}-{DateTime.Now}.csv");
+            return File(stream, "text/csv", $"vulnerabilities-{branchId}-{DateTime.UtcNow}.csv");
         }
 
         return Ok(dto);

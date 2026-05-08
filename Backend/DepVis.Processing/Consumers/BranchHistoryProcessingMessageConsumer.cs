@@ -27,7 +27,7 @@ public class BranchHistoryProcessingMessageConsumer(
     {
         var githubLink = context.Message.GitHubLink;
         var location = context.Message.Location;
-        var workerCount = Math.Max(1, 4);
+        var workerCount = Math.Max(1, Environment.ProcessorCount);
 
         await _publishEndpoint.Publish(
             new UpdateBranchHistoryProcessingMessage

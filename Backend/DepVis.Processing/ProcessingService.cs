@@ -1,8 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace DepVis.SbomProcessing
 {
-    public class ProcessingService(ILogger<ProcessingService> _logger)
+    public class ProcessingService(ILogger<ProcessingService> logger)
     {
         public async Task RunTrivy(
             string directory,
@@ -23,13 +23,13 @@ namespace DepVis.SbomProcessing
                 UseShellExecute = false,
             };
 
-            _logger.LogDebug("Running Trivy with cache {cacheDir}", cacheDir);
+            logger.LogDebug("Running Trivy with cache {cacheDir}", cacheDir);
             await RunProcessAsync(trivy, ct);
         }
 
         public async Task RunSyft(string directory, string output, CancellationToken ct = default)
         {
-            var trivy = new ProcessStartInfo
+            var psi = new ProcessStartInfo
             {
                 FileName = "syft",
                 Arguments = $". -o cyclonedx-json={output}",
@@ -37,9 +37,9 @@ namespace DepVis.SbomProcessing
                 UseShellExecute = false,
             };
 
-            _logger.LogDebug("Running syft on the cloned repository");
-            await RunProcessAsync(trivy, ct);
-            _logger.LogDebug("syft ran succesfully and the SBOM has been created");
+            logger.LogDebug("Running syft on the cloned repository");
+            await RunProcessAsync(psi, ct);
+            logger.LogDebug("syft ran succesfully and the SBOM has been created");
         }
 
         private async Task TryRun(
@@ -51,7 +51,7 @@ namespace DepVis.SbomProcessing
         {
             try
             {
-                _logger.LogInformation("Dependency install step: {cmd} {args}", fileName, args);
+                logger.LogInformation("Dependency install step: {cmd} {args}", fileName, args);
                 await RunProcessAsync(
                     new ProcessStartInfo
                     {
@@ -67,7 +67,7 @@ namespace DepVis.SbomProcessing
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(
+                logger.LogWarning(
                     ex,
                     "Install step failed (continuing): {cmd} {args}",
                     fileName,

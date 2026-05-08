@@ -47,6 +47,8 @@ public class IngestBranchHistoryMessageConsumer(
         try
         {
             await sbomProcessor.ProcessAsync(sbom, false, context.CancellationToken);
+            history.ProcessState = HistoryProcessing.Ingesting;
+            history.ProcessStatus = ProcessStatus.Success;
         }
         catch (Exception ex)
         {
@@ -58,8 +60,6 @@ public class IngestBranchHistoryMessageConsumer(
             history.ProcessStatus = ProcessStatus.Failed;
         }
 
-        history.ProcessState = HistoryProcessing.Ingesting;
-        history.ProcessStatus = ProcessStatus.Success;
         await projectBranchRepository.Update(history, context.CancellationToken);
 
         logger.LogDebug(

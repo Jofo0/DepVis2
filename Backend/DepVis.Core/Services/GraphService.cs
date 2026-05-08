@@ -22,7 +22,7 @@ public class GraphService(SbomRepository repo)
         {
             var sbomPackages = sbom.SbomPackages.Where(x => x.Severity == severityFilter);
 
-            if (sbomPackages == null)
+            if (!sbomPackages.Any())
                 return null;
 
             HashSet<PackageRelationDto> relationsNew = [];

@@ -28,7 +28,7 @@ public class PackagesController(PackageService packageService, GraphService grap
             var rows = dto.PackageItems;
             var stream = await CsvExport.WriteToCsvStreamAsync(rows);
             stream.Position = 0;
-            return File(stream, "text/csv", $"packages-{branchId}-{DateTime.Now}.csv");
+            return File(stream, "text/csv", $"packages-{branchId}-{DateTime.UtcNow}.csv");
         }
 
         return Ok(dto);

@@ -20,14 +20,14 @@ public class UpdateBranchHistoryProcessingMessageConsumer(
             message.ProjectBranchId
         );
 
-        var projectBranch = await dbContext.ProjectBranches.FirstAsync(x =>
+        var projectBranch = await dbContext.ProjectBranches.FirstOrDefaultAsync(x =>
             x.Id == message.ProjectBranchId
         );
         if (projectBranch == null)
             return;
 
         projectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.SbomCreation;
-        projectBranch.HistoryProcessinStatus = message.ProcessStatus;
+        projectBranch.HistoryProcessingStatus = message.ProcessStatus;
 
         List<Sbom>? sboms = [];
 

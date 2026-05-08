@@ -1,8 +1,11 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Extensions;
+using DepVis.Core.Repositories;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using MassTransit;
+
+namespace DepVis.Core.Services;
 
 public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndpoint)
 {

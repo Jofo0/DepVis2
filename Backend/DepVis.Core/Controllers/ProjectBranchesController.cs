@@ -1,4 +1,4 @@
-﻿using DepVis.Core.Dtos;
+using DepVis.Core.Dtos;
 using DepVis.Core.Services;
 using DepVis.Core.Util;
 using DepVis.Shared.Model;
@@ -42,7 +42,7 @@ public class ProjectBranchesController(
             var rows = detailed;
             var stream = await CsvExport.WriteToCsvStreamAsync(rows);
             stream.Position = 0;
-            return File(stream, "text/csv", $"branches-{projectId}-{DateTime.Now}.csv");
+            return File(stream, "text/csv", $"branches-{projectId}-{DateTime.UtcNow}.csv");
         }
 
         return Ok(detailed);
@@ -81,7 +81,7 @@ public class ProjectBranchesController(
             var rows = data.Histories;
             var stream = await CsvExport.WriteToCsvStreamAsync(rows);
             stream.Position = 0;
-            return File(stream, "text/csv", $"branch-history-{branchId}-{DateTime.Now}.csv");
+            return File(stream, "text/csv", $"branch-history-{branchId}-{DateTime.UtcNow}.csv");
         }
 
         return Ok(data);

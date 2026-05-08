@@ -114,7 +114,7 @@ public class SbomIngestionOrchestrator(
         if (isHistory)
         {
             sbom.BranchHistory!.ProjectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.SbomIngest;
-            sbom.BranchHistory.ProjectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Pending;
+            sbom.BranchHistory.ProjectBranch.HistoryProcessingStatus = Shared.Model.Enums.ProcessStatus.Pending;
             sbom.BranchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending;
             return;
         }
@@ -132,7 +132,7 @@ public class SbomIngestionOrchestrator(
             sbom.BranchHistory.VulnerabilityCount = result.PackageVulnerabilities.Count;
             sbom.BranchHistory.ProcessStatus = Shared.Model.Enums.ProcessStatus.Success;
 
-            sbom.BranchHistory.ProjectBranch.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Success;
+            sbom.BranchHistory.ProjectBranch.HistoryProcessingStatus = Shared.Model.Enums.ProcessStatus.Success;
             sbom.BranchHistory.ProjectBranch.HistoryProcessingStep = Shared.Model.Enums.ProcessStep.Processed;
             return;
         }
@@ -147,7 +147,7 @@ public class SbomIngestionOrchestrator(
     {
         if (isHistory)
         {
-            sbom.ProjectBranch!.HistoryProcessinStatus = Shared.Model.Enums.ProcessStatus.Failed;
+            sbom.ProjectBranch!.HistoryProcessingStatus = Shared.Model.Enums.ProcessStatus.Failed;
             sbom.BranchHistory!.ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed;
             return;
         }

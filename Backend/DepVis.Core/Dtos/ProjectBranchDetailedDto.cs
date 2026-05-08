@@ -7,7 +7,7 @@ public class ProjectBranchDetailedDto
     public int VulnerabilityCount { get; set; } = 0;
     public string Name { get; set; } = string.Empty;
     public string CommitMessage { get; set; } = string.Empty;
-    public DateTime CommitDate { get; set; } = DateTime.Now;
-    public DateTime ScanDate { get; set; } = DateTime.Now;
+    public DateTime CommitDate { get; set; } = DateTime.UtcNow;
+    public DateTime ScanDate { get; set; } = DateTime.UtcNow;
     public string CommitSha { get; set; } = string.Empty;
 }

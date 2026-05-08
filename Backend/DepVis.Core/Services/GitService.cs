@@ -3,11 +3,11 @@ using LibGit2Sharp;
 
 namespace DepVis.Core.Services;
 
-public class GitService
+public class GitService(ILogger<GitService> logger)
 {
     public GitInformationDto RetrieveInformationAboutGitRepo(string gitHubUrl)
     {
-        Console.WriteLine($"Listing refs from remote: {gitHubUrl}\n");
+        logger.LogInformation("Listing refs from remote: {GitHubUrl}", gitHubUrl);
 
         var references = Repository.ListRemoteReferences(gitHubUrl);
 

@@ -1,4 +1,4 @@
-﻿using DepVis.Shared.Messages;
+using DepVis.Shared.Messages;
 using DepVis.Shared.Services;
 using LibGit2Sharp;
 using MassTransit;
@@ -6,10 +6,10 @@ using MassTransit;
 namespace DepVis.SbomProcessing.Consumers;
 
 public class ProcessingMessageConsumer(
-    ILogger<ProcessingMessageConsumer> _logger,
-    MinioStorageService _minioStorageService,
-    IPublishEndpoint _publishEndpoint,
-    ProcessingService _processingService
+    ILogger<ProcessingMessageConsumer> logger,
+    MinioStorageService minioStorageService,
+    IPublishEndpoint publishEndpoint,
+    ProcessingService processingService
 ) : IConsumer<ProcessingMessage>
 {
     public async Task Consume(ConsumeContext<ProcessingMessage> context)
@@ -17,7 +17,7 @@ public class ProcessingMessageConsumer(
         var githubLink = context.Message.GitHubLink;
         var branch = context.Message.GitTarget;
 
-        await _publishEndpoint.Publish(
+        await publishEndpoint.Publish(
             new UpdateProcessingMessage
             {
                 ProjectBranchId = branch.ProjectBranchId,
@@ -30,10 +30,10 @@ public class ProcessingMessageConsumer(
 
         try
         {
-            _logger.LogInformation("Cloning repository {githubLink}", githubLink);
+            logger.LogInformation("Cloning repository {githubLink}", githubLink);
             var cloneOptions = new CloneOptions { Checkout = true };
             Repository.Clone(githubLink, tempDir, cloneOptions);
-            _logger.LogInformation("Repository cloned successfully");
+            logger.LogInformation("Repository cloned successfully");
 
             using (var repo = new Repository(tempDir))
             {
@@ -42,13 +42,13 @@ public class ProcessingMessageConsumer(
                     CheckoutModifiers = CheckoutModifiers.Force,
                 };
 
-                _logger.LogInformation("Processing branch/tag {branch}", branch.Location);
+                logger.LogInformation("Processing branch/tag {branch}", branch.Location);
 
                 var filename = $"{Guid.NewGuid()}.cdx.sbom.json";
                 var outputFile = Path.Combine(tempDir, filename);
                 string commitMessage = string.Empty;
                 string commitSha = string.Empty;
-                DateTime commitDate = DateTime.Now;
+                DateTime commitDate = DateTime.UtcNow;
 
                 try
                 {
@@ -67,14 +67,14 @@ public class ProcessingMessageConsumer(
                         Commands.Checkout(repo, branch.Location, checkoutOptions);
                     }
 
-                    _logger.LogInformation("Retrieving latest commit information");
+                    logger.LogInformation("Retrieving latest commit information");
 
                     var commit = repo.Head.Tip;
                     commitMessage = commit.MessageShort;
                     commitDate = commit.Author.When.LocalDateTime;
                     commitSha = commit.Sha;
 
-                    _logger.LogInformation(
+                    logger.LogInformation(
                         "Latest commit: {sha} - {message} ({date})",
                         commitSha,
                         commitMessage,
@@ -87,7 +87,7 @@ public class ProcessingMessageConsumer(
                     await trivyLock.WaitAsync(context.CancellationToken);
                     try
                     {
-                        await _processingService.RunTrivy(
+                        await processingService.RunTrivy(
                             tempDir,
                             outputFile,
                             runnerKey,
@@ -99,11 +99,11 @@ public class ProcessingMessageConsumer(
                         trivyLock.Release();
                     }
 
-                    _logger.LogDebug("Uploading the created SBOM file to minIO storage");
-                    await _minioStorageService.UploadAsync(outputFile, filename);
-                    _logger.LogDebug("SBOM uploaded succesfully");
+                    logger.LogDebug("Uploading the created SBOM file to minIO storage");
+                    await minioStorageService.UploadAsync(outputFile, filename);
+                    logger.LogDebug("SBOM uploaded succesfully");
 
-                    await _publishEndpoint.Publish(
+                    await publishEndpoint.Publish(
                         new UpdateProcessingMessage
                         {
                             ProjectBranchId = branch.ProjectBranchId,
@@ -117,13 +117,13 @@ public class ProcessingMessageConsumer(
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(
+                    logger.LogError(
                         "An error occurred during the processing of {githubLink}. Message [{errorMessage}]",
                         githubLink,
                         ex.Message
                     );
 
-                    await _publishEndpoint.Publish(
+                    await publishEndpoint.Publish(
                         new UpdateProcessingMessage
                         {
                             ProjectBranchId = branch.ProjectBranchId,
@@ -135,13 +135,13 @@ public class ProcessingMessageConsumer(
         }
         catch (Exception ex)
         {
-            _logger.LogError(
+            logger.LogError(
                 "An error occurred during the processing of {githubLink}. Message [{errorMessage}]",
                 githubLink,
                 ex.Message
             );
 
-            await _publishEndpoint.Publish(
+            await publishEndpoint.Publish(
                 new UpdateProcessingMessage
                 {
                     ProjectBranchId = branch.ProjectBranchId,
@@ -159,7 +159,7 @@ public class ProcessingMessageConsumer(
                 }
                 catch
                 {
-                    _logger.LogInformation("Failed to delete temp directory {tempDir}", tempDir);
+                    logger.LogInformation("Failed to delete temp directory {tempDir}", tempDir);
                 }
             }
         }

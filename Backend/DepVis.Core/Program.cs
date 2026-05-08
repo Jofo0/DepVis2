@@ -23,7 +23,6 @@ builder
             new System.Text.Json.Serialization.JsonStringEnumConverter()
         );
     });
-;
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<MinioStorageService>();
@@ -78,7 +77,6 @@ builder.Services.AddCors(options =>
     );
 });
 
-// TODO REMOVE DUPLICIT
 
 builder.Services.Configure<ConnectionStrings>(
     builder.Configuration.GetSection(key: nameof(ConnectionStrings))

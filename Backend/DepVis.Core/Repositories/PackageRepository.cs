@@ -27,6 +27,6 @@ public class PackageRepository(DepVisDbContext context)
             .SbomPackages.Where(p => p.Id == packageId)
             .Include(x => x.Vulnerabilities)
             .AsNoTracking()
-            .FirstAsync(cancellation);
+            .FirstOrDefaultAsync(cancellation);
     }
 }

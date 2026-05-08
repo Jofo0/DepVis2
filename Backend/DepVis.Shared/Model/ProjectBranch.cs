@@ -13,7 +13,7 @@ public class ProjectBranch
     public int PackageCount { get; set; } = 0;
     public int VulnerabilityCount { get; set; } = 0;
     public ProcessStep HistoryProcessingStep { get; set; } = ProcessStep.NotStarted;
-    public ProcessStatus HistoryProcessinStatus { get; set; } = ProcessStatus.Success;
+    public ProcessStatus HistoryProcessingStatus { get; set; } = ProcessStatus.Success;
     public DateTime CommitDate { get; set; }
     public DateTime ScanDate { get; set; }
     public string CommitMessage { get; set; } = string.Empty;
