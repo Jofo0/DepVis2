@@ -107,8 +107,8 @@ const History = ({
           <div className="p-4">Branch History is being processed</div>
           {data.totalCommits !== 0 && (
             <div>
-              Processed Commits / Total Commits: {data.totalCommits} /
-              {data.processedCommits}
+              Processed Commits / Total Commits: {data.processedCommits} /
+              {data.totalCommits}
             </div>
           )}
           <Button variant={"ghost"} onClick={refetch}>
