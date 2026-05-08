@@ -1,6 +1,7 @@
 ﻿using DepVis.Core.Context;
 using DepVis.Core.Dtos;
 using DepVis.Shared.Model;
+using DepVis.Shared.Model.Enums;
 using DepVis.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -64,7 +65,7 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
             .Where(x => x.ProjectId == projectId);
     }
 
-    public async Task DeleteBranchDependencies(Guid projectBranchId)
+    public async Task ResetProjectBranch(Guid projectBranchId)
     {
         var strategy = context.Database.CreateExecutionStrategy();
 
@@ -72,7 +73,7 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
         {
             await strategy.ExecuteAsync(async () =>
             {
-                using var transaction = await context.Database.BeginTransactionAsync();
+                await using var transaction = await context.Database.BeginTransactionAsync();
 
                 var packageDependencies = context.PackageDependencies.Where(pd =>
                     pd.Parent.Sbom.ProjectBranchId == projectBranchId
@@ -124,15 +125,17 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
                     .BranchHistories.Where(x => x.ProjectBranchId == projectBranchId)
                     .ExecuteDeleteAsync();
 
-                await context
-                    .ProjectBranches.Where(x => x.Id == projectBranchId)
-                    .ExecuteUpdateAsync(x =>
-                        x.SetProperty(
-                            x => x.HistoryProcessingStep,
-                            Shared.Model.Enums.ProcessStep.NotStarted
-                        )
-                    );
+                var projectBranch = await context
+                    .ProjectBranches.Where(x => x.Id == projectBranchId).FirstOrDefaultAsync();
 
+                projectBranch!.ProcessedHistoryCommits = 0;
+                projectBranch.TotalHistoryCommits = 0;
+                projectBranch.HistoryProcessingStep = ProcessStep.NotStarted;
+                projectBranch.PackageCount = 0;
+                projectBranch.ProcessStatus = ProcessStatus.Pending;
+                projectBranch.ProcessStep = ProcessStep.NotStarted;
+
+                await context.SaveChangesAsync();
                 await transaction.CommitAsync();
             });
         }

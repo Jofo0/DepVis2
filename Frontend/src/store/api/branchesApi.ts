@@ -27,29 +27,36 @@ export const projectApi = projectsApi.injectEndpoints({
     }),
     ingestBranchHistory: builder.mutation<
       void,
-      { branchId: string; historyId: string }
+      { branchId: string; historyId: string, projectId: string }
     >({
       query: (dto) => ({
-        url: `/${dto.branchId}/history/${dto.historyId}/ingest`,
+        url: `/${dto.projectId}/branches/${dto.branchId}/history/${dto.historyId}/ingest`,
         method: "POST",
       }),
       invalidatesTags: ["Projects", "Branches", "BranchHistory"],
     }),
-    processBranchHistory: builder.mutation<Branch[], string>({
-      query: (id) => ({ url: `/${id}/branches/history`, method: "POST" }),
+    processBranchHistory: builder.mutation<Branch[], { branchId: string, projectId: string }>({
+      query: ({ branchId, projectId }) => ({ url: `/${projectId}/branches/${branchId}/history`, method: "POST" }),
       invalidatesTags: ["BranchHistory"],
     }),
-    getBranchHistory: builder.query<BranchHistoryDto, string>({
-      query: (id) => ({ url: `/${id}/branches/history`, method: "GET" }),
+    getBranchHistory: builder.query<BranchHistoryDto, { branchId: string, projectId: string }>({
+      query: ({ branchId, projectId }) => ({ url: `/${projectId}/branches/${branchId}/history`, method: "GET" }),
       providesTags: ["BranchHistory"],
     }),
-    exportBranchHistory: builder.query<Blob, string>({
-      query: (id) => ({
-        url: `/${id}/branches/history?$export=true`,
+    exportBranchHistory: builder.query<Blob, { branchId: string, projectId: string }>({
+      query: ({ branchId, projectId }) => ({
+        url: `/${projectId}/branches/${branchId}/history?$export=true`,
         method: "GET",
         responseHandler: (response) => response.blob(),
       }),
       providesTags: ["BranchHistory"],
+    }),
+    downloadBranchSbom: builder.query<Blob, { branchId: string, projectId: string }>({
+      query: ({ branchId, projectId }) => ({
+        url: `/${projectId}/branches/${branchId}/sbom/download`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
     }),
     getProjectBranchesDetailed: builder.query<BranchDetailed[], IdWithOdata>({
       query: ({ id, odata }) =>
@@ -83,4 +90,5 @@ export const {
   useGetProjectBranchesDetailedQuery,
   useGetProjectBranchesQuery,
   useLazyGetProjectBranchesDetailedExportQuery,
+  useLazyDownloadBranchSbomQuery
 } = projectApi;

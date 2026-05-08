@@ -2,33 +2,35 @@ using DepVis.Core.Dtos;
 using DepVis.Core.Services;
 using DepVis.Core.Util;
 using DepVis.Shared.Model;
+using DepVis.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Controllers;
 
-[Route("api/projects")]
+[Route("api/projects/{projectId}")]
 [ApiController]
 public class ProjectBranchesController(
     ProjectBranchService branchService,
-    ProjectService projectService
+    ProjectService projectService,
+    MinioStorageService minioStorageService
 ) : ControllerBase
 {
-    [HttpGet("{projectId}/branches")]
+    [HttpGet("branches")]
     public async Task<ActionResult<ProjectBranchDto>> GetProjectBranches(Guid projectId)
     {
         var branches = await branchService.GetProjectBranches(projectId);
         return Ok(branches);
     }
 
-    [HttpPost("{projectId}/branches/{projectBranchId}/process")]
+    [HttpPost("branches/{projectBranchId}/process")]
     public async Task<ActionResult<ProjectBranchDto>> ProcessBranch(Guid projectBranchId)
     {
         await branchService.ProcessBranch(projectBranchId);
         return Ok();
     }
 
-    [HttpGet("{projectId}/branches/detailed")]
+    [HttpGet("branches/detailed")]
     public async Task<ActionResult<List<ProjectBranchDetailedDto>>> GetProjectBranchesDetailed(
         Guid projectId,
         ODataQueryOptions<ProjectBranch> odata,
@@ -48,7 +50,7 @@ public class ProjectBranchesController(
         return Ok(detailed);
     }
 
-    [HttpGet("{branchId}/compare/{comparedWith}")]
+    [HttpGet("branches/{branchId}/compare/{comparedWith}")]
     public async Task<ActionResult<BranchCompareDto>> GetBranchComparison(
         Guid branchId,
         Guid comparedWith
@@ -58,14 +60,14 @@ public class ProjectBranchesController(
         return stats is null ? NotFound() : Ok(stats);
     }
 
-    [HttpGet("{projectId}/stats")]
+    [HttpGet("stats")]
     public async Task<ActionResult<ProjectStatsDto>> GetProjectStats(Guid projectId)
     {
         var stats = await projectService.GetProjectStats(projectId);
         return stats is null ? NotFound() : Ok(stats);
     }
 
-    [HttpGet("{branchId}/branches/history")]
+    [HttpGet("branches/{branchId}/history")]
     public async Task<ActionResult<BranchHistoryDto>> GetBranchHistory(
         Guid branchId,
         CancellationToken cancellationToken,
@@ -87,7 +89,7 @@ public class ProjectBranchesController(
         return Ok(data);
     }
 
-    [HttpPost("{branchId}/branches/history")]
+    [HttpPost("branches/{branchId}/history")]
     public async Task<ActionResult> ProcessBranchHistory(
         Guid branchId,
         CancellationToken cancellationToken
@@ -97,7 +99,7 @@ public class ProjectBranchesController(
         return Ok();
     }
 
-    [HttpPost("{branchId}/history/{branchHistoryId}/ingest")]
+    [HttpPost("branches/{branchId}/history/{branchHistoryId}/ingest")]
     public async Task<ActionResult> IngestBranchHistory(
         Guid branchId,
         Guid branchHistoryId,
@@ -106,5 +108,19 @@ public class ProjectBranchesController(
     {
         await branchService.IngestHistory(branchHistoryId, cancellationToken);
         return Ok();
+    }
+
+    [HttpGet("branches/{branchId}/sbom/download")]
+    public async Task<IActionResult> DownloadSbom(
+        Guid branchId,
+        CancellationToken cancellationToken
+    )
+    {
+        var sbom = await branchService.GetLatestSbomForBranch(branchId, cancellationToken);
+        if (sbom is null)
+            return NotFound();
+
+        var stream = await minioStorageService.RetrieveAsync(sbom.FileName, cancellationToken);
+        return File(stream, "application/json", sbom.FileName);
     }
 }

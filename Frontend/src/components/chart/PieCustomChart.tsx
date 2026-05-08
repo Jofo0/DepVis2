@@ -6,7 +6,6 @@ import { Info } from "lucide-react";
 import {
   Tooltip as UiTooltip,
   TooltipContent as UiTooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
@@ -92,16 +91,14 @@ export const PieCustomChart = ({
         </CardDescription>
       </div>
       <div className="absolute top-5 right-3.5">
-        <TooltipProvider>
-          <UiTooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-gray-500" />
-            </TooltipTrigger>
-            <UiTooltipContent>
-              <p>Click on any slice to filter by the value</p>
-            </UiTooltipContent>
-          </UiTooltip>
-        </TooltipProvider>
+        <UiTooltip>
+          <TooltipTrigger asChild>
+            <Info className="h-4 w-4 text-gray-500" />
+          </TooltipTrigger>
+          <UiTooltipContent>
+            <p>Click on any slice to filter by the value</p>
+          </UiTooltipContent>
+        </UiTooltip>
       </div>
     </Card>
   );

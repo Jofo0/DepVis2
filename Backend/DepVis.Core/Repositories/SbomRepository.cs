@@ -19,6 +19,13 @@ public class SbomRepository(DepVisDbContext context)
             .FirstOrDefaultAsync();
 
     public async Task<Sbom?> GetByHistoryIdAsync(Guid historyId) => await context.Sboms.FirstOrDefaultAsync(x => x.BranchHistoryId == historyId);
+
+    public async Task<Sbom?> GetLatestByBranchIdAsync(Guid branchId) =>
+        await context.Sboms
+            .AsNoTracking()
+            .Where(x => x.ProjectBranchId == branchId)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
     
     public async Task<Sbom?> GetLatestWithPackagesAndParentsAsync(Guid id) =>
         await context

@@ -9,7 +9,10 @@ using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Services;
 
-public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint publishEndpoint)
+public class ProjectBranchService(
+    ProjectBranchRepository repo,
+    SbomRepository sbomRepo,
+    IPublishEndpoint publishEndpoint)
 {
     public async Task<ProjectBranchDto> GetProjectBranches(Guid id)
     {
@@ -23,17 +26,17 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
         if (branch == null)
             return;
 
-        await repo.DeleteBranchDependencies(id);
+        await repo.ResetProjectBranch(id);
         await publishEndpoint.Publish<ProcessingMessage>(
-            new()
+            new ProcessingMessage
             {
                 GitHubLink = branch.Project.ProjectLink,
-                GitTarget = new()
+                GitTarget = new GitTarget
                 {
                     IsTag = branch.IsTag,
                     Location = branch.Name,
-                    ProjectBranchId = branch.Id,
-                },
+                    ProjectBranchId = branch.Id
+                }
             }
         );
     }
@@ -123,6 +126,11 @@ public class ProjectBranchService(ProjectBranchRepository repo, IPublishEndpoint
     {
         var data = await repo.GetProjectBranchHistory(projectBranchId, cancellationToken);
         return data?.MapToBranchHistoryDto();
+    }
+
+    public async Task<Sbom?> GetLatestSbomForBranch(Guid branchId, CancellationToken cancellationToken)
+    {
+        return await sbomRepo.GetLatestByBranchIdAsync(branchId);
     }
 
     public async Task ProcessHistory(Guid projectBranchId, CancellationToken cancellationToken)

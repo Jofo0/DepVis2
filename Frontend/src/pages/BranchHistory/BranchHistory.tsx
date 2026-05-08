@@ -14,15 +14,17 @@ import PageHeader from "@/components/PageHeader";
 import { downloadBlob } from "@/utils/downloadBlob";
 import { getPrettyDate } from "@/utils/dateHelper";
 import { useLazyExportBranchHistoryQuery } from "../../store/api/branchesApi";
+import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
 
 const BranchHistory = () => {
+  const projectId = useGetProjectId();
   const { branch } = useBranch();
   const [selectedView, setSelectedView] = useState<ViewType | undefined>();
   const [triggerExport] = useLazyExportBranchHistoryQuery();
 
   const onExportClick = async () => {
-    if (!branch) return;
-    const blob = await triggerExport(branch.id).unwrap();
+    if (!branch || !projectId) return;
+    const blob = await triggerExport({ branchId: branch.id, projectId }).unwrap();
 
     downloadBlob(blob, `history-${branch.name}-${getPrettyDate()}.csv`);
   };
@@ -55,16 +57,17 @@ const History = ({
   setSelectedView: (view: ViewType) => void;
 }) => {
   const { branch } = useBranch();
+  const projectId = useGetProjectId();
   const {
     isFetching: isLoading,
     data,
     refetch,
-  } = useGetBranchHistoryQuery(branch ? branch.id : "", { skip: !branch });
+  } = useGetBranchHistoryQuery({ branchId: branch?.id ?? "", projectId }, { skip: !branch || !projectId });
   const [mutate] = useProcessBranchHistoryMutation();
 
   const onProcessHistoryClick = async () => {
-    if (branch) {
-      await mutate(branch.id);
+    if (branch && projectId) {
+      await mutate({ branchId: branch.id, projectId });
     }
   };
 

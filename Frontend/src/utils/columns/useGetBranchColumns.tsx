@@ -4,12 +4,19 @@ import type { Column, ColumnDef, Row } from "@tanstack/react-table";
 import { parseTime } from "../parseTime";
 import { useMemo } from "react";
 import HeaderContainer from "@/components/table/HeaderContainer";
-import { Loader, Play } from "lucide-react";
+import { Download, Loader, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const useGetBranchColumns = (
   handleReprocessCallback: (id: string) => void,
+  handleDownloadCallback: (id: string) => void,
   loadingId: string | null,
+  downloadingId: string | null,
 ): ColumnDef<BranchDetailed>[] => {
   return useMemo(
     () => [
@@ -57,23 +64,51 @@ export const useGetBranchColumns = (
       {
         meta: { disableTooltip: true },
         id: "rerunAction",
-        header: () => "Rerun Scan",
+        header: () => "Actions",
         cell: ({ row }: { row: Row<BranchDetailed> }) => {
           const rowId = row.original.id;
           const isRowLoading = loadingId === rowId;
+          const isRowDownloading = downloadingId === rowId;
 
           return (
-            <Button
-              variant="outline"
-              onClick={() => handleReprocessCallback(rowId)}
-              disabled={isRowLoading}
-            >
-              {isRowLoading ? <Loader className="animate-spin" /> : <Play />}
-            </Button>
+            <div className="flex flex-row gap-2">
+              <Tooltip>
+                <TooltipContent>Reprocess</TooltipContent>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleReprocessCallback(rowId)}
+                    disabled={isRowLoading}
+                  >
+                    {isRowLoading ? (
+                      <Loader className="animate-spin" />
+                    ) : (
+                      <Play />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+              </Tooltip>
+              <Tooltip>
+                <TooltipContent>Download</TooltipContent>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDownloadCallback(rowId)}
+                    disabled={isRowDownloading}
+                  >
+                    {isRowDownloading ? (
+                      <Loader className="animate-spin" />
+                    ) : (
+                      <Download />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+              </Tooltip>
+            </div>
           );
         },
       },
     ],
-    [loadingId, handleReprocessCallback],
+    [loadingId, downloadingId, handleReprocessCallback, handleDownloadCallback],
   );
 };

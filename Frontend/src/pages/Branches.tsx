@@ -15,6 +15,7 @@ import { downloadBlob } from "@/utils/downloadBlob";
 import { getPrettyDate } from "@/utils/dateHelper";
 import {
   useGetProjectBranchesDetailedQuery,
+  useLazyDownloadBranchSbomQuery,
   useLazyGetProjectBranchesDetailedExportQuery,
   useReprocessBranchMutation,
 } from "@/store/api/branchesApi";
@@ -34,6 +35,7 @@ const Branches = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [reprocess] = useReprocessBranchMutation();
   const { data = [], isLoading } = useGetProjectBranchesDetailedQuery({
     id: projectId,
@@ -43,12 +45,25 @@ const Branches = () => {
   const [triggerExport, { isFetching: isExporting }] =
     useLazyGetProjectBranchesDetailedExportQuery();
 
+  const [triggerDownloadSbom] =
+    useLazyDownloadBranchSbomQuery();
+
   const openReprocessDialog = useCallback(async (id: string) => {
     setProcessingId(id);
     setIsDialogOpen(true);
   }, []);
 
-  const columns = useGetBranchColumns(openReprocessDialog, processingId);
+  const onDownloadSbomClick = async (branchId: string) => {
+    setDownloadingId(branchId);
+    try {
+      const blob = await triggerDownloadSbom({ branchId, projectId }).unwrap();
+      downloadBlob(blob, `sbom-${branchId}-${getPrettyDate()}.json`);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const columns = useGetBranchColumns(openReprocessDialog, onDownloadSbomClick, processingId, downloadingId);
 
   const table = useReactTable({
     data,
@@ -133,7 +148,7 @@ const Branches = () => {
           />
         </div>
       </div>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { open ? setIsDialogOpen(open) : handleCancelReprocess() }}>
         <DialogContent>
           <DialogHeader>Confirm Reprocessing</DialogHeader>
           <DialogDescription>
