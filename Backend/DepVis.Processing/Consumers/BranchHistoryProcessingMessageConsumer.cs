@@ -1,11 +1,13 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.Json;
 using DepVis.SbomProcessing.Models;
+using DepVis.SbomProcessing.Options;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
 using LibGit2Sharp;
 using MassTransit;
+using Microsoft.Extensions.Options;
 
 namespace DepVis.SbomProcessing.Consumers;
 
@@ -13,7 +15,8 @@ public class BranchHistoryProcessingMessageConsumer(
     ILogger<BranchHistoryProcessingMessageConsumer> _logger,
     MinioStorageService _minioStorageService,
     IPublishEndpoint _publishEndpoint,
-    ProcessingService _processingService
+    ProcessingService _processingService,
+    IOptions<ProcessingOptions> _processingOptions
 ) : IConsumer<BranchHistoryProcessingMessage>
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -27,7 +30,7 @@ public class BranchHistoryProcessingMessageConsumer(
     {
         var githubLink = context.Message.GitHubLink;
         var location = context.Message.Location;
-        var workerCount = Math.Max(1, Environment.ProcessorCount);
+        var workerCount = Math.Max(1, _processingOptions.Value.WorkerCount);
 
         await _publishEndpoint.Publish(
             new UpdateBranchHistoryProcessingMessage

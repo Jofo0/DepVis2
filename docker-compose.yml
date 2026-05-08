@@ -50,6 +50,7 @@ services:
       - ConnectionStrings__FrontEnd=${FRONTEND_URL}
       - ConnectionStrings__Database=Server=sqlserver,1433;Database=depvisTest;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True
       - ConnectionStrings__MinioEndpoint=minio
+      - Processing__WorkerCount=${PROCESSING_WORKER_COUNT:-4}
     networks:
       - my_network
 
