@@ -219,7 +219,7 @@ const HistoryIngestButton = ({
     if (!commit || !branchId) {
       return;
     }
-    await mutate({ historyId: commit.commitId, branchId });
+    await mutate({ historyId: commit.commitId, branchId, projectId: id! });
   };
 
   const handleRefetch = async () => {
