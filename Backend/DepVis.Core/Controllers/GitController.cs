@@ -1,13 +1,13 @@
 ﻿using System.Web;
 using DepVis.Core.Dtos;
-using DepVis.Core.Services;
+using DepVis.Core.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DepVis.Core.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class GitController(GitService gitService) : ControllerBase
+public class GitController(IGitService gitService) : ControllerBase
 {
     [HttpGet("{gitHubUrl}")]
     public ActionResult<GitInformationDto> RetrieveInformationAboutGitRepo(string gitHubUrl)

@@ -1,5 +1,6 @@
 ﻿using DepVis.Core.Context;
 using DepVis.Core.Dtos;
+using DepVis.Core.Repositories.Interfaces;
 using DepVis.Shared.Model;
 using DepVis.Shared.Model.Enums;
 using DepVis.Shared.Services;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Repositories;
 
-public class ProjectBranchRepository(DepVisDbContext context, MinioStorageService minio)
+public class ProjectBranchRepository(DepVisDbContext context, MinioStorageService minio) : IProjectBranchRepository
 {
     public async Task<ProjectBranch?> GetByIdAsync(Guid id)
     {

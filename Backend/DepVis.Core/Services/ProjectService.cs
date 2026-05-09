@@ -1,13 +1,14 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Extensions;
-using DepVis.Core.Repositories;
+using DepVis.Core.Repositories.Interfaces;
+using DepVis.Core.Services.Interfaces;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using MassTransit;
 
 namespace DepVis.Core.Services;
 
-public class ProjectService(ProjectRepository repo, IPublishEndpoint publishEndpoint)
+public class ProjectService(IProjectRepository repo, IPublishEndpoint publishEndpoint) : IProjectService
 {
     public async Task<IEnumerable<ProjectDto>> GetProjects() =>
         (await repo.GetAllAsync()).Select(x => x.MapToDto());

@@ -1,5 +1,5 @@
 using DepVis.Core.Dtos;
-using DepVis.Core.Services;
+using DepVis.Core.Services.Interfaces;
 using DepVis.Core.Util;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -8,7 +8,7 @@ namespace DepVis.Core.Controllers;
 
 [Route("api/projects")]
 [ApiController]
-public class VulnerabilitiesController(VulnerabilityService vulnerabilityService) : ControllerBase
+public class VulnerabilitiesController(IVulnerabilityService vulnerabilityService) : ControllerBase
 {
     [HttpGet("{branchId}/vulnerabilities")]
     public async Task<ActionResult<VulnerabilitiesDto>> GetVulnerabilities(

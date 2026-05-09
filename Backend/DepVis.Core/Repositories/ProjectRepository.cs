@@ -1,9 +1,12 @@
 ﻿using DepVis.Core.Context;
+using DepVis.Core.Repositories.Interfaces;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
-public class ProjectRepository(DepVisDbContext context, MinioStorageService minio)
+namespace DepVis.Core.Repositories;
+
+public class ProjectRepository(DepVisDbContext context, MinioStorageService minio) : IProjectRepository
 {
     public async Task<List<Project>> GetAllAsync() =>
         await context.Projects.Include(x => x.ProjectStatistics).AsNoTracking().ToListAsync();

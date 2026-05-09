@@ -2,12 +2,8 @@
 
 namespace DepVis.Core.Repositories.Interfaces;
 
-public interface IPackagesRepository
+public interface IPackageRepository
 {
-    Task<List<Project>> GetAllAsync();
-    Task<Project?> GetByIdAsync(Guid id);
-    Task<Project?> GetByIdDetailedAsync(Guid id);
-    Task AddAsync(Project project);
-    Task UpdateAsync(Project project);
-    Task DeleteAsync(Project project);
+    IQueryable<SbomPackage> GetLatestPackagesForBranchOrCommit(Guid branchId);
+    Task<SbomPackage?> GetPackage(Guid packageId, CancellationToken cancellation);
 }

@@ -1,5 +1,5 @@
 using DepVis.Core.Dtos;
-using DepVis.Core.Services;
+using DepVis.Core.Services.Interfaces;
 using DepVis.Core.Util;
 using DepVis.Shared.Model;
 using DepVis.Shared.Services;
@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Controllers;
 
-[Route("api/projects/{projectId}")]
+[Route("api/projects")]
 [ApiController]
 public class ProjectBranchesController(
-    ProjectBranchService branchService,
-    ProjectService projectService,
+    IProjectBranchService branchService,
+    IProjectService projectService,
     MinioStorageService minioStorageService
 ) : ControllerBase
 {

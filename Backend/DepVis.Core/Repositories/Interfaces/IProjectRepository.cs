@@ -7,14 +7,10 @@ public interface IProjectRepository
     Task<List<Project>> GetAllAsync();
     Task<Project?> GetByIdAsync(Guid id);
     Task<Project?> GetByIdDetailedAsync(Guid id);
-    Task<Sbom?> GetPackagesAndChildrenByIdAndBranch(Guid id);
     Task AddAsync(Project project);
-    Task<Vulnerability?> GetVulnerability(string id);
-    Task<ProjectBranch?> GetProjectStats(Guid id);
-    Task<List<ProjectBranch>> GetProjectBranches(Guid id);
-    Task<Sbom?> GetPackagesAndParentsByIdAndBranch(Guid id);
-    IQueryable<SbomPackage> GetPackagesForBranch(Guid branchId);
-    IQueryable<ProjectBranch> GetProjectBranchesAsQueryable(Guid id);
     Task UpdateAsync(Project project);
+    Task RemoveBranchesAsync(Guid projectId, List<string> branches);
+    Task AddBranchesAsync(List<ProjectBranch> branches);
     Task DeleteAsync(Project project);
+    Task<ProjectBranch?> GetProjectStatsAsync(Guid branchId);
 }

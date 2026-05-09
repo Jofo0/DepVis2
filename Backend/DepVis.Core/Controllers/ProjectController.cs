@@ -1,12 +1,12 @@
 ﻿using DepVis.Core.Dtos;
-using DepVis.Core.Services;
+using DepVis.Core.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DepVis.Core.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ProjectsController(ProjectService service) : ControllerBase
+public class ProjectsController(IProjectService service) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects() =>

@@ -1,11 +1,11 @@
 ﻿using DepVis.Core.Context;
+using DepVis.Core.Repositories.Interfaces;
 using DepVis.Shared.Model;
-using LibGit2Sharp;
 using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Repositories;
 
-public class PackageRepository(DepVisDbContext context)
+public class PackageRepository(DepVisDbContext context) : IPackageRepository
 {
     public IQueryable<SbomPackage> GetLatestPackagesForBranchOrCommit(Guid branchId)
     {

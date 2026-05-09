@@ -1,6 +1,7 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Extensions;
-using DepVis.Core.Repositories;
+using DepVis.Core.Repositories.Interfaces;
+using DepVis.Core.Services.Interfaces;
 using DepVis.Core.Util;
 using DepVis.Shared.Model;
 using Microsoft.AspNetCore.OData.Query;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Services;
 
-public class PackageService(PackageRepository repo)
+public class PackageService(IPackageRepository repo) : IPackageService
 {
     public async Task<PackagesDto> GetPackageData(
         Guid id,

@@ -1,5 +1,6 @@
 using DepVis.Core.Context;
 using DepVis.Core.Repositories;
+using DepVis.Core.Repositories.Interfaces;
 using DepVis.Core.Services;
 using DepVis.Core.Services.Interfaces;
 using DepVis.Core.Services.Processing;
@@ -26,19 +27,19 @@ builder
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<MinioStorageService>();
-builder.Services.AddScoped<GitService>();
+builder.Services.AddScoped<IGitService, GitService>();
 
-builder.Services.AddScoped<ProjectService>();
-builder.Services.AddScoped<GraphService>();
-builder.Services.AddScoped<VulnerabilityService>();
-builder.Services.AddScoped<PackageService>();
-builder.Services.AddScoped<ProjectBranchService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IGraphService, GraphService>();
+builder.Services.AddScoped<IVulnerabilityService, VulnerabilityService>();
+builder.Services.AddScoped<IPackageService, PackageService>();
+builder.Services.AddScoped<IProjectBranchService, ProjectBranchService>();
 
-builder.Services.AddScoped<ProjectRepository>();
-builder.Services.AddScoped<ProjectBranchRepository>();
-builder.Services.AddScoped<SbomRepository>();
-builder.Services.AddScoped<PackageRepository>();
-builder.Services.AddScoped<VulnerabilityRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IProjectBranchRepository, ProjectBranchRepository>();
+builder.Services.AddScoped<ISbomRepository, SbomRepository>();
+builder.Services.AddScoped<IPackageRepository, PackageRepository>();
+builder.Services.AddScoped<IVulnerabilityRepository, VulnerabilityRepository>();
 
 builder.Services.AddScoped<ISbomIngestionOrchestrator, SbomIngestionOrchestrator>();
 builder.Services.AddScoped<ISbomProcessor, SbomProcessor>();

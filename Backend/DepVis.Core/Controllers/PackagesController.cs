@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using DepVis.Core.Dtos;
-using DepVis.Core.Services;
+using DepVis.Core.Services.Interfaces;
 using DepVis.Core.Util;
 using DepVis.Shared.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +10,7 @@ namespace DepVis.Core.Controllers;
 
 [Route("api/projects")]
 [ApiController]
-public class PackagesController(PackageService packageService, GraphService graphService)
+public class PackagesController(IPackageService packageService, IGraphService graphService)
     : ControllerBase
 {
     [HttpGet("{branchId}/packages")]

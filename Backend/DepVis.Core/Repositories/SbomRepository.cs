@@ -1,10 +1,11 @@
 ﻿using DepVis.Core.Context;
+using DepVis.Core.Repositories.Interfaces;
 using DepVis.Shared.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace DepVis.Core.Repositories;
 
-public class SbomRepository(DepVisDbContext context)
+public class SbomRepository(DepVisDbContext context) : ISbomRepository
 {
     public async Task<Sbom?> GetLatestWithPackagesAndChildrenAsync(Guid id) =>
         await context

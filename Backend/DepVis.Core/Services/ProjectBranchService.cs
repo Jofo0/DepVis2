@@ -1,6 +1,7 @@
 ﻿using DepVis.Core.Dtos;
 using DepVis.Core.Extensions;
-using DepVis.Core.Repositories;
+using DepVis.Core.Repositories.Interfaces;
+using DepVis.Core.Services.Interfaces;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
 using DepVis.Shared.Model.Enums;
@@ -10,9 +11,9 @@ using Microsoft.AspNetCore.OData.Query;
 namespace DepVis.Core.Services;
 
 public class ProjectBranchService(
-    ProjectBranchRepository repo,
-    SbomRepository sbomRepo,
-    IPublishEndpoint publishEndpoint)
+    IProjectBranchRepository repo,
+    ISbomRepository sbomRepo,
+    IPublishEndpoint publishEndpoint) : IProjectBranchService
 {
     public async Task<ProjectBranchDto> GetProjectBranches(Guid id)
     {

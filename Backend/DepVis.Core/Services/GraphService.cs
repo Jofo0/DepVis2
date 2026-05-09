@@ -1,10 +1,11 @@
 ﻿using DepVis.Core.Dtos;
-using DepVis.Core.Repositories;
+using DepVis.Core.Repositories.Interfaces;
+using DepVis.Core.Services.Interfaces;
 using DepVis.Shared.Model;
 
 namespace DepVis.Core.Services;
 
-public class GraphService(SbomRepository repo)
+public class GraphService(ISbomRepository repo) : IGraphService
 {
     public async Task<GraphDataDto?> GetProjectGraphData(
         Guid branchId,

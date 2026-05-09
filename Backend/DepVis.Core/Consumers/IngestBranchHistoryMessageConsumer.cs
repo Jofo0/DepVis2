@@ -1,5 +1,5 @@
 using DepVis.Core.Context;
-using DepVis.Core.Repositories;
+using DepVis.Core.Repositories.Interfaces;
 using DepVis.Core.Services.Interfaces;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model.Enums;
@@ -11,7 +11,7 @@ namespace DepVis.Core.Consumers;
 public class IngestBranchHistoryMessageConsumer(
     ILogger<IngestBranchHistoryMessageConsumer> logger,
     ISbomProcessor sbomProcessor,
-    ProjectBranchRepository projectBranchRepository,
+    IProjectBranchRepository projectBranchRepository,
     DepVisDbContext dbContext
 ) : IConsumer<IngestBranchHistoryMessage>
 {

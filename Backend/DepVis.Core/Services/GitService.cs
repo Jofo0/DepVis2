@@ -1,9 +1,10 @@
 ﻿using DepVis.Core.Dtos;
+using DepVis.Core.Services.Interfaces;
 using LibGit2Sharp;
 
 namespace DepVis.Core.Services;
 
-public class GitService(ILogger<GitService> logger)
+public class GitService(ILogger<GitService> logger) : IGitService
 {
     public GitInformationDto RetrieveInformationAboutGitRepo(string gitHubUrl)
     {
