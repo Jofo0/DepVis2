@@ -45,7 +45,7 @@ const ComparePage = () => {
         compareToBranchId: compareCommit?.commitId ?? compareBranch?.id ?? "",
       });
     }
-  }, [branch, commit, compareBranch, compareCommit, triggerCompare, id]);
+  }, [branch, commit, compareBranch, compareCommit, triggerCompare]);
 
   useEffect(() => {
     const updatedBranch =
@@ -189,14 +189,18 @@ const ComparePage = () => {
             <ListPanel
               title={`Added packages (in ${comparedBranchName})`}
               icon={<Plus className="h-4 w-4" />}
-              items={comparison.addedPackages}
+              items={comparison.addedPackages.map(
+                (x) => `${x.name}@${x.version}`,
+              )}
               nameCounts={comparison.addedEcosystems}
               emptyLabel="No packages were added."
             />
             <ListPanel
               title={`Removed packages (in ${comparedBranchName})`}
               icon={<Minus className="h-4 w-4" />}
-              items={comparison.removedPackages}
+              items={comparison.removedPackages.map(
+                (x) => `${x.name}@${x.version}`,
+              )}
               nameCounts={comparison.removedEcosystems}
               emptyLabel="No packages were removed."
             />

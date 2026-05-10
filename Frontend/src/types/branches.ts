@@ -9,9 +9,14 @@ export type BranchDetailed = {
   scanDate: string;
 };
 
+export type PackageInfo = {
+  name: string;
+  version: string;
+};
+
 export type BranchComparison = {
-  addedPackages: string[];
-  removedPackages: string[];
+  addedPackages: PackageInfo[];
+  removedPackages: PackageInfo[];
   addedEcosystems: NameCount[];
   removedEcosystems: NameCount[];
   addedVulnerabilityIds: string[];
