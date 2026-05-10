@@ -27,7 +27,7 @@ export const projectApi = projectsApi.injectEndpoints({
     }),
     ingestBranchHistory: builder.mutation<
       void,
-      { branchId: string; historyId: string, projectId: string }
+      { branchId: string; historyId: string; projectId: string }
     >({
       query: (dto) => ({
         url: `/${dto.projectId}/branches/${dto.branchId}/history/${dto.historyId}/ingest`,
@@ -35,15 +35,30 @@ export const projectApi = projectsApi.injectEndpoints({
       }),
       invalidatesTags: ["Projects", "Branches", "BranchHistory"],
     }),
-    processBranchHistory: builder.mutation<Branch[], { branchId: string, projectId: string }>({
-      query: ({ branchId, projectId }) => ({ url: `/${projectId}/branches/${branchId}/history`, method: "POST" }),
+    processBranchHistory: builder.mutation<
+      Branch[],
+      { branchId: string; projectId: string }
+    >({
+      query: ({ branchId, projectId }) => ({
+        url: `/${projectId}/branches/${branchId}/history`,
+        method: "POST",
+      }),
       invalidatesTags: ["BranchHistory"],
     }),
-    getBranchHistory: builder.query<BranchHistoryDto, { branchId: string, projectId: string }>({
-      query: ({ branchId, projectId }) => ({ url: `/${projectId}/branches/${branchId}/history`, method: "GET" }),
+    getBranchHistory: builder.query<
+      BranchHistoryDto,
+      { branchId: string; projectId: string }
+    >({
+      query: ({ branchId, projectId }) => ({
+        url: `/${projectId}/branches/${branchId}/history`,
+        method: "GET",
+      }),
       providesTags: ["BranchHistory"],
     }),
-    exportBranchHistory: builder.query<Blob, { branchId: string, projectId: string }>({
+    exportBranchHistory: builder.query<
+      Blob,
+      { branchId: string; projectId: string }
+    >({
       query: ({ branchId, projectId }) => ({
         url: `/${projectId}/branches/${branchId}/history?$export=true`,
         method: "GET",
@@ -51,7 +66,10 @@ export const projectApi = projectsApi.injectEndpoints({
       }),
       providesTags: ["BranchHistory"],
     }),
-    downloadBranchSbom: builder.query<Blob, { branchId: string, projectId: string }>({
+    downloadBranchSbom: builder.query<
+      Blob,
+      { branchId: string; projectId: string }
+    >({
       query: ({ branchId, projectId }) => ({
         url: `/${projectId}/branches/${branchId}/sbom/download`,
         method: "GET",
@@ -71,10 +89,10 @@ export const projectApi = projectsApi.injectEndpoints({
     }),
     getBranchComparison: builder.query<
       BranchComparison,
-      { branchId: string; compareToBranchId: string }
+      { projectId: string; branchId: string; compareToBranchId: string }
     >({
-      query: ({ branchId, compareToBranchId }) => ({
-        url: `/${branchId}/compare/${compareToBranchId}`,
+      query: ({ projectId, branchId, compareToBranchId }) => ({
+        url: `/${projectId}/branches/${branchId}/compare/${compareToBranchId}`,
       }),
     }),
   }),
@@ -90,5 +108,5 @@ export const {
   useGetProjectBranchesDetailedQuery,
   useGetProjectBranchesQuery,
   useLazyGetProjectBranchesDetailedExportQuery,
-  useLazyDownloadBranchSbomQuery
+  useLazyDownloadBranchSbomQuery,
 } = projectApi;

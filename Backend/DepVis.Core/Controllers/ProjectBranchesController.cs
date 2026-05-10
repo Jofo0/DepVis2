@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.OData.Query;
 
 namespace DepVis.Core.Controllers;
 
-[Route("api/projects")]
+[Route("api/projects/{projectId}")]
 [ApiController]
 public class ProjectBranchesController(
     IProjectBranchService branchService,

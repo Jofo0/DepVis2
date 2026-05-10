@@ -28,7 +28,7 @@ public class ProjectBranchService(
             return;
 
         await repo.ResetProjectBranch(id);
-        await publishEndpoint.Publish<ProcessingMessage>(
+        await publishEndpoint.Publish(
             new ProcessingMessage
             {
                 GitHubLink = branch.Project.ProjectLink,
@@ -64,32 +64,39 @@ public class ProjectBranchService(
 
     public async Task<BranchCompareDto> GetComparison(Guid mainBranch, Guid comparedBranchId)
     {
-        var mainBranchData = await repo.GetCompareDataAsync(mainBranch);
-        var comparedBranchData = await repo.GetCompareDataAsync(comparedBranchId);
+        var (_, branchPackages, vulnerabilityIds) = await repo.GetCompareDataAsync(mainBranch);
+        var (_, comparedPackages, list) = await repo.GetCompareDataAsync(comparedBranchId);
 
-        var branchPackages = mainBranchData.PackageNames;
-        var comparedPackages = comparedBranchData.PackageNames;
+        var branchPackageSet = new HashSet<SmallPackage>(branchPackages);
+        var comparedPackageSet = new HashSet<SmallPackage>(comparedPackages);
 
-        var branchPackageSet = new HashSet<SmallPackage>(mainBranchData.PackageNames);
-        var comparedPackageSet = new HashSet<SmallPackage>(comparedBranchData.PackageNames);
-
-        var removedPackages = mainBranchData
-            .PackageNames.Where(p => !comparedPackageSet.Contains(p))
+        var removedPackages = branchPackages.Where(p => !comparedPackageSet.Contains(p))
             .ToList();
 
-        var addedPackages = comparedBranchData
-            .PackageNames.Where(p => !branchPackageSet.Contains(p))
+        var addedPackages = comparedPackages.Where(p => !branchPackageSet.Contains(p))
             .ToList();
 
-        var sourceVulnIds = new HashSet<string>(mainBranchData.VulnerabilityIds);
-        var targetVulnIds = new HashSet<string>(comparedBranchData.VulnerabilityIds);
+        var sourceVulnIds = new HashSet<string>(vulnerabilityIds);
+        var targetVulnIds = new HashSet<string>(list);
 
         var removedVulnerabilityIds = sourceVulnIds.Except(targetVulnIds).ToList();
         var addedVulnerabilityIds = targetVulnIds.Except(sourceVulnIds).ToList();
 
         return new BranchCompareDto(
-            [.. addedPackages.Select(x => x.Name)],
-            [.. removedPackages.Select(x => x.Name)],
+            [
+                .. addedPackages.Select(x => new PackageInfoDto(
+                    x.Name,
+                    x.Version,
+                    true
+                ))
+            ],
+            [
+                .. removedPackages.Select(x => new PackageInfoDto(
+                    x.Name,
+                    x.Version,
+                    true
+                ))
+            ],
             [
                 .. addedPackages
                     .Select(x => x.Ecosystem)

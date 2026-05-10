@@ -40,11 +40,12 @@ const ComparePage = () => {
   useEffect(() => {
     if (branch && compareBranch) {
       triggerCompare({
+        projectId: id!,
         branchId: commit?.commitId ?? branch.id,
         compareToBranchId: compareCommit?.commitId ?? compareBranch?.id ?? "",
       });
     }
-  }, [branch, commit, compareBranch, compareCommit, triggerCompare]);
+  }, [branch, commit, compareBranch, compareCommit, triggerCompare, id]);
 
   useEffect(() => {
     const updatedBranch =
