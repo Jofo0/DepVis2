@@ -1,9 +1,12 @@
 ﻿using System.Collections.Concurrent;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using DepVis.SbomProcessing.Models;
 using DepVis.SbomProcessing.Options;
 using DepVis.Shared.Messages;
 using DepVis.Shared.Model;
+using DepVis.Shared.Model.Enums;
 using DepVis.Shared.Services;
 using LibGit2Sharp;
 using MassTransit;
@@ -23,7 +26,7 @@ public class BranchHistoryProcessingMessageConsumer(
     {
         PropertyNameCaseInsensitive = true,
         AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
+        ReadCommentHandling = JsonCommentHandling.Skip
     };
 
     public async Task Consume(ConsumeContext<BranchHistoryProcessingMessage> context)
@@ -36,8 +39,8 @@ public class BranchHistoryProcessingMessageConsumer(
             new UpdateBranchHistoryProcessingMessage
             {
                 ProjectBranchId = context.Message.ProjectBranchId,
-                ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
-                ProcessStatus = Shared.Model.Enums.ProcessStatus.Pending,
+                ProcessStep = ProcessStep.SbomCreation,
+                ProcessStatus = ProcessStatus.Pending
             }
         );
 
@@ -71,7 +74,7 @@ public class BranchHistoryProcessingMessageConsumer(
                         new UpdateProcessingMessage
                         {
                             ProjectBranchId = context.Message.ProjectBranchId,
-                            ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
+                            ProcessStatus = ProcessStatus.Failed
                         }
                     );
 
@@ -85,7 +88,7 @@ public class BranchHistoryProcessingMessageConsumer(
                             new CommitFilter
                             {
                                 IncludeReachableFrom = branch,
-                                SortBy = CommitSortStrategies.Time,
+                                SortBy = CommitSortStrategies.Time
                             }
                         )
                         .Reverse()
@@ -93,8 +96,8 @@ public class BranchHistoryProcessingMessageConsumer(
                         {
                             Sha = c.Sha,
                             MessageShort = c.MessageShort,
-                            CommitDate = c.Author.When.LocalDateTime,
-                        }),
+                            CommitDate = c.Author.When.LocalDateTime
+                        })
                 ];
             }
 
@@ -106,9 +109,9 @@ public class BranchHistoryProcessingMessageConsumer(
                     new UpdateBranchHistoryProcessingMessage
                     {
                         ProjectBranchId = context.Message.ProjectBranchId,
-                        ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
-                        ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
-                        Commits = [],
+                        ProcessStep = ProcessStep.SbomCreation,
+                        ProcessStatus = ProcessStatus.Success,
+                        Commits = []
                     }
                 );
 
@@ -136,17 +139,16 @@ public class BranchHistoryProcessingMessageConsumer(
             var commitChunks = SplitIntoChunks(commitsToProcess, actualWorkerCount);
             var processedResults = new ConcurrentBag<ProcessedCommitResult>();
 
-            var workerTasks = commitChunks.Select(
-                (chunk, workerIndex) =>
-                    ProcessChunkAsync(
-                        workerIndex: workerIndex,
-                        workerRepoDir: workerFolders[workerIndex],
-                        commits: chunk,
-                        projectBranchId: context.Message.ProjectBranchId,
-                        progress: progress,
-                        resultBag: processedResults,
-                        cancellationToken: context.CancellationToken
-                    )
+            var workerTasks = commitChunks.Select((chunk, workerIndex) =>
+                ProcessChunkAsync(
+                    workerIndex,
+                    workerFolders[workerIndex],
+                    chunk,
+                    context.Message.ProjectBranchId,
+                    progress,
+                    processedResults,
+                    context.CancellationToken
+                )
             );
 
             await Task.WhenAll(workerTasks);
@@ -157,9 +159,9 @@ public class BranchHistoryProcessingMessageConsumer(
                 new UpdateBranchHistoryProcessingMessage
                 {
                     ProjectBranchId = context.Message.ProjectBranchId,
-                    ProcessStep = Shared.Model.Enums.ProcessStep.SbomCreation,
-                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Success,
-                    Commits = globallyDedupedResults,
+                    ProcessStep = ProcessStep.SbomCreation,
+                    ProcessStatus = ProcessStatus.Success,
+                    Commits = globallyDedupedResults
                 }
             );
         }
@@ -176,17 +178,16 @@ public class BranchHistoryProcessingMessageConsumer(
                 new UpdateProcessingMessage
                 {
                     ProjectBranchId = context.Message.ProjectBranchId,
-                    ProcessStatus = Shared.Model.Enums.ProcessStatus.Failed,
+                    ProcessStatus = ProcessStatus.Failed
                 }
             );
         }
         finally
         {
             if (Directory.Exists(rootTempDir))
-            {
                 try
                 {
-                    Directory.Delete(rootTempDir, recursive: true);
+                    Directory.Delete(rootTempDir, true);
                 }
                 catch (Exception ex)
                 {
@@ -196,7 +197,6 @@ public class BranchHistoryProcessingMessageConsumer(
                         rootTempDir
                     );
                 }
-            }
         }
     }
 
@@ -216,13 +216,11 @@ public class BranchHistoryProcessingMessageConsumer(
             return;
         }
 
-        long lastVulnCount = -1;
-        long lastPackageCount = -1;
+        string? lastContentHash = null;
 
         using var repo = new Repository(workerRepoDir);
 
         foreach (var commit in commits)
-        {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -296,13 +294,12 @@ public class BranchHistoryProcessingMessageConsumer(
                         cancellationToken
                     ) ?? new CycloneDxBom { Components = [], Vulnerabilities = [] };
 
-                if (
-                    json.Components?.Count == lastPackageCount
-                    && json.Vulnerabilities?.Count == lastVulnCount
-                )
+                var contentHash = ComputeContentHash(json);
+
+                if (contentHash == lastContentHash)
                 {
                     _logger.LogInformation(
-                        "Worker {workerIndex}: no package/vulnerability count changes for commit {sha}, skipping upload",
+                        "Worker {workerIndex}: no dependency changes for commit {sha}, skipping upload",
                         workerIndex,
                         commit.Sha
                     );
@@ -317,25 +314,25 @@ public class BranchHistoryProcessingMessageConsumer(
                     continue;
                 }
 
-                lastPackageCount = json.Components?.Count ?? 0;
-                lastVulnCount = json.Vulnerabilities?.Count ?? 0;
+                lastContentHash = contentHash;
 
                 _logger.LogDebug("Worker {workerIndex} uploading SBOM file to MinIO", workerIndex);
 
-                await _minioStorageService.UploadAsync(outputFile, filename);
+                await _minioStorageService.UploadAsync(outputFile, filename, cancellationToken);
 
                 resultBag.Add(
-                    new ProcessedCommitResult()
+                    new ProcessedCommitResult
                     {
                         CommitInfo = new CommitProcessingInfo
                         {
                             FileName = filename,
                             CommitMessage = commit.MessageShort,
                             CommitSha = commit.Sha,
-                            CommitDate = commit.CommitDate,
+                            CommitDate = commit.CommitDate
                         },
-                        PackageCount = lastPackageCount,
-                        VulnerabilityCount = lastVulnCount,
+                        PackageCount = json.Components?.Count ?? 0,
+                        VulnerabilityCount = json.Vulnerabilities?.Count ?? 0,
+                        ContentHash = contentHash
                     }
                 );
 
@@ -365,7 +362,6 @@ public class BranchHistoryProcessingMessageConsumer(
                     cancellationToken
                 );
             }
-        }
     }
 
     private async Task PublishProgressIfNeeded(
@@ -375,10 +371,7 @@ public class BranchHistoryProcessingMessageConsumer(
         CancellationToken cancellationToken
     )
     {
-        if (commitsProcessed % 100 != 0 && commitsProcessed != totalCommits)
-        {
-            return;
-        }
+        if (commitsProcessed % 100 != 0 && commitsProcessed != totalCommits) return;
 
         _logger.LogInformation(
             "Branch history progress for {projectBranchId}: {commitsProcessed}/{totalCommits}",
@@ -392,7 +385,7 @@ public class BranchHistoryProcessingMessageConsumer(
             {
                 ProjectBranchId = projectBranchId,
                 TotalCommits = totalCommits,
-                ProcessedCommits = commitsProcessed,
+                ProcessedCommits = commitsProcessed
             },
             cancellationToken
         );
@@ -432,14 +425,10 @@ public class BranchHistoryProcessingMessageConsumer(
 
         foreach (var current in ordered)
         {
-            if (
-                lastKept != null
-                && lastKept.PackageCount == current.PackageCount
-                && lastKept.VulnerabilityCount == current.VulnerabilityCount
-            )
+            if (lastKept != null && lastKept.ContentHash == current.ContentHash)
             {
                 _logger.LogInformation(
-                    "Globally deduplicating commit {sha}; counts match previous kept commit",
+                    "Globally deduplicating commit {sha}; content hash matches previous kept commit",
                     current.CommitInfo.CommitSha
                 );
                 continue;
@@ -452,21 +441,36 @@ public class BranchHistoryProcessingMessageConsumer(
         return deduped;
     }
 
+    private static string ComputeContentHash(CycloneDxBom bom)
+    {
+        var sb = new StringBuilder();
+
+        if (bom.Components is { Count: > 0 })
+            foreach (var c in bom.Components.OrderBy(c => c.Purl ?? $"{c.Name}@{c.Version}", StringComparer.Ordinal))
+                sb.Append(c.Purl ?? $"{c.Name}@{c.Version}").Append('\n');
+
+        sb.Append("||");
+
+        if (bom.Vulnerabilities is { Count: > 0 })
+            foreach (var v in bom.Vulnerabilities.OrderBy(v => v.Id, StringComparer.Ordinal))
+                sb.Append(v.Id).Append('\n');
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(sb.ToString()));
+        return Convert.ToHexString(hash);
+    }
+
     private static void CopyDirectory(string sourceDir, string destinationDir)
     {
         var source = new DirectoryInfo(sourceDir);
 
-        if (!source.Exists)
-        {
-            throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
-        }
+        if (!source.Exists) throw new DirectoryNotFoundException($"Source directory not found: {sourceDir}");
 
         Directory.CreateDirectory(destinationDir);
 
         foreach (var file in source.GetFiles())
         {
             var targetFilePath = Path.Combine(destinationDir, file.Name);
-            file.CopyTo(targetFilePath, overwrite: true);
+            file.CopyTo(targetFilePath, true);
         }
 
         foreach (var subDir in source.GetDirectories())
