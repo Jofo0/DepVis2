@@ -23,13 +23,12 @@ public class GraphService(ISbomRepository repo) : IGraphService
         {
             var sbomPackages = sbom.SbomPackages.Where(x => x.Severity == severityFilter);
 
-            if (!sbomPackages.Any())
-                return null;
+            var enumerable = sbomPackages as SbomPackage[] ?? sbomPackages.ToArray();
 
             HashSet<PackageRelationDto> relationsNew = [];
             HashSet<PackageDto> packagesNew = [];
 
-            foreach (var pkg in sbomPackages)
+            foreach (var pkg in enumerable)
             {
                 var result = GetToRootPath(pkg, sbom, showAllParents, severityFilter);
                 if (result == null)
@@ -41,7 +40,7 @@ public class GraphService(ISbomRepository repo) : IGraphService
             return new GraphDataDto
             {
                 Packages = packagesNew.ToList(),
-                Relationships = relationsNew.ToList(),
+                Relationships = relationsNew.ToList()
             };
         }
 
@@ -50,7 +49,7 @@ public class GraphService(ISbomRepository repo) : IGraphService
                 pkg.Children.Select(child => new PackageRelationDto
                 {
                     To = child.ChildId,
-                    From = child.ParentId,
+                    From = child.ParentId
                 })
             )
             .ToList();
@@ -60,7 +59,7 @@ public class GraphService(ISbomRepository repo) : IGraphService
             {
                 Name = x.Name,
                 Id = x.Id,
-                Severity = x.Severity,
+                Severity = x.Severity
             })
             .ToList();
 
@@ -102,14 +101,12 @@ public class GraphService(ISbomRepository repo) : IGraphService
             {
                 Name = pkg.Name,
                 Id = pkg.Id,
-                Severity = pkg.Severity,
+                Severity = pkg.Severity
             };
 
             if (!string.IsNullOrEmpty(severityFilter))
-            {
                 newPackage.Severity =
                     newPackage.Severity == severityFilter ? severityFilter : "None";
-            }
 
             packages.Add(newPackage);
 
@@ -125,6 +122,7 @@ public class GraphService(ISbomRepository repo) : IGraphService
                     relations.Add(new PackageRelationDto { To = parent.Id, From = pkg.Id });
                     stack.Push(parent);
                 }
+
                 continue;
             }
 

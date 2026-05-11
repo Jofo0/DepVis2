@@ -59,13 +59,14 @@ public class PackagesController(IPackageService packageService, IGraphService gr
             severity,
             commitId
         );
+
         if (graph is null)
             return NotFound();
 
         if (!export)
             return Ok(graph);
 
-        var dot = DotExport.ToDot(graph, graphName: $"branch_{branchId:N}");
+        var dot = DotExport.ToDot(graph, $"branch_{branchId:N}");
         var bytes = Encoding.UTF8.GetBytes(dot);
 
         return File(bytes, "text/vnd.graphviz", $"graph-{branchId}.dot");
