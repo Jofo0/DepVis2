@@ -118,12 +118,10 @@ const History = ({
           {data.totalCommits !== 0 && (
             <>
               <div>
-                Processed Commits / Total Commits: {data.processedCommits} /
-                {data.totalCommits}
+                {`Processed Commits / Total Commits: ${data.processedCommits} / ${data.totalCommits}`}
               </div>
               <div>
-                Estimated Time Remaining:{" "}
-                {formatDuration(data.estimatedSecondsRemaining)}
+                {`Estimated Time Remaining: ${formatDuration(data.estimatedSecondsRemaining)}`}
               </div>
             </>
           )}
