@@ -11,7 +11,7 @@ docker compose up
 
 Then open [this](http://localhost:8080/) url.
 
-To test the functionalities, using https://github.com/anchore/syft as a project is a good start.
+To test the functionalities, using 'https://github.com/Jofo0/DepVis2' as a project is a good start.
 
 ## Description
 
@@ -33,9 +33,10 @@ by Jozef Gajdoš at FI MUNI.
 
 ## Running The App
 
-### Pre-requisites 
+### Pre-requisites
+
 1. Docker Installed Locally
-2. Fill out the .env file. There is an example .env file that you can use as a template. 
+2. Fill out the .env file. There is an example .env file that you can use as a template.
 
 ### Build the application
 
