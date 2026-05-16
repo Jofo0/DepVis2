@@ -403,7 +403,7 @@ public class BranchHistoryProcessingMessageConsumer(
         );
     }
 
-    private static List<List<CommitDescriptor>> SplitIntoChunks(
+    internal static List<List<CommitDescriptor>> SplitIntoChunks(
         List<CommitDescriptor> commits,
         int workerCount
     )
@@ -424,7 +424,7 @@ public class BranchHistoryProcessingMessageConsumer(
         return result;
     }
 
-    private List<CommitProcessingInfo> DeduplicateAcrossWorkers(
+    internal List<CommitProcessingInfo> DeduplicateAcrossWorkers(
         IEnumerable<ProcessedCommitResult> results
     )
     {
@@ -453,7 +453,7 @@ public class BranchHistoryProcessingMessageConsumer(
         return deduped;
     }
 
-    private static string ComputeContentHash(CycloneDxBom bom)
+    internal static string ComputeContentHash(CycloneDxBom bom)
     {
         var sb = new StringBuilder();
 
