@@ -18,8 +18,6 @@ public class ProjectBranch
     public DateTime ScanDate { get; set; }
     public string CommitMessage { get; set; } = string.Empty;
     public string CommitSha { get; set; } = string.Empty;
-    public int TotalHistoryCommits { get; set; } = 0;
-    public int ProcessedHistoryCommits { get; set; } = 0;
     public Project Project { get; set; } = null!;
     public ICollection<BranchHistory> BranchHistories { get; set; } = [];
     public Sbom? Sbom { get; set; }

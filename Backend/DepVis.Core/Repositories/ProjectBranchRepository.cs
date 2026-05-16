@@ -129,9 +129,7 @@ public class ProjectBranchRepository(DepVisDbContext context, MinioStorageServic
                 var projectBranch = await context
                     .ProjectBranches.Where(x => x.Id == projectBranchId).FirstOrDefaultAsync();
 
-                projectBranch!.ProcessedHistoryCommits = 0;
-                projectBranch.TotalHistoryCommits = 0;
-                projectBranch.HistoryProcessingStep = ProcessStep.NotStarted;
+                projectBranch!.HistoryProcessingStep = ProcessStep.NotStarted;
                 projectBranch.PackageCount = 0;
                 projectBranch.VulnerabilityCount = 0;
                 projectBranch.ProcessStatus = ProcessStatus.Pending;

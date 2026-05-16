@@ -57,7 +57,7 @@ public class ProjectBranchesController(
     )
     {
         var stats = await branchService.GetComparison(branchId, comparedWith);
-        return stats is null ? NotFound() : Ok(stats);
+        return Ok(stats);
     }
 
     [HttpGet("stats")]

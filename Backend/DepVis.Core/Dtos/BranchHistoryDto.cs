@@ -8,6 +8,7 @@ public class BranchHistoryDto
     public List<BranchHistoryEntryDto> Histories { get; set; } = [];
     public int TotalCommits { get; set; }
     public int ProcessedCommits { get; set; }
+    public int EstimatedSecondsRemaining { get; set; }
 }
 
 public class BranchHistoryEntryDto

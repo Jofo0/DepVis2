@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using DepVis.Core.Context;
 using DepVis.Core.Repositories;
 using DepVis.Core.Repositories.Interfaces;
@@ -21,10 +22,11 @@ builder
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(
-            new System.Text.Json.Serialization.JsonStringEnumConverter()
+            new JsonStringEnumConverter()
         );
     });
 builder.Services.AddOpenApi();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<MinioStorageService>();
 builder.Services.AddScoped<IGitService, GitService>();
@@ -56,7 +58,7 @@ builder.Services.AddDbContext<DepVisDbContext>(options =>
     )
 );
 
-builder.AddServiceDefaults(dbConnectionString, createMassTransitInfra: true);
+builder.AddServiceDefaults(dbConnectionString, true);
 
 var frontendCors = "AllowFrontend";
 
@@ -69,7 +71,7 @@ builder.Services.AddCors(options =>
             policy
                 .WithOrigins(
                     builder.Configuration.GetConnectionString("FrontEnd")
-                        ?? throw new Exception("FrontEnd ConnectionString is not set.")
+                    ?? throw new Exception("FrontEnd ConnectionString is not set.")
                 )
                 .AllowAnyHeader()
                 .AllowAnyMethod()
@@ -80,17 +82,14 @@ builder.Services.AddCors(options =>
 
 
 builder.Services.Configure<ConnectionStrings>(
-    builder.Configuration.GetSection(key: nameof(ConnectionStrings))
+    builder.Configuration.GetSection(nameof(ConnectionStrings))
 );
 
 var app = builder.Build();
 app.UseCors(frontendCors);
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 
 app.UseHttpsRedirection();
 

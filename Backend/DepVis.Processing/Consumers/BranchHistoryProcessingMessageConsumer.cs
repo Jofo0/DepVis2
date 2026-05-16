@@ -247,6 +247,7 @@ public class BranchHistoryProcessingMessageConsumer(
                         projectBranchId,
                         progress.TotalCommits,
                         missingProcessed,
+                        progress,
                         cancellationToken
                     );
                     continue;
@@ -309,6 +310,7 @@ public class BranchHistoryProcessingMessageConsumer(
                         projectBranchId,
                         progress.TotalCommits,
                         skippedProcessed,
+                        progress,
                         cancellationToken
                     );
                     continue;
@@ -341,6 +343,7 @@ public class BranchHistoryProcessingMessageConsumer(
                     projectBranchId,
                     progress.TotalCommits,
                     processed,
+                    progress,
                     cancellationToken
                 );
             }
@@ -359,6 +362,7 @@ public class BranchHistoryProcessingMessageConsumer(
                     projectBranchId,
                     progress.TotalCommits,
                     failedProcessed,
+                    progress,
                     cancellationToken
                 );
             }
@@ -368,16 +372,23 @@ public class BranchHistoryProcessingMessageConsumer(
         Guid projectBranchId,
         int totalCommits,
         int commitsProcessed,
+        ProgressState progress,
         CancellationToken cancellationToken
     )
     {
-        if (commitsProcessed % 100 != 0 && commitsProcessed != totalCommits) return;
+        if (commitsProcessed % 50 != 0 && commitsProcessed != totalCommits) return;
+
+        var elapsedSeconds = (DateTime.UtcNow.Ticks - progress.StartedAtTicks) / TimeSpan.TicksPerSecond;
+        var estimatedSecondsRemaining = commitsProcessed > 0
+            ? (int)((double)elapsedSeconds / commitsProcessed * (totalCommits - commitsProcessed))
+            : 0;
 
         _logger.LogInformation(
-            "Branch history progress for {projectBranchId}: {commitsProcessed}/{totalCommits}",
+            "Branch history progress for {projectBranchId}: {commitsProcessed}/{totalCommits} (~{eta}s remaining)",
             projectBranchId,
             commitsProcessed,
-            totalCommits
+            totalCommits,
+            estimatedSecondsRemaining
         );
 
         await _publishEndpoint.Publish(
@@ -385,7 +396,8 @@ public class BranchHistoryProcessingMessageConsumer(
             {
                 ProjectBranchId = projectBranchId,
                 TotalCommits = totalCommits,
-                ProcessedCommits = commitsProcessed
+                ProcessedCommits = commitsProcessed,
+                EstimatedSecondsRemaining = estimatedSecondsRemaining
             },
             cancellationToken
         );
@@ -446,8 +458,8 @@ public class BranchHistoryProcessingMessageConsumer(
         var sb = new StringBuilder();
 
         if (bom.Components is { Count: > 0 })
-            foreach (var c in bom.Components.OrderBy(c => c.Purl ?? $"{c.Name}@{c.Version}", StringComparer.Ordinal))
-                sb.Append(c.Purl ?? $"{c.Name}@{c.Version}").Append('\n');
+            foreach (var c in bom.Components.OrderBy(c => c.Purl, StringComparer.Ordinal))
+                sb.Append(c.Purl).Append('\n');
 
         sb.Append("||");
 

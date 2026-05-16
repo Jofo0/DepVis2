@@ -14,5 +14,5 @@ public interface IProjectBranchService
     Task<BranchHistoryDto?> GetBranchHistory(Guid projectBranchId, CancellationToken cancellationToken);
     Task<Sbom?> GetLatestSbomForBranch(Guid branchId, CancellationToken cancellationToken);
     Task ProcessHistory(Guid projectBranchId, CancellationToken cancellationToken);
+    BranchProgressDto? GetBranchProgress(Guid branchId);
 }
-

@@ -15,6 +15,7 @@ import { downloadBlob } from "@/utils/downloadBlob";
 import { getPrettyDate } from "@/utils/dateHelper";
 import { useLazyExportBranchHistoryQuery } from "../../store/api/branchesApi";
 import { useGetProjectId } from "@/utils/hooks/useGetProjectId";
+import { formatDuration } from "@/utils/parseTime";
 
 const BranchHistory = () => {
   const projectId = useGetProjectId();
@@ -24,7 +25,10 @@ const BranchHistory = () => {
 
   const onExportClick = async () => {
     if (!branch || !projectId) return;
-    const blob = await triggerExport({ branchId: branch.id, projectId }).unwrap();
+    const blob = await triggerExport({
+      branchId: branch.id,
+      projectId,
+    }).unwrap();
 
     downloadBlob(blob, `history-${branch.name}-${getPrettyDate()}.csv`);
   };
@@ -62,7 +66,10 @@ const History = ({
     isFetching: isLoading,
     data,
     refetch,
-  } = useGetBranchHistoryQuery({ branchId: branch?.id ?? "", projectId }, { skip: !branch || !projectId });
+  } = useGetBranchHistoryQuery(
+    { branchId: branch?.id ?? "", projectId },
+    { skip: !branch || !projectId },
+  );
   const [mutate] = useProcessBranchHistoryMutation();
 
   const onProcessHistoryClick = async () => {
@@ -109,10 +116,16 @@ const History = ({
         <Card className="flex flex-col justify-center items-center w-1/3 self-center ">
           <div className="p-4">Branch History is being processed</div>
           {data.totalCommits !== 0 && (
-            <div>
-              Processed Commits / Total Commits: {data.processedCommits} /
-              {data.totalCommits}
-            </div>
+            <>
+              <div>
+                Processed Commits / Total Commits: {data.processedCommits} /
+                {data.totalCommits}
+              </div>
+              <div>
+                Estimated Time Remaining:{" "}
+                {formatDuration(data.estimatedSecondsRemaining)}
+              </div>
+            </>
           )}
           <Button variant={"ghost"} onClick={refetch}>
             <RefreshCcw />

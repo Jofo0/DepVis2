@@ -7,13 +7,15 @@ using DepVis.Shared.Model;
 using DepVis.Shared.Model.Enums;
 using MassTransit;
 using Microsoft.AspNetCore.OData.Query;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace DepVis.Core.Services;
 
 public class ProjectBranchService(
     IProjectBranchRepository repo,
     ISbomRepository sbomRepo,
-    IPublishEndpoint publishEndpoint) : IProjectBranchService
+    IPublishEndpoint publishEndpoint,
+    IMemoryCache cache) : IProjectBranchService
 {
     public async Task<ProjectBranchDto> GetProjectBranches(Guid id)
     {
@@ -133,7 +135,20 @@ public class ProjectBranchService(
     )
     {
         var data = await repo.GetProjectBranchHistory(projectBranchId, cancellationToken);
-        return data?.MapToBranchHistoryDto();
+        var dto = data?.MapToBranchHistoryDto();
+
+        if (dto?.ProcessingStep == ProcessStep.SbomCreation)
+        {
+            var progress = GetBranchProgress(projectBranchId);
+            if (progress != null)
+            {
+                dto.ProcessedCommits = progress.ProcessedCommits;
+                dto.TotalCommits = progress.TotalCommits;
+                dto.EstimatedSecondsRemaining = progress.EstimatedSecondsRemaining;
+            }
+        }
+
+        return dto;
     }
 
     public async Task<Sbom?> GetLatestSbomForBranch(Guid branchId, CancellationToken cancellationToken)
@@ -159,5 +174,11 @@ public class ProjectBranchService(
             },
             cancellationToken
         );
+    }
+
+    public BranchProgressDto? GetBranchProgress(Guid branchId)
+    {
+        cache.TryGetValue($"branch-progress:{branchId}", out BranchProgressDto? progress);
+        return progress;
     }
 }

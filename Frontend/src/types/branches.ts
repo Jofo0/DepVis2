@@ -50,6 +50,7 @@ export type BranchHistoryDto = {
   histories: BranchHistoryItem[];
   processingStep: ProcessStep;
   totalCommits: number;
+  estimatedSecondsRemaining: number;
   processedCommits: number;
 };
 

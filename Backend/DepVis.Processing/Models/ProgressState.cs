@@ -2,6 +2,7 @@
 
 public sealed class ProgressState
 {
-    public int TotalCommits { get; init; }
     public int CommitsProcessed;
+    public long StartedAtTicks = DateTime.UtcNow.Ticks;
+    public int TotalCommits { get; init; }
 }

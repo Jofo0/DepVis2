@@ -1,16 +1,16 @@
-﻿using DepVis.Core.Context;
+﻿using DepVis.Core.Dtos;
 using DepVis.Shared.Messages;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace DepVis.Core.Consumers;
 
 public class BranchProcessingCountMessageConsumer(
     ILogger<BranchProcessingCountMessageConsumer> logger,
-    DepVisDbContext dbContext
+    IMemoryCache cache
 ) : IConsumer<BranchProcessingCountMessage>
 {
-    public async Task Consume(ConsumeContext<BranchProcessingCountMessage> context)
+    public Task Consume(ConsumeContext<BranchProcessingCountMessage> context)
     {
         var message = context.Message;
         logger.LogDebug(
@@ -18,20 +18,26 @@ public class BranchProcessingCountMessageConsumer(
             message.ProjectBranchId
         );
 
-        var projectBranch = await dbContext.ProjectBranches.FirstOrDefaultAsync(x =>
-            x.Id == message.ProjectBranchId
+        var progress = new BranchProgressDto
+        {
+            ProcessedCommits = message.ProcessedCommits,
+            TotalCommits = message.TotalCommits,
+            EstimatedSecondsRemaining = message.EstimatedSecondsRemaining
+        };
+
+        cache.Set(
+            $"branch-progress:{message.ProjectBranchId}",
+            progress,
+            TimeSpan.FromMinutes(10)
         );
-        if (projectBranch == null)
-            return;
-
-        projectBranch.TotalHistoryCommits = message.TotalCommits;
-        projectBranch.ProcessedHistoryCommits = message.ProcessedCommits;
-
-        await dbContext.SaveChangesAsync();
 
         logger.LogDebug(
-            "Successfully updated history commits for ProjectBranch {ProjectBranchId}",
-            message.ProjectBranchId
+            "Cached history progress for ProjectBranch {ProjectBranchId}: {Processed}/{Total}",
+            message.ProjectBranchId,
+            message.ProcessedCommits,
+            message.TotalCommits
         );
+
+        return Task.CompletedTask;
     }
 }
