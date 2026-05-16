@@ -15,16 +15,16 @@
 
 ## Tech Stack
 
-| Category | Technologies |
-|---|---|
-| Framework | React 19, TypeScript, Vite 7 |
-| State | Redux Toolkit, RTK Query |
-| Routing | React Router 7 |
-| Styling | TailwindCSS 4, shadcn/ui, Radix UI |
+| Category      | Technologies                                           |
+| ------------- | ------------------------------------------------------ |
+| Framework     | React 19, TypeScript, Vite 7                           |
+| State         | Redux Toolkit, RTK Query                               |
+| Routing       | React Router 7                                         |
+| Styling       | TailwindCSS 4, shadcn/ui, Radix UI                     |
 | Visualization | React Force Graph 2D, Cytoscape.js, Recharts, d3-force |
-| Tables | TanStack Table |
-| Forms | React Hook Form, Zod |
-| i18n | react-intl |
+| Tables        | TanStack Table                                         |
+| Forms         | React Hook Form, Zod                                   |
+| i18n          | react-intl                                             |
 
 ## Prerequisites
 
@@ -66,17 +66,6 @@ npm run preview   # preview the production build locally
 ```bash
 npm run lint
 ```
-
-## Docker
-
-Build and run the frontend as an Nginx-served container:
-
-```bash
-docker build --build-arg VITE_API_BASE_URL=https://your-api-url -t depvis-frontend .
-docker run -p 80:80 depvis-frontend
-```
-
-The image uses a multi-stage build (Node 20 Alpine → Nginx Alpine) and serves the SPA on port 80 with client-side routing support.
 
 ## Project Structure
 
