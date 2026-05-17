@@ -2,6 +2,8 @@
 
 ## Quick Start
 
+### Local Quick Start
+
 To run this locally you can copy-paste the commands below to start up the solution in Docker:
 
 ```bash
@@ -13,7 +15,9 @@ docker compose up
 
 Then open [http://localhost:8080/](http://localhost:8080/).
 
-To test the functionalities, using `https://github.com/Jofo0/DepVis2` as a project is a good start.
+### First project
+
+To test the features, using `https://github.com/Jofo0/DepVis2` as a first project is a good start.
 
 ## Description
 
