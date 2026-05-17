@@ -2,16 +2,18 @@
 
 ## Quick Start
 
+To run this locally you can copy-paste the commands below to start up the solution in Docker:
+
 ```bash
 git clone https://github.com/Jofo0/DepVis2.git
-cd depvis-v2
+cd DepVis2
 cp '.env example' .env
 docker compose up
 ```
 
-Then open [this](http://localhost:8080/) url.
+Then open [http://localhost:8080/](http://localhost:8080/).
 
-To test the functionalities, using 'https://github.com/Jofo0/DepVis2' as a project is a good start.
+To test the functionalities, using `https://github.com/Jofo0/DepVis2` as a project is a good start.
 
 ## Description
 
