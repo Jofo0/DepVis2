@@ -5,7 +5,7 @@
 ```bash
 git clone https://github.com/Jofo0/DepVis2.git
 cd depvis-v2
-cp .env.example .env
+cp '.env example' .env
 docker compose up
 ```
 
