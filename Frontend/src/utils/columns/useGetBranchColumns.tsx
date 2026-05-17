@@ -89,7 +89,7 @@ export const useGetBranchColumns = (
                 </TooltipTrigger>
               </Tooltip>
               <Tooltip>
-                <TooltipContent>Download</TooltipContent>
+                <TooltipContent>Download SBOM</TooltipContent>
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"

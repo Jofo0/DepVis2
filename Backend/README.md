@@ -27,74 +27,62 @@ A .NET 9 backend for analyzing, tracking, and visualizing software dependencies 
 
 ## Projects
 
-| Project | Description |
-|---|---|
-| **DepVis.Core** | ASP.NET Core Web API — controllers, services, repositories, EF Core migrations, MassTransit consumers for ingestion |
-| **DepVis.Processing** | Background worker — clones repos, runs Trivy to generate CycloneDX SBOMs, uploads to MinIO, publishes results via MassTransit |
-| **DepVis.Shared** | Shared library — entity models, MassTransit message contracts, MinIO service, configuration options |
-| **DepVis.ServiceDefaults** | Shared startup — MassTransit configuration (SQL Server transport), database auto-creation |
-| **DepVis.Tests** | xUnit test project — unit tests for services, extensions, models, and processing logic |
-
-## Key Features
-
-- **SBOM Generation** — Trivy scans produce CycloneDX BOMs with dependency and vulnerability data
-- **Branch History Analysis** — Processes every commit on a branch to track dependency changes over time, with parallel multi-worker processing
-- **Content-Hash Deduplication** — SHA256 of sorted purls + vulnerability IDs to skip commits with unchanged dependencies
-- **Dependency Graph** — DFS-based graph traversal for parent/child package relationships with severity filtering
-- **Branch Comparison** — Diff packages and vulnerabilities between two branches (added, removed, upgraded, downgraded)
-- **OData Support** — Server-side filtering, sorting, and paging on packages, vulnerabilities, and branches
-- **CSV & DOT Export** — Export packages, vulnerabilities, branch history, and dependency graphs
-- **SBOM Download** — Download the raw CycloneDX JSON for any branch
-- **Progress Tracking** — Real-time processing progress via IMemoryCache with ETA estimation
+| Project                    | Description                                                                                                                   |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **DepVis.Core**            | ASP.NET Core Web API — controllers, services, repositories, EF Core migrations, MassTransit consumers for ingestion           |
+| **DepVis.Processing**      | Background worker — clones repos, runs Trivy to generate CycloneDX SBOMs, uploads to MinIO, publishes results via MassTransit |
+| **DepVis.Shared**          | Shared library — entity models, MassTransit message contracts, MinIO service, configuration options                           |
+| **DepVis.ServiceDefaults** | Shared startup — MassTransit configuration (SQL Server transport), database auto-creation                                     |
+| **DepVis.Tests**           | xUnit test project — unit tests for services, extensions, models, and processing logic                                        |
 
 ## API Endpoints
 
 ### Projects — `/api/projects`
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/api/projects` | List all projects |
-| `GET` | `/api/projects/{id}` | Get project by ID |
-| `GET` | `/api/projects/{id}/info` | Get editable project info |
-| `POST` | `/api/projects` | Create a project |
-| `PUT` | `/api/projects/{id}` | Update a project |
-| `DELETE` | `/api/projects/{id}` | Delete a project |
+| Method   | Route                     | Description               |
+| -------- | ------------------------- | ------------------------- |
+| `GET`    | `/api/projects`           | List all projects         |
+| `GET`    | `/api/projects/{id}`      | Get project by ID         |
+| `GET`    | `/api/projects/{id}/info` | Get editable project info |
+| `POST`   | `/api/projects`           | Create a project          |
+| `PUT`    | `/api/projects/{id}`      | Update a project          |
+| `DELETE` | `/api/projects/{id}`      | Delete a project          |
 
 ### Branches — `/api/projects/{projectId}/...`
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `.../branches` | List branches for a project |
-| `GET` | `.../branches/detailed` | Detailed branch list (OData, CSV export) |
-| `GET` | `.../stats` | Project-level statistics |
-| `POST` | `.../branches/{branchId}/process` | Trigger SBOM generation for a branch |
-| `GET` | `.../branches/{branchId}/compare/{comparedWith}` | Compare two branches |
-| `GET` | `.../branches/{branchId}/history` | Get branch commit history (CSV export) |
-| `POST` | `.../branches/{branchId}/history` | Trigger history processing |
-| `POST` | `.../branches/{branchId}/history/{historyId}/ingest` | Ingest a specific history commit |
-| `GET` | `.../branches/{branchId}/sbom/download` | Download latest SBOM JSON |
+| Method | Route                                                | Description                              |
+| ------ | ---------------------------------------------------- | ---------------------------------------- |
+| `GET`  | `.../branches`                                       | List branches for a project              |
+| `GET`  | `.../branches/detailed`                              | Detailed branch list (OData, CSV export) |
+| `GET`  | `.../stats`                                          | Project-level statistics                 |
+| `POST` | `.../branches/{branchId}/process`                    | Trigger SBOM generation for a branch     |
+| `GET`  | `.../branches/{branchId}/compare/{comparedWith}`     | Compare two branches                     |
+| `GET`  | `.../branches/{branchId}/history`                    | Get branch commit history (CSV export)   |
+| `POST` | `.../branches/{branchId}/history`                    | Trigger history processing               |
+| `POST` | `.../branches/{branchId}/history/{historyId}/ingest` | Ingest a specific history commit         |
+| `GET`  | `.../branches/{branchId}/sbom/download`              | Download latest SBOM JSON                |
 
 ### Packages — `/api/projects`
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/{branchId}/packages` | List packages (OData, CSV export) |
-| `GET` | `/packages/{packageId}` | Package details |
-| `GET` | `/{branchId}/packages/graph` | Dependency graph (DOT export) |
-| `GET` | `/{branchId}/packages/graph/{packageId}` | Package hierarchy to root |
+| Method | Route                                    | Description                       |
+| ------ | ---------------------------------------- | --------------------------------- |
+| `GET`  | `/{branchId}/packages`                   | List packages (OData, CSV export) |
+| `GET`  | `/packages/{packageId}`                  | Package details                   |
+| `GET`  | `/{branchId}/packages/graph`             | Dependency graph (DOT export)     |
+| `GET`  | `/{branchId}/packages/graph/{packageId}` | Package hierarchy to root         |
 
 ### Vulnerabilities — `/api/projects`
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/{branchId}/vulnerabilities` | List vulnerabilities (OData, CSV export) |
-| `GET` | `/vulnerabilities/{vulnId}` | Vulnerability details |
+| Method | Route                         | Description                              |
+| ------ | ----------------------------- | ---------------------------------------- |
+| `GET`  | `/{branchId}/vulnerabilities` | List vulnerabilities (OData, CSV export) |
+| `GET`  | `/vulnerabilities/{vulnId}`   | Vulnerability details                    |
 
 ### Git — `/api/git`
 
-| Method | Route | Description |
-|---|---|---|
-| `GET` | `/api/git/{gitHubUrl}` | Retrieve branches and tags from a Git repo |
+| Method | Route                  | Description                                |
+| ------ | ---------------------- | ------------------------------------------ |
+| `GET`  | `/api/git/{gitHubUrl}` | Retrieve branches and tags from a Git repo |
 
 ## Message Flow (MassTransit)
 
