@@ -8,17 +8,22 @@ namespace DepVis.Core.Repositories;
 
 public class ProjectRepository(DepVisDbContext context, MinioStorageService minio) : IProjectRepository
 {
-    public async Task<List<Project>> GetAllAsync() =>
-        await context.Projects.Include(x => x.ProjectStatistics).AsNoTracking().ToListAsync();
+    public async Task<List<Project>> GetAllAsync()
+    {
+        return await context.Projects.Include(x => x.ProjectStatistics).AsNoTracking().ToListAsync();
+    }
 
-    public async Task<Project?> GetByIdAsync(Guid id) =>
-        await context
+    public async Task<Project?> GetByIdAsync(Guid id)
+    {
+        return await context
             .Projects.Include(x => x.ProjectBranches)
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
+    }
 
-    public async Task<Project?> GetByIdDetailedAsync(Guid id) =>
-        await context
+    public async Task<Project?> GetByIdDetailedAsync(Guid id)
+    {
+        return await context
             .Projects.AsNoTracking()
             .Include(x => x.ProjectBranches)
             .ThenInclude(x => x.Sbom)
@@ -26,6 +31,7 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
             .ThenInclude(sp => sp.Children)
             .ThenInclude(cd => cd.Child)
             .FirstOrDefaultAsync(p => p.Id == id);
+    }
 
     public async Task AddAsync(Project project)
     {
@@ -56,39 +62,60 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
                         && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
                     )
                     || (
+                        pd.Parent.Sbom.BranchHistory != null
+                        && branches.Contains(pd.Parent.Sbom.BranchHistory.ProjectBranch.Name)
+                        && pd.Parent.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
+                    )
+                    || (
                         pd.Child.Sbom.ProjectBranch != null
                         && branches.Contains(pd.Child.Sbom.ProjectBranch.Name)
                         && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+                    )
+                    || (
+                        pd.Child.Sbom.BranchHistory != null
+                        && branches.Contains(pd.Child.Sbom.BranchHistory.ProjectBranch.Name)
+                        && pd.Child.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
                     )
                 );
                 await packageDependencies.ExecuteDeleteAsync();
 
                 var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
-                    pv.SbomPackage.Sbom.ProjectBranch != null
-                    && branches.Contains(pv.SbomPackage.Sbom.ProjectBranch.Name)
-                    && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
+                    (pv.SbomPackage.Sbom.ProjectBranch != null
+                     && branches.Contains(pv.SbomPackage.Sbom.ProjectBranch.Name)
+                     && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId)
+                    || (pv.SbomPackage.Sbom.BranchHistory != null
+                        && branches.Contains(pv.SbomPackage.Sbom.BranchHistory.ProjectBranch.Name)
+                        && pv.SbomPackage.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId)
                 );
                 await sbomPackageVulnerabilities.ExecuteDeleteAsync();
 
                 var sbomPackages = context.SbomPackages.Where(sp =>
-                    sp.Sbom.ProjectBranch != null
-                    && branches.Contains(sp.Sbom.ProjectBranch.Name)
-                    && sp.Sbom.ProjectBranch.Project.Id == projectId
+                    (sp.Sbom.ProjectBranch != null
+                     && branches.Contains(sp.Sbom.ProjectBranch.Name)
+                     && sp.Sbom.ProjectBranch.Project.Id == projectId)
+                    || (sp.Sbom.BranchHistory != null
+                        && branches.Contains(sp.Sbom.BranchHistory.ProjectBranch.Name)
+                        && sp.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId)
                 );
                 await sbomPackages.ExecuteDeleteAsync();
 
                 var sboms = context.Sboms.Where(s =>
-                    s.ProjectBranch != null
-                    && branches.Contains(s.ProjectBranch.Name)
-                    && s.ProjectBranch.Project.Id == projectId
+                    (s.ProjectBranch != null
+                     && branches.Contains(s.ProjectBranch.Name)
+                     && s.ProjectBranch.Project.Id == projectId)
+                    || (s.BranchHistory != null
+                        && branches.Contains(s.BranchHistory.ProjectBranch.Name)
+                        && s.BranchHistory.ProjectBranch.ProjectId == projectId)
                 );
 
-                foreach (var sbom in await sboms.ToListAsync())
-                {
-                    await minio.DeleteAsync(sbom.FileName);
-                }
+                foreach (var sbom in await sboms.ToListAsync()) await minio.DeleteAsync(sbom.FileName);
 
                 await sboms.ExecuteDeleteAsync();
+
+                var branchHistories = context.BranchHistories.Where(bh =>
+                    bh.ProjectBranch.ProjectId == projectId && branches.Contains(bh.ProjectBranch.Name)
+                );
+                await branchHistories.ExecuteDeleteAsync();
 
                 var projectBranches = context.ProjectBranches.Where(b =>
                     b.Project.Id == projectId && branches.Contains(b.Name)
@@ -126,34 +153,45 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
                         && pd.Parent.Sbom.ProjectBranch.Project.Id == projectId
                     )
                     || (
+                        pd.Parent.Sbom.BranchHistory != null
+                        && pd.Parent.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
+                    )
+                    || (
                         pd.Child.Sbom.ProjectBranch != null
                         && pd.Child.Sbom.ProjectBranch.Project.Id == projectId
+                    )
+                    || (
+                        pd.Child.Sbom.BranchHistory != null
+                        && pd.Child.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId
                     )
                 );
                 await packageDependencies.ExecuteDeleteAsync();
 
                 var sbomPackageVulnerabilities = context.SbomPackageVulnerabilities.Where(pv =>
-                    pv.SbomPackage.Sbom.ProjectBranch != null
-                    && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId
+                    (pv.SbomPackage.Sbom.ProjectBranch != null
+                     && pv.SbomPackage.Sbom.ProjectBranch.Project.Id == projectId)
+                    || (pv.SbomPackage.Sbom.BranchHistory != null
+                        && pv.SbomPackage.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId)
                 );
                 await sbomPackageVulnerabilities.ExecuteDeleteAsync();
 
                 var sbomPackages = context.SbomPackages.Where(sp =>
-                    sp.Sbom.ProjectBranch != null && sp.Sbom.ProjectBranch.Project.Id == projectId
+                    (sp.Sbom.ProjectBranch != null && sp.Sbom.ProjectBranch.Project.Id == projectId)
+                    || (sp.Sbom.BranchHistory != null && sp.Sbom.BranchHistory.ProjectBranch.ProjectId == projectId)
                 );
-
                 await sbomPackages.ExecuteDeleteAsync();
 
                 var sboms = context.Sboms.Where(s =>
-                    s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId
+                    (s.ProjectBranch != null && s.ProjectBranch.Project.Id == projectId)
+                    || (s.BranchHistory != null && s.BranchHistory.ProjectBranch.ProjectId == projectId)
                 );
 
-                foreach (var sbom in await sboms.ToListAsync())
-                {
-                    await minio.DeleteAsync(sbom.FileName);
-                }
-
+                foreach (var sbom in await sboms.ToListAsync()) await minio.DeleteAsync(sbom.FileName);
                 await sboms.ExecuteDeleteAsync();
+
+                var projectHistories = context.BranchHistories.Where(ph => ph.ProjectBranch.Project.Id == projectId
+                );
+                await projectHistories.ExecuteDeleteAsync();
 
                 var projectBranches = context.ProjectBranches.Where(b => b.Project.Id == projectId);
                 await projectBranches.ExecuteDeleteAsync();
@@ -191,6 +229,8 @@ public class ProjectRepository(DepVisDbContext context, MinioStorageService mini
         }
     }
 
-    public async Task<ProjectBranch?> GetProjectStatsAsync(Guid branchId) =>
-        await context.ProjectBranches.AsNoTracking().FirstOrDefaultAsync(x => x.Id == branchId);
+    public async Task<ProjectBranch?> GetProjectStatsAsync(Guid branchId)
+    {
+        return await context.ProjectBranches.AsNoTracking().FirstOrDefaultAsync(x => x.Id == branchId);
+    }
 }
